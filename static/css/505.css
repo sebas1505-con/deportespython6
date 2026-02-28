@@ -1,0 +1,33 @@
+body {
+  text-align: center;
+  padding: 100px;
+  background-color: #f5f5f5;
+  font-family: 'Poppins', sans-serif;
+}
+
+h1 {
+  font-size: 60px;
+  color: #e60000; 
+}
+
+p {
+  font-size: 20px;
+  margin-bottom: 30px;
+  color: #1b1b1d; 
+}
+
+a {
+  background-color: #e60000; 
+  padding: 12px 24px;
+  color: #ffffff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: background 0.3s ease;
+}
+
+a:hover {
+  background-color: #cc0000; 
+}
+
+

@@ -1,0 +1,158 @@
+/* ===== FONDO GENERAL ===== */
+body {
+    margin: 0;
+    font-family: "Segoe UI", sans-serif;
+    background:
+        linear-gradient(rgba(0, 0, 0, 0.70), rgba(0, 0, 0, 0.70)),
+        url("#{resource['images/pelota-futbol.png']}")
+        no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 0;
+    color: #fff;
+}
+
+/* ===== HEADER SUPERIOR ===== */
+.top-bar {
+    width: 100%;
+    max-width: 1100px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 25px;
+    margin-top: 10px;
+}
+
+.titulo-pagina {
+    font-size: 1.6rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.btn-top {
+    background: #00ff9d;
+    color: #021026;
+    padding: 8px 14px;
+    border-radius: 8px;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.btn-top:hover {
+    background: #0cffb6;
+    transform: translateY(-2px);
+}
+
+.carrito {
+    background: #ff4d6d !important;
+}
+
+.carrito:hover {
+    background: #ff6d85 !important;
+}
+
+/* ===== CONTENEDOR CENTRAL ===== */
+.detalle-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+/* ===== CARD PRINCIPAL ===== */
+.detalle-container {
+    width: 95%;
+    max-width: 1100px;
+    background: rgba(255, 255, 255, 0.04);
+    padding: 25px;
+    border-radius: 15px;
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5);
+    animation: fadeIn 0.5s ease;
+}
+
+/* Animación */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== GRID ===== */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 25px;
+    margin-top: 20px;
+}
+
+/* ===== CARD DETALLES ===== */
+.card {
+    background: rgba(255,255,255,0.06);
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed rgba(255,255,255,0.1);
+}
+
+.row:last-child {
+    border-bottom: none;
+}
+
+/* Badges */
+.estado-badge {
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 0.8rem;
+}
+
+.estado-pendiente {
+    background: #ffd96633;
+    color: #ffd966;
+}
+
+/* ===== CARD REPARTIDOR ===== */
+.repartidor-card {
+    background: rgba(255,255,255,0.07);
+    text-align: center;
+    padding: 18px;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.04);
+}
+
+.repartidor-card img {
+    width: 120px;
+    height: 120px;
+    border-radius: 100px;
+    border: 3px solid rgba(255,255,255,0.2);
+    margin-bottom: 10px;
+}
+
+/* ===== BOTÓN PRINCIPAL ===== */
+.btn-2 {
+    display: inline-block;
+    background: linear-gradient(90deg, #00ff9d, #ff4d6d);
+    text-decoration: none;
+    padding: 12px 20px;
+    border-radius: 999px;
+    font-weight: bold;
+    color: #021026;
+    margin-top: 20px;
+    transition: 0.2s;
+}
+
+.btn-2:hover {
+    transform: translateY(-3px);
+}
+

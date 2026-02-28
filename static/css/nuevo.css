@@ -1,0 +1,110 @@
+/* Fondo general */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  background: linear-gradient(135deg, #f0f4f8, #e6f7ff, #ffffff);
+  color: #333;
+  min-height: 100vh;
+
+  /* Centrado vertical y horizontal */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Contenedor principal */
+.container {
+  background: rgba(255, 255, 255, 0.85); /* claro translúcido */
+  backdrop-filter: blur(8px);
+  border-radius: 12px;
+  padding: 40px;
+  width: 90%;
+  max-width: 600px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  border: 1px solid rgba(0,0,0,0.05);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Título */
+h2 {
+  text-align: center;
+  margin-bottom: 30px;
+  font-weight: 600;
+  color: #0077cc; /* azul claro */
+  letter-spacing: 1px;
+}
+
+/* Etiquetas */
+h\:outputLabel {
+  font-weight: bold;
+  color: #444;
+  margin-top: 10px;
+}
+
+/* Inputs */
+input, textarea, select {
+  background: rgba(255,255,255,0.95) !important;
+  border: 1px solid #ccc !important;
+  border-radius: 8px !important;
+  color: #333 !important;
+  padding: 12px !important;
+  width: 100%;
+  transition: all 0.3s ease;
+  margin-bottom: 15px;
+}
+
+input:focus, textarea:focus, select:focus {
+  background: #f9f9f9 !important;
+  outline: none !important;
+  box-shadow: 0 0 10px #00c3ff;
+  border-color: #00c3ff !important;
+}
+
+/* Mensajes de error */
+.text-danger {
+  font-size: 13px;
+  color: #d9534f !important;
+  margin-bottom: 10px;
+}
+
+/* Botones */
+.btn {
+  border-radius: 8px;
+  padding: 12px 25px;
+  font-weight: 600;
+  transition: transform 0.2s ease, background 0.3s ease;
+  margin: 10px 5px;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #00ff88, #00c3ff);
+  border: none;
+  color: #000;
+}
+
+.btn-success:hover {
+  transform: scale(1.05);
+  background: linear-gradient(135deg, #00c3ff, #00ff88);
+}
+
+.btn-secondary {
+  background: #f0f0f0;
+  border: none;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  transform: scale(1.05);
+  background: #e0e0e0;
+}
+
+/* Imagen previa */
+img {
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+  margin: 15px 0;
+}

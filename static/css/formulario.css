@@ -1,0 +1,93 @@
+body {
+  background-color: #fff9f3; 
+  font-family: 'Arial', sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  margin: 0;
+}
+
+.formulario-container {
+  background-color: #ffffff; 
+  padding: 40px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 450px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+  margin-bottom: 25px;
+  color: #e53935; 
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+label {
+  margin-top: 12px;
+  font-weight: bold;
+  color: #333;
+}
+
+input,
+select {
+  padding: 10px;
+  margin-top: 5px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 15px;
+  background-color: #fffaf5;
+}
+
+input:focus,
+select:focus {
+  border-color: #e53935;
+  outline: none;
+  background-color: #fff2f2;
+}
+
+button {
+  margin-top: 20px;
+  background-color: #e53935; 
+  color: white;
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background-color 0.3s ease;
+}
+
+button:hover {
+  background-color: #c62828; 
+}
+.login-form button:hover {
+  background-color: #4b7ce0;
+}
+.btn-volver-home {
+  position: absolute;
+  top: 20px;       
+  left: 20px;      
+  background: #ff0000;   
+  color: #fff;           
+  padding: 8px 15px;     /* espacio interno */
+  border-radius: 8px;    
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+  transition: background 0.3s ease;
+}
+
+.btn-volver-home:hover {
+  background: #b30000;   
+  text-decoration: none; 
+}
+
+
