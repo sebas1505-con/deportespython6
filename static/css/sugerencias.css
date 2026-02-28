@@ -1,0 +1,80 @@
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: url("#{resource['images/fongo.png']}") no-repeat center center/cover;
+
+}
+
+.contenedor-sugerencia {
+  
+  border-radius: 10px;
+  padding: 30px;
+  box-shadow: 0 0 15px rgba(0,0,0,0.1);
+  max-width: 500px;
+  width: 100%;
+  text-align: center;
+}
+
+.contenedor-sugerencia h1 {
+  color: #cc0000;
+  margin-bottom: 10px;
+}
+
+.contenedor-sugerencia p {
+  color: #555;
+  margin-bottom: 20px;
+}
+
+.input-text,
+.textarea {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 16px;
+}
+
+.textarea {
+  height: 120px;
+  resize: vertical;
+}
+
+.btn-enviar {
+  background-color: #cc0000;
+  color: white;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn-enviar:hover {
+  background-color: #a80000;
+}
+.btn-volver-home {
+  position: absolute;
+  top: 20px;       
+  left: 20px;      
+  background: #ff0000;   
+  color: #fff;           
+  padding: 8px 15px;     /* espacio interno */
+  border-radius: 8px;    
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+  transition: background 0.3s ease;
+}
+
+.btn-volver-home:hover {
+  background: #b30000;   
+  text-decoration: none; 
+}
+

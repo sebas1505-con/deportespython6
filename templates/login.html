@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Iniciar sesión</title>
+
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+
+<body>
+    <video autoplay muted loop id="bg-video"> 
+      <source src="{% static 'videos/video2.mp4' %}" type="video/mp4"> 
+      Tu navegador no soporta video en HTML5. 
+    </video>
+
+<div class="login-container">
+
+    <div class="login-header">
+        <img src="{% static 'images/Logo.png' %}" class="logo">
+        <h2>Inicia sesión</h2>
+    </div>
+
+    <a href="{% url 'index' %}" class="btn-volver-home">Volver</a>
+
+    <form method="POST" class="login-form">
+        {% csrf_token %}
+
+        {% if messages %}
+            {% for message in messages %}
+                <p style="color:red;">{{ message }}</p>
+            {% endfor %}
+        {% endif %}
+
+        <label>Correo electrónico:</label>
+        <input type="email" name="correo" required class="input">
+
+        <label>Contraseña:</label>
+        <input type="password" name="clave" required class="input">
+
+        <button type="submit" class="btn-login">Iniciar sesión</button>
+
+        <div class="login-links">
+          <a href="{% url 'menu' %}" class="btn-secundario">¿Quieres registrarte?</a>
+          <a href="#" class="btn-secundario">¿Olvidaste tu contraseña?</a>
+        </div>
+
+    </form>
+
+</div>
+
+</body>
+</html>

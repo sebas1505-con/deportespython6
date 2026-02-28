@@ -1,0 +1,113 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/x-icon" href="{% static 'images/usu.png' %}">
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <title>Deportes 360</title>
+</head>
+
+<body>
+
+<header class="header">
+    <div class="container">
+        <div class="menu">
+            <img class="logo" src="{% static 'images/logo-deporte.png' %}" alt="Logo Deportes 360">
+            <nav class="navbar">
+                <ul>
+                    <li><a href="{% url 'quienes' %}">Quiénes Somos</a></li>
+                    <li><a href="{% url 'contacto' %}">Contacto</a></li>
+                    <li><a href="{% url 'login' %}">Iniciar Sesión</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<div class="hero-section">
+    <div class="container hero-content">
+        <div class="hero-text">
+            <h1>CELEBRA CADA MOVIMIENTO</h1>
+            <p>TECNOLOGÍA, COMODIDAD Y ESTILO PARA CADA DÍA.</p>
+            <a href="{% url 'login' %}" class="btn-2">Compra Ya</a>
+        </div>
+        <div class="hero-image">
+            <img src="{% static 'images/atleta-hero.png' %}" alt="Atleta saltando">
+        </div>
+    </div>
+</div>
+
+<section class="services">
+    <div class="container">
+        <h2>Nuestros Servicios</h2>
+        <div class="services-content">
+            <div class="services-1">
+                <h3>Envíos a todo el país</h3>
+                <p>Recibe tus prendas deportivas estés donde estés, de forma rápida y segura.</p>
+            </div>
+            <div class="services-1">
+                <h3>Cambios sin complicaciones</h3>
+                <p>¿No te quedó bien? Te cambiamos la talla o prenda sin problemas.</p>
+            </div>
+            <div class="services-1">
+                <h3>Pagos 100% seguros</h3>
+                <p>Compra con tranquilidad usando nuestras plataformas protegidas.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<main class="Prodcts container">
+    <h2>Prendas Destacadas</h2>
+    <div class="Prodcts-content">
+
+        <!-- Producto 1 -->
+        <div class="Prodcts-1">
+            <img src="{% static 'images/camiseta.png' %}" alt="Camiseta DryFit Deportiva">
+            <h4>Camiseta DryFit Deportiva</h4>
+            <p>$59.900</p>
+            <a href="{% url 'login' %}" class="btn-1">Más Información</a>
+        </div>
+
+        <!-- Producto 2 -->
+        <div class="Prodcts-1">
+            <img src="{% static 'images/sudadera.png' %}" alt="Sudadera Clásica Unisex">
+            <h4>Sudadera Clásica Unisex</h4>
+            <p>$120.000</p>
+            <a href="{% url 'login' %}" class="btn-1">Más Información</a>
+        </div>
+
+        <!-- Producto 4 -->
+        <div class="Prodcts-1">
+            <img src="{% static 'images/top.png' %}" alt="Top Deportivo Mujer">
+            <h4>Top Deportivo Mujer</h4>
+            <p>$60.000</p>
+            <a href="{% url 'login' %}" class="btn-1">Más Información</a>
+        </div>
+
+        <!-- Producto 5 -->
+        <div class="Prodcts-1">
+            <img src="{% static 'images/conjunto-mujer.png' %}" alt="Conjunto Deportivo Mujer">
+            <h4>Conjunto Deportivo Mujer</h4>
+            <p>$149.000</p>
+            <a href="{% url 'login' %}" class="btn-1">Más Información</a>
+        </div>
+
+    </div>
+</main>
+
+
+<footer class="footer container">
+    <div class="footer-content">
+        <a href="{% url 'index' %}" class="logo">Deportes 360</a>
+        <ul>
+            <li><a href="{% url 'quienes' %}">Quienes Somos</a></li>
+            <li><a href="{% url 'login' %}">Iniciar Sesión</a></li>
+        </ul>
+    </div>
+</footer>
+
+</body>
+</html>

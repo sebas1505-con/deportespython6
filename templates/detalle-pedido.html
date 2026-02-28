@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <title>Detalle del Pedido</title>
+    <link rel="stylesheet" href="{% static 'css/detalle-pedido.css' %}">
+</head>
+<body>
+
+<header class="top-bar">
+    <a href="{% url 'usuario' %}" class="btn-top">⬅ Volver</a>
+
+    <h2 class="titulo-pagina">Detalle del Pedido</h2>
+
+    <a href="{% url 'carrito' %}" class="btn-top carrito">
+        🛒 Carrito
+    </a>
+</header>
+
+<div class="detalle-wrapper">
+
+    <div class="detalle-container">
+        <h2>Pedido #{{ pedido.id }}</h2>
+
+        <div class="info-grid">
+            <div class="card">
+
+                <div class="row">
+                    <strong>Total:</strong>
+                    <span class="value">
+                        ${{ pedido.total }}
+                    </span>
+                </div>
+
+                <div class="row">
+                    <strong>Método de pago:</strong>
+                    <span class="value">
+                        {{ pedido.metodo_pago }}
+                    </span>
+                </div>
+
+                <div class="row">
+                    <strong>Fecha:</strong>
+                    <span class="value">
+                        {{ pedido.fecha }}
+                    </span>
+                </div>
+
+                <div class="row">
+                    <strong>Estado envío:</strong>
+                    <span class="estado-badge estado-pendiente">
+                        {{ pedido.estado_envio }}
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="repartidor-card">
+                <img src="{% static 'images/repartidor.png' %}" alt="Repartidor">
+
+                <h4>{{ pedido.repartidor.nombreRepar }}</h4>
+                <p>Vehículo: {{ pedido.repartidor.tipoDeVehi }}</p>
+                <p>Placa: {{ pedido.repartidor.numPlaca }}</p>
+            </div>
+        </div>
+
+        <a href="{% url 'index' %}" class="btn-2">
+            Volver al inicio
+        </a>
+
+    </div>
+</div>
+
+</body>
+</html>

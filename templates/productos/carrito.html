@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Carrito de Compras - Deportes 360</title>
+
+    <link rel="icon" type="image/x-icon" href="{% static 'images/Carrito.png' %}">
+    <link rel="stylesheet" href="{% static 'css/carrito.css' %}">
+</head>
+
+<body>
+
+<header class="header">
+    <div class="container menu">
+        <a href="{% url 'usuario' %}" class="logo">Deportes 360</a>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="{% url 'usuario' %}">Volver</a></li>
+                <li><a href="{% url 'catalogo' %}">Productos</a></li>
+                <li><a href="{% url 'contacto' %}">Contacto</a></li>
+            </ul>
+        </nav>
+    </div>
+</header>
+
+<main class="container">
+
+    <h1>🛒 Tu Carrito de Compras</h1>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {% for p in productos %}
+        <div class="item-carrito">
+
+            <div class="item-left">
+
+                <img src="{% static 'images/' %}{{ p.imagen }}" 
+                     width="90" height="90" 
+                     style="border-radius:10px;">
+
+                <div class="item-info">
+                    <h4>{{ p.nombre }}</h4>
+                    <p><strong>Precio:</strong> ${{ p.precio }}</p>
+                    <p><strong>Talla:</strong> {{ p.talla }}</p>
+                </div>
+
+            </div>
+
+            <button type="submit"
+                    name="eliminar"
+                    value="{{ forloop.counter0 }}"
+                    class="btn-eliminar">
+                Eliminar
+            </button>
+
+        </div>
+        {% endfor %}
+
+        {% if not productos %}
+            <p class="vacio">Tu carrito está vacío.</p>
+        {% endif %}
+
+        <div class="resumen-carrito">
+
+            <h3>Total:
+                <span id="total">
+                    ${{ total }}
+                </span>
+            </h3>
+
+            <div class="acciones">
+
+                <a href="#" class="btn-finalizar">¿Tienes un cupón?</a>
+
+                <a href="{% url 'usuario' %}" class="btn-finalizar">
+                    Volver
+                </a>
+
+                <a href="{% url 'formulario_compra' %}" class="btn-finalizar">
+                    Finalizar compra
+                </a>
+
+                <button type="submit"
+                        name="vaciar"
+                        value="1"
+                        class="btn-danger">
+                    Vaciar carrito
+                </button>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</main>
+
+</body>
+</html>

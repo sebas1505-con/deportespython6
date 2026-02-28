@@ -1,0 +1,158 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  background-color: #fff8f3;
+  color: #333;
+  margin: 0;
+  padding: 0;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+  padding: 20px;
+}
+
+.header {
+  background-color: #ffffff;
+  border-bottom: 2px solid #e60000;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.menu {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.logo {
+  font-size: 26px;
+  font-weight: 700;
+  color: #e60000;
+  text-decoration: none;
+}
+
+.navbar ul {
+  display: flex;
+  gap: 20px;
+  padding: 0;
+}
+
+.navbar ul li {
+  list-style: none;
+}
+
+.navbar ul li a {
+  text-decoration: none;
+  color: #000;
+  font-weight: 600;
+}
+
+.navbar ul li a:hover {
+  color: #e60000;
+}
+
+h1 {
+  margin-top: 30px;
+  text-align: center;
+  color: #e60000;
+}
+
+.carrito-items {
+  margin-top: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.item-carrito {
+  display: flex;
+  justify-content: space-between;
+  background: #fff;
+  border-radius: 12px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  align-items: center;
+}
+
+.item-carrito img {
+  width: 90px;
+  height: 90px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.item-left {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+}
+
+.item-info h4 {
+  margin: 0;
+  font-size: 19px;
+}
+
+.btn-eliminar {
+  background-color: #ff4747;
+  color: #fff;
+  border: none;
+  padding: 10px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.btn-eliminar:hover {
+  background-color: #d60000;
+}
+
+.resumen-carrito {
+  margin-top: 35px;
+  text-align: right;
+}
+
+#total {
+  font-size: 26px;
+  color: #e60000;
+}
+
+.acciones {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: end;
+}
+
+.btn-finalizar {
+  background-color: #e60000;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 30px;
+  text-decoration: none;
+  font-weight: bold;
+  text-align: center;
+  width: 220px;
+}
+
+.btn-finalizar:hover {
+  background-color: #b30000;
+}
+
+.btn-danger {
+  background-color: #ff0000;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+  border: none;
+  width: 220px;
+}
+
+.vacio {
+  text-align: center;
+  font-size: 20px;
+  margin-top: 30px;
+}
+

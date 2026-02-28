@@ -1,0 +1,42 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña</title>
+
+    <link rel="icon" type="image/x-icon" href="{% static 'images/Cuenta.png' %}">
+    <link rel="stylesheet" href="{% static 'css/recuperar-con.css' %}">
+</head>
+
+<body>
+
+<div class="recover-container">
+
+    <div class="recover-header">
+        <img src="{% static 'images/Logo.png' %}" class="logo" alt="Logo">
+        <h2>Recuperar Contraseña</h2>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <label for="correo">Correo electrónico:</label>
+        <input type="email" id="correo" name="correo" required>
+
+        <button type="submit">
+            Enviar correo de confirmación
+        </button>
+
+        <!-- Aquí luego podrás mostrar mensaje -->
+        {% if mensaje %}
+            <p style="color: green;">{{ mensaje }}</p>
+        {% endif %}
+
+    </form>
+
+</div>
+
+</body>
+</html>

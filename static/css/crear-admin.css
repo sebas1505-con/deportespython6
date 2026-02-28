@@ -1,0 +1,110 @@
+/* Estilos generales del body */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: url("#{resource['images/Fondo3.png']}") no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+/* Contenedor del login */
+.login-container {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 30px;
+  border-radius: 15px;
+  width: 380px;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  text-align: center;
+  backdrop-filter: blur(6px);
+}
+
+/* Cabecera del login */
+.login-header img.logo {
+  width: 90px;
+  margin-bottom: 10px;
+}
+
+.login-header h2 {
+  margin: 0;
+  color: #222;
+  font-size: 1.5rem;
+}
+
+/* Formulario */
+.login-form {
+  display: grid;
+  grid-template-columns: 1fr; /* 1 columna para inputs */
+  gap: 15px; /* espacio entre filas */
+  margin-top: 20px;
+  text-align: left;
+}
+
+/* Labels */
+.login-form label {
+  margin-top: 10px;
+  font-weight: bold;
+  color: #1b1b1d;
+  display: block;
+}
+
+/* Inputs y selects */
+.login-form input,
+.login-form select {
+  padding: 10px;
+  margin-top: 5px;
+  border: 2px solid #bf0f0f;
+  border-radius: 5px;
+  font-size: 15px;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.login-form input:focus,
+.login-form select:focus {
+  border-color: #a74a4a;
+}
+
+/* Botón de enviar */
+.login-form button {
+  margin-top: 20px;
+  background-color: #a74a4a;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background 0.3s ease;
+}
+
+.login-form button:hover {
+  background-color: #bf0f0f;
+}
+
+/* Botón de volver a home */
+.btn-volver-home {
+  position: absolute;
+  top: 20px;       
+  left: 20px;      
+  background: #ff0800;   
+  color: #fff;           
+  padding: 8px 15px;     
+  border-radius: 8px;    
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+  transition: background 0.3s ease;
+}
+
+.btn-volver-home:hover {
+  background: #b30000;   
+  text-decoration: none; 
+}

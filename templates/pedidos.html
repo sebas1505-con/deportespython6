@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Deportes 360 - Mis Pedidos</title>
+
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+    <div class="container">
+        <div class="menu">
+
+            <img src="{% static 'images/logo-deporte.png' %}" 
+                 class="logo" 
+                 alt="Logo Deportes 360" />
+
+            <div class="navbar">
+                <ul>
+                    <li><a href="panel">Panel</a></li>
+                    <li><a href="productos">Productos</a></li>
+                    <li><a href="#" class="active">Mis Pedidos</a></li>
+                    <li><a href="login">Cerrar sesión</a></li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="container" style="margin-top:120px;">
+    <h2>Mis Pedidos</h2>
+
+    {% if not ventas %}
+        <p>No tienes pedidos aún.</p>
+    {% endif %}
+
+    {% for venta in ventas %}
+        <div style="border:1px solid #ccc; padding:15px; margin:15px 0; border-radius:8px;">
+            
+            <p><strong>Pedido #{{ venta.id }}</strong></p>
+            <p><strong>Fecha:</strong> {{ venta.fechaVenta }}</p>
+            <p><strong>Total:</strong> ${{ venta.totalVenta }}</p>
+
+            <button 
+                style="background-color:#007bff; color:white; border:none; padding:8px 15px; border-radius:5px; cursor:pointer;"
+                onclick="var detalle=document.getElementById('detalle-{{ venta.id }}'); 
+                         detalle.style.display = (detalle.style.display === 'none') ? 'block' : 'none';">
+                Ver Detalle
+            </button>
+
+            <div id="detalle-{{ venta.id }}" style="display:none; margin-top:10px;">
+                
+                {% if venta.envio and venta.envio.repartidor %}
+                    <p><strong>Repartidor:</strong> {{ venta.envio.repartidor.nombreRepar }}</p>
+                    <p><strong>Vehículo:</strong> {{ venta.envio.repartidor.tipoDeVehi }}</p>
+                    <p><strong>Placa:</strong> {{ venta.envio.repartidor.numPlaca }}</p>
+                {% else %}
+                    <p>Aún no se ha asignado un repartidor.</p>
+                {% endif %}
+
+            </div>
+
+        </div>
+    {% endfor %}
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,155 @@
+/* === RESET === */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: "Poppins", sans-serif;
+}
+
+/* === BODY === */
+body {
+  margin: 0;
+  padding: 0;
+  background: 
+    linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
+    url("../images/pelota-futbol.png") no-repeat center center fixed;
+  background-size: cover;
+  color: #ffffff;
+  line-height: 1.6;
+}
+
+
+/* === MENÚ === */
+.menu ul {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+}
+
+.menu a {
+  color: #fff;
+  font-weight: 500;
+  transition: 0.3s ease;
+  padding: 5px 0;
+  text-decoration: none;
+}
+
+.menu a:hover,
+.menu a.activo {
+  color: #ff4c29;
+  border-bottom: 2px solid #ff4c29;
+}
+
+/* === RESPONSIVE MENU === */
+@media (max-width: 768px) {
+  .header {
+    padding: 20px;
+  }
+
+  .menu ul {
+    flex-direction: column;
+    gap: 12px;
+  }
+}
+
+/* === SECCIÓN NOSOTROS / QUIÉNES SOMOS === */
+.nosotros, .quienes-somos {
+  max-width: 1000px;
+  margin: 60px auto;
+  padding: 40px;
+
+  background: rgba(0, 0, 0, 0.45);
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.1);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  color: #fff;
+}
+
+.nosotros h2, .quienes-somos h2 {
+  font-size: 32px;
+  color: #ff4c29;
+  margin-bottom: 20px;
+  text-align: center;
+  position: relative;
+}
+
+.nosotros h2::after, .quienes-somos h2::after {
+  content: "";
+  width: 80px;
+  height: 3px;
+  background: #ff4c29;
+  display: block;
+  margin: 8px auto 0;
+  border-radius: 2px;
+}
+
+.nosotros p, .quienes-somos p {
+  margin-bottom: 20px;
+  font-size: 17px;
+  text-align: justify;
+}
+
+/* === FOOTER IGUAL AL HEADER === */
+footer {
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  padding: 30px 0;
+  margin-top: 40px;
+  border-top: 2px solid #ff4c29;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.3);
+}
+
+footer .footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 1100px;
+  margin: auto;
+}
+
+footer ul {
+  list-style: none;
+  display: flex;
+  gap: 20px;
+}
+
+footer a {
+  color: #fff;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+footer a:hover {
+  color: #ff4c29;
+  transition: 0.3s;
+}
+
+/* === RESPONSIVE GENERAL === */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .menu ul {
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 10px;
+  }
+
+  .nosotros, .quienes-somos {
+    padding: 20px;
+  }
+
+  footer .footer-content {
+    flex-direction: column;
+    gap: 20px;
+    text-align: center;
+  }
+}

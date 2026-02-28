@@ -1,0 +1,64 @@
+.recover-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 30px;
+    
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    background-color: #f9f9f9;
+}
+
+.recover-header {
+    text-align: center;
+    margin-bottom: 20px;
+    
+}
+
+.logo {
+    width: 80px;
+    height: auto;
+    margin-bottom: 10px;
+}
+
+.recover-form .input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.btn-recover {
+    width: 100%;
+    padding: 10px;
+    background-color: #0077cc;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    
+}
+
+.btn-recover:hover {
+    background-color: #005fa3;
+}
+
+.btn-volver {
+    display: block;
+    margin-top: 15px;
+    text-align: center;
+    color: #0077cc;
+    text-decoration: none;
+}
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  background: url("#{resource['images/Fondo.png']}") no-repeat center center fixed;
+  background-size: cover;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}

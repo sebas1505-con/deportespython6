@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html">
+
+<h:head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Catálogo - Deportes 360</title>
+    <link rel="icon" type="image/x-icon"
+          href="#{resource['images/Logo.png']}" />
+    <h:outputStylesheet library="css" name="catalogo.css"/>
+</h:head>
+
+<h:body>
+    
+
+
+<header class="header">
+    <div class="container menu">
+
+        <a href="usuario.xhtml" class="logo">DEPORTES 360</a>
+
+        <nav class="navbar">
+            <ul>
+                <h:link outcome="/usuario" value="volver" />
+                <li><a href="carrito.xhtml">Carrito</a></li>
+                <li><a href="contacto1.xhtml">Contacto</a></li>
+            </ul>
+        </nav>
+
+    </div>
+</header>
+
+<main class="Prodcts container" id="productos">
+    <h2>Catálogo de Productos</h2>
+
+    <div class="Prodcts-content">
+
+        <!-- PRODUCTO 1 -->
+        <div class="Prodcts-1">
+            <img src="#{resource['images/camiseta.png']}"
+                 alt="Camiseta DryFit Deportiva"/>
+            <h4>Camiseta DryFit Deportiva</h4>
+            <p>$59.900</p>
+            <h:link outcome="producto-camiseta" value="Más Información" styleClass="btn-1" />
+        </div>
+
+        <!-- PRODUCTO 2 -->
+        <div class="Prodcts-1">
+            <img src="#{resource['images/sudadera.png']}"
+                 alt="Sudadera Clásica Unisex"/>
+            <h4>Sudadera Clásica Unisex</h4>
+            <p>$99.000</p>
+            <h:link outcome="producto-sudadera" value="Más Información" styleClass="btn-1" />
+        </div>
+
+        <!-- PRODUCTO 3 -->
+        <div class="Prodcts-1">
+            <img src="#{resource['images/leggings.png']}"
+                 alt="Leggings Deportivos Mujer"/>
+            <h4>Leggings Deportivos Mujer</h4>
+            <p>$85.000</p>
+            <h:link outcome="producto-leggings" value="Más Información" styleClass="btn-1" />
+        </div>
+
+        <!-- PRODUCTO 4 -->
+        <div class="Prodcts-1">
+            <img src="#{resource['images/chaqueta.png']}"
+                 alt="Chaqueta Rompevientos"/>
+            <h4>Chaqueta Rompevientos</h4>
+            <p>$135.000</p>
+            <h:link outcome="producto-chaqueta" value="Más Información" styleClass="btn-1" />
+        </div>
+
+        <!-- PRODUCTO 5 -->
+        <div class="Prodcts-1">
+            <img src="#{resource['images/short.png']}"
+                 alt="Short Deportivo Hombre"/>
+            <h4>Short Deportivo Hombre</h4>
+            <p>$49.000</p>
+            <h:link outcome="producto-short" value="Más Información" styleClass="btn-1" />
+        </div>
+
+        <!-- PRODUCTO 6 -->
+        <div class="Prodcts-1">
+            <img src="#{resource['images/top.png']}"
+                 alt="Top Deportivo Mujer"/>
+            <h4>Top Deportivo Mujer</h4>
+            <p>$60.000</p>
+            <h:link outcome="producto-top" value="Más Información" styleClass="btn-1" />
+        </div>
+
+        <!-- PRODUCTO 7 -->
+        <div class="Prodcts-1">
+            <img src="#{resource['images/conjunto-mujer.png']}"
+                 alt="Conjunto Deportivo Mujer"/>
+            <h4>Conjunto Deportivo Mujer</h4>
+            <p>$149.000</p>
+            <h:link outcome="producto-conjunto" value="Más Información" styleClass="btn-1" />
+        </div>
+
+        <!-- PRODUCTO 8 -->
+        <div class="Prodcts-1">
+            <img src="#{resource['images/buzo-hombre.png']}"
+                 alt="Buzo Deportivo Hombre"/>
+            <h4>Buzo Deportivo Hombre</h4>
+            <p>$110.000</p>
+            <a href="producto-buzo.xhtml" class="btn-1">Más Información</a>
+        </div>
+
+    </div>
+</main>
+
+<footer class="footer">
+    <div class="container footer-content">
+
+        <a href="#" class="logo">DEPORTES 360</a>
+
+        <ul>
+            <li><a href="catalogo.xhtml">volver</a></li>
+            <li><a href="contacto1.xhtml">Contacto</a></li>
+        </ul>
+
+    </div>
+</footer>
+
+</h:body>
+</html>

@@ -1,0 +1,109 @@
+body {
+      background: url('../images/Logo2.png') no-repeat center center fixed;
+
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f0f2f5;
+  color: #333;
+}
+
+.header {
+  background-color: #0a1f38;
+  color: #ffffff;
+  text-align: center;
+  padding: 20px 0;
+
+}
+
+.header h1 {
+  font-size: 28px;
+  margin: 0;
+  color: #ffffff; 
+  
+}
+
+
+.container {
+  max-width: 1200px;
+  margin: 30px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+h1, h2 {
+  margin-bottom: 20px;
+  color: #0d1a26;
+}
+
+.btn {
+  display: inline-block;
+  background: #fdd835; 
+  color: #0d1a26;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  text-decoration: none;
+  transition: background 0.3s ease;
+  cursor: pointer;
+  margin: 10px 10px 10px 0;
+  
+}
+
+.btn:hover {
+  background: #fbc02d;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #ddd;
+  border-left: 5px solid #e53935; 
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 6px;
+  transition: transform 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-4px);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.table th, .table td {
+  text-align: left;
+  padding: 12px;
+  border-bottom: 1px solid #ccc;
+}
+
+.table th {
+  background-color: #0d1a26;
+  color: white;
+}
+
+.table tr:hover {
+  background-color: #f1f1f1;
+}
+
+@media screen and (max-width: 768px) {
+  .container {
+    padding: 10px;
+  }
+
+  .btn {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .table th, .table td {
+    padding: 10px 8px;
+  }
+}
+

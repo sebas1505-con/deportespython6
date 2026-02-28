@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Formulario de Registro Repartidor</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/alerts.css' %}">
+    <link rel="stylesheet" href="{% static 'css/crear.repartidor.css' %}">
+</head>
+<body>
+    
+    <a href="{% url 'menu' %}" class="btn-volver-home">Volver</a>
+
+    <div class="login-container">
+        <div class="login-header">
+            <img src="{% static 'images/logo-deporte.png' %}" alt="Logo" class="logo"/>
+            <h2>Registro Repartidor</h2>
+        </div>
+
+        <!-- Mensajes -->
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="login-form">
+            {% csrf_token %}
+            
+            <label>Nombre Completo:</label>
+            {{ form.nombre }}
+
+            <label>Correo Electrónico:</label>
+            {{ form.correo }}
+
+            <label>Usuario:</label>
+            {{ form.usuario }}
+
+            <label>Contraseña:</label>
+            {{ form.contrasena }}
+
+            <label>Confirmar Contraseña:</label>
+            {{ form.contrasenaConfirmacion }}
+
+            <label>Número de Placa:</label>
+            {{ form.placa }}
+
+            <label>Teléfono:</label>
+            {{ form.telefono }}
+
+            <label>Tipo de Vehículo:</label>
+            {{ form.vehiculo }}
+
+            <label>Fecha de nacimiento:</label>
+            {{ form.fecha }}
+
+            <button type="submit" class="btn-login">Registrarse</button>
+        </form>
+    </div>
+</body>
+</html>

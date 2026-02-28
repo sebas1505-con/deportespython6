@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Menú de Roles — Deportes 360</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/menu.css' %}">
+</head>
+
+<body>
+    <video autoplay muted loop class="video-fondo">
+      <source src="{% static 'videos/video1.mp4' %}" type="video/mp4">
+      Tu navegador no soporta video en HTML5.
+    </video>
+
+    <header class="encabezado">
+        <h1>Bienvenido a Deportes 360</h1>
+    </header>
+
+    <main class="roles">
+        <a href="{% url 'registro' %}" class="cuadro rol-cliente">
+            <img src="{% static 'images/cliente.png' %}" class="cuadro-img" alt="Cliente"/>
+            <span class="cuadro-titulo">Cliente</span>
+            <p>
+                Regístrate como cliente para comprar productos, disfrutar de promociones
+                y vivir la experiencia deportiva completa.
+            </p>
+        </a>
+
+        <a href="{% url 'crear-repartidor' %}" class="cuadro rol-repartidor">
+            <img src="{% static 'images/repartidor.png' %}" class="cuadro-img" alt="Repartidor"/>
+            <span class="cuadro-titulo">Repartidor</span>
+            <p>
+                Únete como repartidor para trabajar con nosotros y llevar la pasión por
+                el deporte a cada rincón de Colombia.
+            </p>
+        </a>
+    </main>
+
+    <!-- Botón volver -->
+    <a href="{% url 'index' %}" class="btn-volver-home">Volver</a>
+</body>
+</html>

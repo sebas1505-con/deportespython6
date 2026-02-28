@@ -1,0 +1,158 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administrador - Deportes 360</title>
+
+    <link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<header class="header">
+    <h1>Panel de Administrador - Deportes 360</h1>
+</header>
+
+<nav class="sidebar">
+   <ul>
+    <li><a href="{% url 'pedidos' %}">Pedidos</a></li>
+
+    <li>
+        <a href="{% url 'generar_pdf' %}">Generar PDF</a>
+    </li>
+
+    <li><a href="{% url 'productos' %}">Productos</a></li>
+    <li><a href="{% url 'reportesVentas' %}">Reportes</a></li>
+    <li><a href="{% url 'inventario' %}">Inventario</a></li>
+    <li><a href="{% url 'producto_nuevo' %}">Nuevo Producto</a></li>
+    <li><a href="{% url 'producto_editar' %}">Editar Producto</a></li>
+    <li><a href="{% url 'pedidos' %}">Productos Vendidos</a></li>
+    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+   </ul>
+</nav>
+
+<main class="dashboard">
+
+    <!-- ESTADÍSTICAS -->
+    <section class="stats">
+        <div class="stat-box">
+            <h3>Ventas Hoy</h3>
+            <p>$ {{ ventas_hoy }}</p>
+        </div>
+
+        <div class="stat-box">
+            <h3>Productos Vendidos</h3>
+            <p>{{ productos_vendidos_hoy }}</p>
+        </div>
+
+        <div class="stat-box">
+            <h3>Clientes Nuevos</h3>
+            <p>{{ clientes_nuevos_hoy }}</p>
+        </div>
+    </section>
+
+    <!-- GRÁFICA -->
+    <section class="grafico">
+        <h2>Ventas de la Semana</h2>
+        <div class="grafico-contenedor">
+            <canvas id="graficaVentas"></canvas>
+        </div>
+    </section>
+
+    <!-- ÚLTIMOS PEDIDOS -->
+    <section class="pedidos">
+        <h2>Últimos Pedidos</h2>
+        <table class="tabla-pedidos">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Cliente</th>
+                    <th>Productos</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in ultimos_pedidos %}
+                <tr>
+                    <td>{{ p.id }}</td>
+                    <td>{{ p.cliente.nombre }}</td>
+                    <td>
+                        {% for prod in p.productos.all %}
+                            <span>{{ prod.nombre }} ({{ prod.cantidad }})</span><br>
+                        {% endfor %}
+                    </td>
+                    <td>{{ p.fecha }}</td>
+                    <td>$ {{ p.total }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+    <!-- GRÁFICA SCRIPT -->
+    <script>
+    const ctx = document.getElementById('graficaVentas').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        datasets: [{
+          label: 'Ventas ($)',
+          data: [75000, 610000, 58000, 50000, 360000, 350000, 210000],
+          backgroundColor: '#0288d1'
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+    </script>
+
+    <!-- USUARIOS -->
+    <section class="usuarios">
+        <h2>Gestión de Usuarios</h2>
+        <table class="tabla-usuarios">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                    <th>Rol</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in usuarios %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.nombre }}</td>
+                    <td>{{ u.email }}</td>
+                    <td>{{ u.rol }}</td>
+                    <td>
+                        <form method="post" action="{% url 'eliminar_usuario' u.id %}">
+                            {% csrf_token %}
+                            <button type="submit"
+                              onclick="return confirm('¿Seguro que deseas eliminar este usuario?');">
+                              Eliminar
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+</main>
+</body>
+</html>

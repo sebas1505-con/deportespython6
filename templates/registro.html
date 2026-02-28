@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Registro de Cliente</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/registro.css' %}">
+    <link rel="stylesheet" href="{% static 'css/alerts.css' %}">
+</head>
+<body>
+
+<div class="login-container">
+    <div class="login-header">
+        <h2>Registro de Cliente</h2>
+    </div>
+
+    <!-- Mensajes tipo growl -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" class="login-form">
+    {% csrf_token %}
+
+    <label>Nombre Completo:</label>
+    <input type="text" name="nombre" required>
+
+    <label>Correo Electrónico:</label>
+    <input type="email" name="correo" required>
+
+    <label>Usuario:</label>
+    <input type="text" name="usuario" required>
+
+    <label>Contraseña:</label>
+    <input type="password" name="clave" required>
+
+    <label>Confirmar Contraseña:</label>
+    <input type="password" name="confirmar" required>
+
+    <label>Teléfono:</label>
+    <input type="text" name="telefono">
+
+    <label>Dirección:</label>
+    <input type="text" name="direccion">
+
+    <label>Fecha de nacimiento:</label>
+    <input type="date" name="fechaNacimiento">
+
+    <label>Barrio:</label>
+    <input type="text" name="barrio">
+
+    <button type="submit" class="btn-login">Registrarse</button>
+</form>
+
+</div>
+
+<a href="{% url 'menu' %}" class="btn-volver-home">Volver</a>
+
+</body>
+</html>

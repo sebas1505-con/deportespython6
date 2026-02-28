@@ -1,0 +1,136 @@
+/* ===== Body ===== */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: url("../images/Logo2.png") no-repeat center center fixed;
+  background-size: cover;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* ===== Contenedor del login ===== */
+.login-container {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 25px 30px;
+  border-radius: 15px;
+  width: 90%;
+  max-width: 700px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.25);
+  text-align: center;
+  backdrop-filter: blur(6px);
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* ===== Cabecera ===== */
+.login-header img.logo {
+  width: 80px;
+  margin-bottom: 10px;
+}
+
+.login-header h2 {
+  margin: 0 0 15px 0;
+  color: #222;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+/* ===== Formulario ===== */
+.login-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px 15px; /* menos espacio entre cuadros */
+}
+
+/* ===== Labels ===== */
+.login-form label {
+  font-weight: 600;
+  font-size: 0.85rem; /* más pequeño */
+  color: #1b1b1d;
+  margin-bottom: 3px;
+  display: block;
+}
+
+/* ===== Inputs y Selects ===== */
+.login-form input,
+.login-form select {
+  padding: 8px 10px; /* más compactos */
+  border: 2px solid #f6ee0b;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  width: 100%;
+  box-sizing: border-box;
+  outline: none;
+  transition: all 0.3s ease;
+}
+
+.login-form input:focus,
+.login-form select:focus {
+  border-color: #a7a44a;
+  box-shadow: 0 0 5px rgba(167,164,74,0.5);
+}
+
+/* ===== Botón de enviar ===== */
+.login-form button {
+  grid-column: span 2; /* Ocupa las 2 columnas del grid */
+  justify-self: center; /* Lo centra horizontalmente */
+  margin-top: 20px;
+  background-color: #a7a44a;
+  color: white;
+  font-weight: bold;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: all 0.3s ease;
+}
+
+.login-form button:hover {
+  background-color: #f6ee0b;
+  color: #333;
+  box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+}
+
+
+/* ===== Botón volver ===== */
+.btn-volver-home {
+  position: fixed;        /* Fijo en la pantalla */
+  top: 20px;              /* Distancia desde arriba */
+  left: 20px;             /* Distancia desde la izquierda */
+  background: #fff200;   
+  color: #333;           
+  padding: 8px 15px;
+  border-radius: 6px;    
+  font-size: 14px;
+  font-weight: bold;
+  text-decoration: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2); 
+  transition: all 0.3s ease;
+  z-index: 9999;          /* Siempre encima del contenido */
+}
+
+.btn-volver-home:hover {
+  background: #b3aa00;   
+  color: #fff;
+  text-decoration: none; 
+}
+
+/* ===== Responsive ===== */
+@media screen and (max-width: 600px) {
+  .login-form {
+    grid-template-columns: 1fr; /* 1 columna en móvil */
+  }
+
+  .login-form button {
+    grid-column: span 1;
+  }
+
+  .login-container {
+    padding: 20px;
+  }
+}
