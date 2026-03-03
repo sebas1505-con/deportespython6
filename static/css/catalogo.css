@@ -26,10 +26,9 @@ img {
 }
 
 /*===================== HEADER =======================*/
-
 .header {
-  background: #fff;
-  border-bottom: 3px solid #e60000;
+  background: #fff;                     /* Fondo blanco */
+  border-bottom: 3px solid #e60000;    /* Línea inferior roja */
 }
 
 .menu {
@@ -40,25 +39,66 @@ img {
 }
 
 .logo {
-  color: #e60000;
+  color: #e60000;       /* Color rojo del logo */
   font-size: 25px;
   font-weight: 800;
+  text-decoration: none;
 }
 
 .navbar ul {
   display: flex;
-  gap: 20px;
+  gap: 20px;            /* Espacio entre los enlaces */
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 
 .navbar a {
   font-size: 18px;
   font-weight: 600;
-  color: #1b1b1d;
+  color: #1b1b1d;       /* Negro */
+  text-decoration: none;
   transition: 0.3s;
 }
 
 .navbar a:hover {
-  color: #e60000;
+  color: #e60000;       /* Rojo al pasar el mouse */
+}
+
+/* Botones tipo “Volver”, “Agregar al carrito” */
+.btn-1 {
+  display: inline-block;
+  padding: 10px 25px;
+  background: #e60000;  /* Rojo */
+  color: #fff;
+  border-radius: 25px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  transition: 0.3s;
+}
+
+.btn-1:hover {
+  background: #b80000;  /* Rojo oscuro al pasar el mouse */
+}
+
+/*===================== RESPONSIVE HEADER =======================*/
+@media(max-width: 768px) {
+  .menu {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .navbar ul {
+    flex-direction: column;
+    gap: 10px;
+    text-align: center;
+  }
+
+  .navbar a {
+    font-size: 16px;
+  }
 }
 
 /*===================== MENSAJES =======================*/

@@ -6,7 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.auth import login
 from .models import Usuario, Cliente
-
+from .forms import SeleccionTallaForm
 
 def index(request):
     return render(request, 'index.html')
@@ -50,6 +50,9 @@ def detalle_pedido(request):
 def sugerencias(request):
     return render(request, 'sugerencias.html')
 
+def contactousu(request):
+    return render(request, 'contactousu.html')
+
 def logout_view(request):
     request.session.flush()
     return redirect('login')
@@ -84,7 +87,7 @@ def carrito(request):
 
     total = sum(float(p['precio']) for p in carrito)
 
-    return render(request, 'carrito.html', {
+    return render(request, 'productos/carrito.html', {
         'productos': carrito,
         'total': total
     })
@@ -103,8 +106,6 @@ def repartidor(request):
         'nombre': request.session.get('nombre'),
         'ventas_pendientes': ventas_pendientes
     })
-
-
 
 def registro_cliente(request):
     if request.method == 'POST':
@@ -195,3 +196,193 @@ def restablecer_password(request):
         return redirect('restablecer')
 
     return render(request, 'restablecer.html')
+
+def formulario_compra(request):
+    if request.method == 'POST':
+        form = CompraForm(request.POST)
+        if form.is_valid():
+            return redirect('carrito') 
+    else:
+        form = CompraForm(initial={
+            'cant_producto': 1,
+            'total_venta': 0,
+        })
+    return render(request, 'productos/formulario_compra.html', {'form': form})
+
+PRODUCTOS = {
+    'camiseta': {
+        'nombre': 'Camiseta DryFit Deportiva',
+        'precio': 59900,
+        'imagen': 'images/camiseta.png',
+        'descripcion': 'Material de alta calidad que se adapta a tu cuerpo.',
+        'caracteristicas': [
+            '✨ Soporte medio-alto',
+            '💨 Material transpirable',
+            '📏 Tallas: S, M, L, XL',
+            '🎨 Color: Negro',
+        ],
+        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
+        'galeria': ['images/camiseta.png', 'images/camiseta2.png', 'images/camiseta3.png']
+    },
+    'buzo': {
+        'nombre': 'Buzo Hombre Deportivo',
+        'precio': 75000,
+        'imagen': 'images/buzo-hombre.png',
+        'descripcion': 'Comodidad máxima para tus ejercicios.',
+        'caracteristicas': [
+            '✨ Soporte medio-alto',
+            '💨 Material transpirable',
+            '📏 Tallas: S, M, L, XL',
+            '🎨 Color: Negro',
+        ],
+        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
+        'galeria': ['images/buzo-hombre.png']
+    },
+    'sudadera': {
+        'nombre': 'Sudadera Clásica Unisex',
+        'precio': 99000,
+        'imagen': 'images/sudadera.png',
+        'descripcion': 'Sudadera cómoda para uso diario y deporte.',
+        'caracteristicas': [
+            '💨 Material transpirable',
+            '📏 Tallas: S, M, L, XL',
+            '🎨 Color: Gris y Negro',
+        ],
+        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
+        'galeria': ['images/sudadera.png']
+    },
+    'leggings': {
+        'nombre': 'Leggings Deportivos Mujer',
+        'precio': 85000,
+        'imagen': 'images/leggings.png',
+        'descripcion': 'Leggings flexibles y cómodos para entrenar.',
+        'caracteristicas': [
+            '💨 Material transpirable',
+            '📏 Tallas: S, M, L',
+            '🎨 Color: Negro, Azul',
+        ],
+        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
+        'galeria': ['images/leggings.png']
+    },
+    'chaqueta': {
+        'nombre': 'Chaqueta Rompevientos',
+        'precio': 135000,
+        'imagen': 'images/chaqueta.png',
+        'descripcion': 'Protección contra viento y lluvia ligera.',
+        'caracteristicas': [
+            '💨 Material resistente al viento',
+            '📏 Tallas: S, M, L, XL',
+            '🎨 Color: Azul, Negro',
+        ],
+        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
+        'galeria': ['images/chaqueta.png']
+    },
+    'short': {
+        'nombre': 'Short Deportivo Hombre',
+        'precio': 49000,
+        'imagen': 'images/short.png',
+        'descripcion': 'Short ligero para entrenamientos.',
+        'caracteristicas': [
+            '💨 Material transpirable',
+            '📏 Tallas: S, M, L, XL',
+            '🎨 Color: Negro, Gris',
+        ],
+        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
+        'galeria': ['images/short.png']
+    },
+    'top': {
+        'nombre': 'Top Deportivo Mujer',
+        'precio': 60000,
+        'imagen': 'images/top.png',
+        'descripcion': 'Top cómodo y transpirable para deporte.',
+        'caracteristicas': [
+            '💨 Material transpirable',
+            '📏 Tallas: S, M, L',
+            '🎨 Color: Azul, Rosa',
+        ],
+        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
+        'galeria': ['images/top.png']
+    },
+    'conjunto-mujer': {
+        'nombre': 'Conjunto Deportivo Mujer',
+        'precio': 149000,
+        'imagen': 'images/conjunto-mujer.png',
+        'descripcion': 'Conjunto completo para entrenamientos.',
+        'caracteristicas': [
+            '💨 Material transpirable',
+            '📏 Tallas: S, M, L',
+            '🎨 Color: Negro y Rosa',
+        ],
+        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
+        'galeria': ['images/conjunto-mujer.png']
+    },
+}
+
+
+def producto_detalle(request, slug):
+    carrito = request.session.get('carrito', {})  
+    producto = PRODUCTOS.get(slug)
+    if not producto:
+        return redirect('catalogo')
+
+    from .forms import SeleccionTallaForm
+    if request.method == 'POST':
+        form = SeleccionTallaForm(request.POST)
+        if form.is_valid():
+            talla = form.cleaned_data['talla']
+            # Agregar producto al carrito
+            if slug in carrito:
+                carrito[slug]['cantidad'] += 1
+            else:
+                carrito[slug] = {
+                    'nombre': producto['nombre'],
+                    'precio': producto['precio'],
+                    'talla': talla,
+                    'cantidad': 1
+                }
+            request.session['carrito'] = carrito  # guardar en sesión
+            return redirect('carrito')
+    else:
+        form = SeleccionTallaForm()
+
+    context = {
+        'form': form,
+        'carrito_cantidad': sum(item['cantidad'] for item in carrito.values()),
+        'producto': producto,
+    }
+    return render(request, 'productos/producto-detalle.html', context)
+
+def agregar_al_carrito(request, producto_id):
+    carrito = request.session.get('carrito', [])
+
+    # Tomamos el producto del diccionario PRODUCTOS
+    producto = PRODUCTOS.get(producto_id)
+    if producto:
+        carrito.append(producto)  # Guardamos el diccionario completo
+        request.session['carrito'] = carrito
+
+    return redirect('carrito')
+
+
+def carrito(request):
+    carrito = request.session.get('carrito', [])
+
+    if request.method == 'POST':
+        if 'eliminar' in request.POST:
+            index = int(request.POST['eliminar'])
+            if 0 <= index < len(carrito):
+                carrito.pop(index)
+
+        if 'vaciar' in request.POST:
+            carrito = []
+
+        request.session['carrito'] = carrito
+        return redirect('carrito')
+
+    
+    total = sum(float(p.get('precio', 0)) for p in carrito if isinstance(p, dict))
+
+    return render(request, 'productos/carrito.html', {
+        'productos': carrito,
+        'total': total
+    })

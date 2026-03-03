@@ -24,4 +24,7 @@ urlpatterns = [
     path('admin/', views.panel_admin, name='admin'),
     path('detalle-pedido/', views.detalle_pedido, name='detalle_pedido'),
     path('carrito/', views.carrito, name='carrito'),
+    path('contactousu/', views.contactousu, name='contactousu'),
+    path('formulario_compra/', views.formulario_compra, name='formulario_compra'),
+    path('producto/<slug:slug>/', views.producto_detalle, name='producto-detalle'),
 ]

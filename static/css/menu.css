@@ -65,8 +65,8 @@ body {
 
 /* Colores especiales por rol */
 .rol-cliente .cuadro-titulo {
-  color: #f0c300;
-  text-shadow: 0 0 10px #f0c300;
+  color: #f00000;
+  text-shadow: 0 0 10px #f00000;
 }
 
 .rol-repartidor .cuadro-titulo {
@@ -75,8 +75,8 @@ body {
 }
 
 .rol-admin .cuadro-titulo {
-  color: #ff3d3d;
-  text-shadow: 0 0 10px #ff3d3d;
+  color: #ffe83d;
+  text-shadow: 0 0 10px #fffc3d;
 }
 
 

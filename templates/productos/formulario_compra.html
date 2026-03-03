@@ -1,0 +1,64 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Formulario de Compra - Deportes 360</title>
+    <link rel="icon" type="image/png" href="{% static 'images/Re.png' %}">
+    <link rel="stylesheet" href="{% static 'css/formulario.css' %}">
+</head>
+<body>
+
+<div class="formulario-container">
+
+    <h2>📝 Finalizar compra</h2>
+
+    <form method="post">
+        {% csrf_token %}
+
+        {{ form.non_field_errors }}
+
+        <div>
+            {{ form.cant_producto.label_tag }}
+            {{ form.cant_producto }}
+        </div>
+
+        <div>
+            {{ form.metodo_envio.label_tag }}
+            {{ form.metodo_envio }}
+        </div>
+
+        <div>
+            {{ form.total_venta.label_tag }}
+            {{ form.total_venta }}
+        </div>
+
+        <div>
+            {{ form.metodo_pago.label_tag }}
+            {{ form.metodo_pago }}
+        </div>
+
+        <div>
+            {{ form.direccion_envio.label_tag }}
+            {{ form.direccion_envio }}
+        </div>
+
+        <div>
+            {{ form.telefono_contacto.label_tag }}
+            {{ form.telefono_contacto }}
+        </div>
+
+        <div>
+            {{ form.observaciones.label_tag }}
+            {{ form.observaciones }}
+        </div>
+
+        <button type="submit" class="btn-finalizar">Confirmar compra</button>
+    </form>
+
+    <a href="{% url 'carrito' %}" class="btn-volver-home">Volver</a>
+
+</div>
+
+</body>
+</html>

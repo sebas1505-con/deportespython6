@@ -5,7 +5,7 @@ body {
   justify-content: center;
   align-items: center;
   min-height: 100vh;
-  background: url("#{resource['images/fongo.png']}") no-repeat center center/cover;
+ background: url("../images/Fondo.png") no-repeat center center/cover;
 
 }
 
