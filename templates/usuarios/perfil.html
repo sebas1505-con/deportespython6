@@ -1,0 +1,10 @@
+{% load static %}
+
+<h2>Mi Perfil</h2>
+
+<p><strong>Usuario:</strong> {{ user.username }}</p>
+<p><strong>Email:</strong> {{ user.email }}</p>
+
+<a href="{% url 'actualizar_usuario' %}">
+<button>Actualizar Datos</button>
+</a>

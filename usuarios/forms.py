@@ -1,41 +1,85 @@
 from django import forms
-from .models import Cliente
+from .models import Usuario, Administrador, Cliente
+from django.contrib.auth.hashers import make_password
 
-class RegistroForm(forms.ModelForm):
+class RegistroClienteForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput, label="Contraseña")
+    confirmar_password = forms.CharField(widget=forms.PasswordInput, label="Confirmar Contraseña")
+    direccion = forms.CharField(max_length=255, label="Dirección")
+    fecha_nacimiento = forms.DateField(widget=forms.DateInput(attrs={'type':'date'}), required=False)
+    barrio = forms.CharField(max_length=50, required=False)
 
     class Meta:
-        model = Cliente
-        fields = [
-            'nombre',
-            'direccion',
-            'fechaNacimiento',
-            'barrio',
-            'telefono'
-        ]
-        widgets = {
-            'fechaNacimiento': forms.DateInput(attrs={'type': 'date'})
-        }
+        model = Usuario
+        fields = ['username', 'email', 'first_name', 'telefono', 'fecha_nacimiento', 'barrio']
+
     def clean(self):
         cleaned_data = super().clean()
-        clave = cleaned_data.get("clave")
-        confirmar = cleaned_data.get("confirmar")
-
-        if clave != confirmar:
+        if cleaned_data.get("password") != cleaned_data.get("confirmar_password"):
             raise forms.ValidationError("Las contraseñas no coinciden")
-
         return cleaned_data
 
-class RepartidorForm(forms.Form):
-    nombre = forms.CharField(max_length=100, widget=forms.TextInput(attrs={'placeholder': 'Ingresa tu nombre completo'}))
-    correo = forms.EmailField(widget=forms.EmailInput(attrs={'placeholder': 'ejemplo@correo.com'}))
-    usuario = forms.CharField(max_length=50, widget=forms.TextInput(attrs={'placeholder': 'Crea tu usuario'}))
-    contrasena = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Crea una contraseña'}))
-    contrasenaConfirmacion = forms.CharField(widget=forms.PasswordInput(attrs={'placeholder': 'Repite tu contraseña'}))
-    placa = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'placeholder': 'Ejemplo SFQ-072'}))
-    telefono = forms.CharField(max_length=20, required=False, widget=forms.TextInput(attrs={'placeholder': '+57 300 000 0000'}))
-    vehiculo = forms.ChoiceField(choices=[('', '-- Selecciona tu vehículo --'), ('moto', 'Moto'), ('carro', 'Carro')])
-    fecha = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        usuario.password = make_password(self.cleaned_data['password'])
+        usuario.rol = "CLIENTE"
+        if commit:
+            usuario.save()
+        return usuario
 
+class RepartidorForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    confirmar = forms.CharField(widget=forms.PasswordInput)
+
+    placa = forms.CharField(max_length=10)
+    vehiculo = forms.CharField(max_length=20)
+
+    class Meta:
+        model = Usuario
+        fields = [
+            'username',
+            'email',
+            'first_name',
+            'telefono',
+            'fecha_nacimiento',
+            'barrio',
+            'password'
+        ]
+        widgets = {
+            'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'})
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        if cleaned_data.get("password") != cleaned_data.get("confirmar"):
+            raise forms.ValidationError("Las contraseñas no coinciden")
+        return cleaned_data
+
+    def save(self, commit=True):
+        usuario = super().save(commit=False)
+        usuario.password = make_password(self.cleaned_data['password'])  # ✅ encriptar
+        usuario.rol = 'REPARTIDOR'
+        if commit:
+            usuario.save()
+        return usuario
+
+    
+class AdminForm(forms.ModelForm):
+    password = forms.CharField(widget=forms.PasswordInput)
+    confirmar_password = forms.CharField(widget=forms.PasswordInput)
+
+    class Meta:
+        model = Administrador
+        fields = ['codigo']
+
+    def clean(self):
+        cleaned_data = super().clean()
+
+        if cleaned_data.get("codigo") != "ADM-000":
+            raise forms.ValidationError("Código de administrador inválido")
+
+        return cleaned_data
+        
 class CompraForm(forms.Form):
     cant_producto = forms.IntegerField(label="Cantidad de productos", initial=1, widget=forms.NumberInput(attrs={'readonly': 'readonly'}))
     

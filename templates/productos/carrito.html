@@ -33,32 +33,33 @@
     <form method="post">
         {% csrf_token %}
 
-        {% for p in productos %}
-        <div class="item-carrito">
+{% for slug, p in productos.items %}
+<div class="item-carrito">
 
-            <div class="item-left">
+    <div class="item-left">
 
-                <img src="{% static 'images/' %}{{ p.imagen }}" 
-                     width="90" height="90" 
-                     style="border-radius:10px;">
+        <img src="{% static 'images/' %}{{ p.imagen }}"
+             width="90" height="90"
+             style="border-radius:10px;">
 
-                <div class="item-info">
-                    <h4>{{ p.nombre }}</h4>
-                    <p><strong>Precio:</strong> ${{ p.precio }}</p>
-                    <p><strong>Talla:</strong> {{ p.talla }}</p>
-                </div>
-
-            </div>
-
-            <button type="submit"
-                    name="eliminar"
-                    value="{{ forloop.counter0 }}"
-                    class="btn-eliminar">
-                Eliminar
-            </button>
-
+        <div class="item-info">
+            <h4>{{ p.nombre }}</h4>
+            <p><strong>Precio:</strong> ${{ p.precio }}</p>
+            <p><strong>Talla:</strong> {{ p.talla }}</p>
+            <p><strong>Cantidad:</strong> {{ p.cantidad }}</p>
         </div>
-        {% endfor %}
+
+    </div>
+
+    <button type="submit"
+            name="eliminar"
+            value="{{ slug }}"
+            class="btn-eliminar">
+        Eliminar
+    </button>
+
+</div>
+{% endfor %}
 
         {% if not productos %}
             <p class="vacio">Tu carrito está vacío.</p>
@@ -74,12 +75,9 @@
 
             <div class="acciones">
 
-                <a href="#" class="btn-finalizar">¿Tienes un cupón?</a>
-
                 <a href="{% url 'usuario' %}" class="btn-finalizar">
                     Volver
                 </a>
-
                 <a href="{% url 'formulario_compra' %}" class="btn-finalizar">
                     Finalizar compra
                 </a>
@@ -90,13 +88,9 @@
                         class="btn-danger">
                     Vaciar carrito
                 </button>
-
             </div>
-
         </div>
-
     </form>
-
 </main>
 
 </body>

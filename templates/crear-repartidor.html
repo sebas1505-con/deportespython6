@@ -24,35 +24,48 @@
             {% endfor %}
         {% endif %}
 
+        {% if form.errors %}
+    <ul class="form-errors">
+    {% for field in form %}
+        {% for error in field.errors %}
+            <li>{{ field.label }}: {{ error }}</li>
+        {% endfor %}
+    {% endfor %}
+    {% for error in form.non_field_errors %}
+        <li>{{ error }}</li>
+    {% endfor %}
+    </ul>
+    {% endif %}
+
         <form method="POST" class="login-form">
             {% csrf_token %}
             
             <label>Nombre Completo:</label>
-            {{ form.nombre }}
+             {{ form.first_name }}
 
             <label>Correo Electrónico:</label>
-            {{ form.correo }}
+             {{ form.email }}
 
             <label>Usuario:</label>
-            {{ form.usuario }}
+             {{ form.username }}
 
             <label>Contraseña:</label>
-            {{ form.contrasena }}
+             {{ form.password }}
 
             <label>Confirmar Contraseña:</label>
-            {{ form.contrasenaConfirmacion }}
+             {{ form.confirmar }}
 
             <label>Número de Placa:</label>
-            {{ form.placa }}
+             {{ form.placa }}
 
             <label>Teléfono:</label>
-            {{ form.telefono }}
+             {{ form.telefono }}
 
             <label>Tipo de Vehículo:</label>
-            {{ form.vehiculo }}
+             {{ form.vehiculo }}
 
             <label>Fecha de nacimiento:</label>
-            {{ form.fecha }}
+             {{ form.fecha_nacimiento }}
 
             <button type="submit" class="btn-login">Registrarse</button>
         </form>

@@ -27,4 +27,7 @@ urlpatterns = [
     path('contactousu/', views.contactousu, name='contactousu'),
     path('formulario_compra/', views.formulario_compra, name='formulario_compra'),
     path('producto/<slug:slug>/', views.producto_detalle, name='producto-detalle'),
+    path('paginaNo/', views.paginaNo, name='paginaNo'),
+    path('actualizar/', views.actualizar_usuario, name='actualizar_usuario'),
+    path('perfil/', views.perfil_usuario, name='perfil'),
 ]

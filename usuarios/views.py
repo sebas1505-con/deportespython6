@@ -1,12 +1,11 @@
 from django.shortcuts import render, redirect 
-from .forms import RegistroForm
-from .forms import RepartidorForm
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from django.contrib.auth import login
-from .models import Usuario, Cliente
-from .forms import SeleccionTallaForm
+from .models import Usuario, Cliente, Repartidor
+from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password, check_password
 
 def index(request):
     return render(request, 'index.html')
@@ -21,7 +20,7 @@ def menu(request):
     return render(request, 'menu.html')
 
 def sinacceso(request):
-    return render(request, 'sinacceso.html')
+    return render(request, "sinacceso.html")
 
 def recuperar_contraseña(request):
     return render(request, 'recuperar_contraseña.html')
@@ -53,112 +52,147 @@ def sugerencias(request):
 def contactousu(request):
     return render(request, 'contactousu.html')
 
+def paginaNo(request):
+    return render(request, 'paginaNo.html')
+
+def crear_admin(request):
+    return render(request, 'crear_admin.html')
+
 def logout_view(request):
     request.session.flush()
     return redirect('login')
 
 def usuario(request):
-    if not request.session.get('usuario_id'):
-        return redirect('sinacceso')
+    usuario_id = request.session.get('usuario_id')
+    rol = request.session.get('rol')
 
-    usuario = Usuario.objects.get(id=request.session['usuario_id'])
-    cliente = Cliente.objects.get(usuario=usuario)
+    if not usuario_id or rol != "CLIENTE":
+        return redirect("sinacceso")
 
-    return render(request, 'usuario.html', {
-        'cliente': cliente
-    })
+    usuario = Usuario.objects.get(id=usuario_id)
 
-def carrito(request):
+    return render(request, "usuario.html", {"usuario": usuario})
 
-    carrito = request.session.get('carrito', [])
+def actualizar_usuario(request):
+    usuario_id = request.session.get('usuario_id')
+    rol = request.session.get('rol')
+
+    if not usuario_id or rol != "CLIENTE":
+        return redirect("sinacceso")
+
+    usuario = Usuario.objects.get(id=usuario_id)
 
     if request.method == 'POST':
+        form = RegistroClienteForm(request.POST, instance=usuario)
+        if form.is_valid():
+            form.save()
+            return redirect('perfil')
+    else:
+        form = RegistroClienteForm(instance=usuario)
 
-        if 'eliminar' in request.POST:
-            index = int(request.POST['eliminar'])
-            if 0 <= index < len(carrito):
-                carrito.pop(index)
+    return render(request, 'usuarios/actualizar_usuario.html', {'form': form})
 
-        if 'vaciar' in request.POST:
-            carrito = []
+def perfil_usuario(request):
+    usuario_id = request.session.get('usuario_id')
+    rol = request.session.get('rol')
 
-        request.session['carrito'] = carrito
-        return redirect('carrito')
+    if not usuario_id or rol != "CLIENTE":
+        return redirect("sinacceso")
 
-    total = sum(float(p['precio']) for p in carrito)
+    usuario = Usuario.objects.get(id=usuario_id)
 
-    return render(request, 'productos/carrito.html', {
-        'productos': carrito,
-        'total': total
-    })
+    return render(request, 'usuarios/perfil.html', {"usuario": usuario})
 
 def repartidor(request):
-    if not request.session.get('cliente_id'):
-        return redirect('sinacceso')
+    usuario_id = request.session.get('usuario_id')
+    rol = request.session.get('rol')
 
-    if request.session.get('rol') != 'repartidor':
+    if not usuario_id or rol != 'REPARTIDOR':
         return redirect('sinacceso')
 
     # Simulación de pedidos pendientes
     ventas_pendientes = []
 
+    usuario = Usuario.objects.get(id=usuario_id)
+
     return render(request, 'repartidor.html', {
-        'nombre': request.session.get('nombre'),
+        'nombre': usuario.first_name,
         'ventas_pendientes': ventas_pendientes
     })
 
-def registro_cliente(request):
+
+def carrito(request):
+
+    carrito = request.session.get('carrito', {})
+
     if request.method == 'POST':
-        usuario_txt = request.POST.get('usuario')
-        correo_txt = request.POST.get('correo')
-        clave_txt = request.POST.get('clave')
-        confirmar = request.POST.get('confirmar')
-        nombre = request.POST.get('nombre')
-        telefono = request.POST.get('telefono')
-        direccion = request.POST.get('direccion')
-        fechaNacimiento = request.POST.get('fechaNacimiento')
-        barrio = request.POST.get('barrio')
 
-        if clave_txt != confirmar:
-            messages.error(request, "Las contraseñas no coinciden")
-            return redirect('registro')
+        if 'eliminar' in request.POST:
+            slug = request.POST['eliminar']
+            if slug in carrito:
+                del carrito[slug]
 
-        usuario = Usuario.objects.create(
-            usuario=usuario_txt,
-            correo=correo_txt,
-            clave=clave_txt,
-            rol='usuario'
-        )
+        if 'vaciar' in request.POST:
+            carrito = {}
 
-        Cliente.objects.create(
-            usuario=usuario,
-            nombre=nombre,
-            telefono=telefono,
-            direccion=direccion,
-            fechaNacimiento=fechaNacimiento,
-            barrio=barrio
-        )
+        request.session['carrito'] = carrito
+        return redirect('carrito')
 
-        messages.success(request, "Registro exitoso")
-        return redirect('login')
+    total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
 
-    return render(request, 'registro.html')
+    return render(request, 'productos/carrito.html', {
+        'productos': carrito,
+        'total': total,
+        'cantidad': sum(item['cantidad'] for item in carrito.values())
+    })
+
+def registro_cliente(request):
+    if request.method == "POST":
+        form = RegistroClienteForm(request.POST)
+        if form.is_valid():
+            usuario = form.save(commit=False)
+            usuario.rol = "CLIENTE"
+            usuario.password = make_password(form.cleaned_data['password'])
+            usuario.save()
+
+            Cliente.objects.create(
+                usuario=usuario,
+                direccion=form.cleaned_data['direccion']
+            )
+
+            messages.success(request, "¡Registro exitoso! Ya puedes iniciar sesión.")
+            return redirect("login")
+        else:
+            # Para ver qué falla
+            print(form.errors)
+    else:
+        form = RegistroClienteForm()
+
+    return render(request, "registro.html", {"form": form})
+
 
 def crear_repartidor(request):
-    if request.method == 'POST':
+    if request.method == "POST":
         form = RepartidorForm(request.POST)
         if form.is_valid():
-            repartidor = form.save(commit=False)
-            repartidor.rol = 'repartidor'
-            repartidor.save()
-            request.session['cliente_id'] = repartidor.id
-            request.session['rol'] = repartidor.rol
+            usuario = form.save()
+            usuario.rol = "REPARTIDOR"
+            # Encriptar la contraseña
+            usuario.password = make_password(form.cleaned_data['password'])
+            usuario.save()
 
-            return redirect('repartidor') 
+            Repartidor.objects.create(
+                usuario=usuario,
+                placa=form.cleaned_data['placa'],
+                vehiculo=form.cleaned_data['vehiculo']
+            )
+
+            messages.success(request, "¡Registro exitoso! Ya puedes iniciar sesión.")
+            return redirect("login")
     else:
         form = RepartidorForm()
 
-    return render(request, 'crear-repartidor.html', {'form': form})
+    return render(request, "crear-repartidor.html", {"form": form})
 
 
 def login_view(request):
@@ -167,16 +201,27 @@ def login_view(request):
         clave = request.POST.get('clave')
 
         try:
-            usuario = Usuario.objects.get(correo=correo, clave=clave)
+            usuario = Usuario.objects.get(email=correo)
 
-            request.session['usuario_id'] = usuario.id
-            request.session['rol'] = usuario.rol
+            if check_password(clave, usuario.password):
+                # iniciar sesión
+                request.session['usuario_id'] = usuario.id
+                request.session['rol'] = usuario.rol
+                messages.success(request, f"¡Bienvenido {usuario.first_name}!")
 
-            if usuario.rol == 'usuario':
-                return redirect('usuario')
+                if usuario.rol == 'CLIENTE':
+                    return redirect('usuario')
+                elif usuario.rol == 'REPARTIDOR':
+                    return redirect('repartidor')
+                elif usuario.rol == 'ADMIN':
+                    return redirect('panel_admin')
+                else:
+                    return redirect('login')
+            else:
+                messages.error(request, "Contraseña incorrecta")
 
         except Usuario.DoesNotExist:
-            messages.error(request, "Credenciales incorrectas")
+            messages.error(request, "Usuario no registrado")
 
     return render(request, 'login.html')
 
@@ -198,15 +243,24 @@ def restablecer_password(request):
     return render(request, 'restablecer.html')
 
 def formulario_compra(request):
+
+    carrito = request.session.get('carrito', {})
+
+    cantidad = sum(item['cantidad'] for item in carrito.values())
+    total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
+
     if request.method == 'POST':
         form = CompraForm(request.POST)
+
         if form.is_valid():
-            return redirect('carrito') 
+            return redirect('carrito')
+
     else:
         form = CompraForm(initial={
-            'cant_producto': 1,
-            'total_venta': 0,
+            'cant_producto': cantidad,
+            'total_venta': total,
         })
+
     return render(request, 'productos/formulario_compra.html', {'form': form})
 
 PRODUCTOS = {
@@ -320,69 +374,72 @@ PRODUCTOS = {
 
 
 def producto_detalle(request, slug):
-    carrito = request.session.get('carrito', {})  
+
+    carrito = request.session.get('carrito', {})
+
+    # asegurar que sea diccionario
+    if isinstance(carrito, list):
+        carrito = {}
+
     producto = PRODUCTOS.get(slug)
     if not producto:
         return redirect('catalogo')
 
     from .forms import SeleccionTallaForm
+
     if request.method == 'POST':
         form = SeleccionTallaForm(request.POST)
+
         if form.is_valid():
             talla = form.cleaned_data['talla']
-            # Agregar producto al carrito
+
             if slug in carrito:
                 carrito[slug]['cantidad'] += 1
             else:
                 carrito[slug] = {
-                    'nombre': producto['nombre'],
-                    'precio': producto['precio'],
-                    'talla': talla,
-                    'cantidad': 1
-                }
-            request.session['carrito'] = carrito  # guardar en sesión
+                 'nombre': producto['nombre'],
+                 'precio': producto['precio'],
+                 'imagen': producto['imagen'],   
+                 'talla': talla,
+                 'cantidad': 1
+}
+
+            request.session['carrito'] = carrito
             return redirect('carrito')
+
     else:
         form = SeleccionTallaForm()
 
     context = {
         'form': form,
-        'carrito_cantidad': sum(item['cantidad'] for item in carrito.values()),
         'producto': producto,
+        'carrito_cantidad': sum(item['cantidad'] for item in carrito.values())
     }
+
     return render(request, 'productos/producto-detalle.html', context)
 
 def agregar_al_carrito(request, producto_id):
     carrito = request.session.get('carrito', [])
 
-    # Tomamos el producto del diccionario PRODUCTOS
     producto = PRODUCTOS.get(producto_id)
     if producto:
-        carrito.append(producto)  # Guardamos el diccionario completo
+        carrito.append(producto)  
         request.session['carrito'] = carrito
 
     return redirect('carrito')
 
+def registrar_admin(request):
+    if request.method == "POST":
+        form = AdminForm(request.POST)
+        if form.is_valid():
+            usuario = form.save(commit=False)
+            usuario.rol = "ADMIN"
+            usuario.set_password(form.cleaned_data['password'])
+            usuario.is_staff = True
+            usuario.is_superuser = True
+            usuario.save()
+            return redirect("login")
+    else:
+        form = AdminForm()
 
-def carrito(request):
-    carrito = request.session.get('carrito', [])
-
-    if request.method == 'POST':
-        if 'eliminar' in request.POST:
-            index = int(request.POST['eliminar'])
-            if 0 <= index < len(carrito):
-                carrito.pop(index)
-
-        if 'vaciar' in request.POST:
-            carrito = []
-
-        request.session['carrito'] = carrito
-        return redirect('carrito')
-
-    
-    total = sum(float(p.get('precio', 0)) for p in carrito if isinstance(p, dict))
-
-    return render(request, 'productos/carrito.html', {
-        'productos': carrito,
-        'total': total
-    })
+    return render(request, "registro_admin.html", {"form": form})

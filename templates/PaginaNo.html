@@ -1,0 +1,19 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página no disponible</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/Error.png' %}">
+    <link rel="stylesheet" href="{% static 'css/paginaNo.css' %}">
+</head>
+<body>
+    <h1>Página no disponible</h1>
+    <img src="{% static 'images/error-img.png' %}" class="error-imagen" alt="Error">
+    
+    <p>Estamos trabajando para solucionarlo lo más rápido posible.</p>
+    <a href="{% url 'carrito' %}">Volver al Carrito</a>
+</body>
+</html>

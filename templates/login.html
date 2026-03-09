@@ -33,6 +33,17 @@
             {% endfor %}
         {% endif %}
 
+        {% if messages %}
+    <div id="alerts-container">
+        {% for message in messages %}
+            <div class="alerta {% if message.tags %}alerta--{{ message.tags }}{% endif %}">
+                {{ message }}
+                <button class="alerta-close" onclick="this.parentElement.style.display='none';">&times;</button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
         <label>Correo electrónico:</label>
         <input type="email" name="correo" required class="input">
 

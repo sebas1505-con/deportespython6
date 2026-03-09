@@ -13,6 +13,18 @@
         <h2>Registro de Cliente</h2>
     </div>
 
+    {% if messages %}
+    <div id="alerts-container">
+        {% for message in messages %}
+            <div class="alerta 
+                {% if message.tags %}alerta--{{ message.tags }}{% endif %}">
+                {{ message }}
+                <button class="alerta-close" onclick="this.parentElement.style.display='none';">&times;</button>
+            </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
     <!-- Mensajes tipo growl -->
     {% if messages %}
         {% for message in messages %}
@@ -26,19 +38,19 @@
     {% csrf_token %}
 
     <label>Nombre Completo:</label>
-    <input type="text" name="nombre" required>
+    <input type="text" name="first_name" required>
 
     <label>Correo Electrónico:</label>
-    <input type="email" name="correo" required>
+    <input type="email" name="email" required>
 
     <label>Usuario:</label>
-    <input type="text" name="usuario" required>
+    <input type="text" name="username" required>
 
     <label>Contraseña:</label>
-    <input type="password" name="clave" required>
+    <input type="password" name="password" required>
 
     <label>Confirmar Contraseña:</label>
-    <input type="password" name="confirmar" required>
+    <input type="password" name="confirmar_password" required>
 
     <label>Teléfono:</label>
     <input type="text" name="telefono">
@@ -47,7 +59,7 @@
     <input type="text" name="direccion">
 
     <label>Fecha de nacimiento:</label>
-    <input type="date" name="fechaNacimiento">
+    <input type="date" name="fecha_nacimiento">
 
     <label>Barrio:</label>
     <input type="text" name="barrio">
