@@ -1,0 +1,98 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Deportes 360 - Mis Pedidos</title>
+
+<link rel="stylesheet" href="{% static 'css/pedido_admin.css' %}">
+
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="header">
+
+<div class="container menu">
+
+<img src="{% static 'images/logo-deporte.png' %}" 
+class="logo">
+
+<nav class="navbar">
+<ul>
+
+<li><a href="{% url 'panel_admin' %}">Panel</a></li>
+
+<li><a href="{% url 'productos' %}">Productos</a></li>
+
+<li><a class="active">Mis Pedidos</a></li>
+
+<li><a href="{% url 'logout' %}">Cerrar sesión</a></li>
+
+</ul>
+</nav>
+
+</div>
+</header>
+
+
+<!-- PEDIDOS -->
+
+<div class="container pedidos">
+
+<h2>Los Pedidos</h2>
+
+{% if not ventas %}
+<p class="sin-pedidos">No tienes pedidos aún.</p>
+{% endif %}
+
+
+{% for venta in ventas %}
+
+<div class="pedido-card">
+
+<p><strong>Pedido #{{ venta.id }}</strong></p>
+
+<p><strong>Fecha:</strong> {{ venta.fechaVenta }}</p>
+
+<p><strong>Total:</strong> ${{ venta.totalVenta }}</p>
+
+<button class="btn-detalle"
+onclick="var detalle=document.getElementById('detalle{{ venta.id }}');
+detalle.style.display = (detalle.style.display === 'none') ? 'block' : 'none';">
+Ver Detalle
+</button>
+
+
+<div id="detalle{{ venta.id }}" class="detalle">
+
+{% if venta.envio and venta.envio.repartidor %}
+
+<p><strong>Repartidor:</strong> {{ venta.envio.repartidor.nombreRepar }}</p>
+
+<p><strong>Vehículo:</strong> {{ venta.envio.repartidor.tipoDeVehi }}</p>
+
+<p><strong>Placa:</strong> {{ venta.envio.repartidor.numPlaca }}</p>
+
+{% else %}
+
+<p class="sin-repartidor">
+Aún no se ha asignado un repartidor.
+</p>
+
+{% endif %}
+
+</div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</body>
+</html>

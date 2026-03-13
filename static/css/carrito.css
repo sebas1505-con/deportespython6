@@ -156,3 +156,19 @@ h1 {
   margin-top: 30px;
 }
 
+.btn-volver{
+    background:#a74a4a;
+    color:white;
+    padding:10px 20px;
+    border-radius:8px;
+    text-decoration:none;
+}
+
+button,
+.btn-finalizar,
+.btn-volver{
+
+padding:10px 18px;
+border-radius:8px;
+font-size:15px;
+}

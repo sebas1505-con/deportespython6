@@ -274,3 +274,94 @@ body {
   .dashboard { margin-left: 0; padding-top: 140px; } /* Header fijo */
   .sidebar { width: 100%; height: auto; position: relative; top: 0; }
 }
+/* ---------------------------
+   TABLA USUARIOS PRO
+--------------------------- */
+
+.usuarios{
+background:#fff;
+padding:25px;
+border-radius:16px;
+box-shadow:0 4px 14px rgba(0,0,0,0.1);
+margin-top:40px;
+}
+
+.usuarios h2{
+margin-bottom:20px;
+font-size:24px;
+}
+
+.tabla-usuarios{
+width:100%;
+border-collapse:collapse;
+overflow:hidden;
+border-radius:12px;
+}
+
+.tabla-usuarios thead{
+background:#d40000;
+color:white;
+}
+
+.tabla-usuarios th{
+padding:15px;
+font-size:14px;
+text-transform:uppercase;
+letter-spacing:.5px;
+}
+
+.tabla-usuarios td{
+padding:14px;
+border-bottom:1px solid #eee;
+font-size:14px;
+}
+
+.tabla-usuarios tr{
+transition:.2s;
+}
+
+.tabla-usuarios tr:hover{
+background:#f7f7f7;
+}
+
+/* nombre usuario */
+
+.usuario-nombre{
+font-weight:600;
+color:#111;
+}
+
+/* badge rol */
+
+.badge-rol{
+background:#111;
+color:white;
+padding:4px 10px;
+border-radius:6px;
+font-size:12px;
+}
+
+/* boton eliminar */
+
+.btn-eliminar{
+
+background:linear-gradient(180deg,#ff4b4b,#d40000);
+border:none;
+color:white;
+
+padding:8px 14px;
+border-radius:8px;
+
+font-size:13px;
+cursor:pointer;
+
+transition:.25s;
+
+}
+
+.btn-eliminar:hover{
+
+transform:scale(1.08);
+box-shadow:0 3px 8px rgba(0,0,0,0.2);
+
+}

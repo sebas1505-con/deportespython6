@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+
+<title>Editar Producto</title>
+
+<link rel="stylesheet" href="{% static 'css/producto_editar.css' %}">
+
+</head>
+
+<body>
+
+<h1>Editar Producto</h1>
+
+<form method="POST">
+
+{% csrf_token %}
+
+<label>Nombre</label>
+<input type="text" name="nombre">
+
+<label>Precio</label>
+<input type="number" name="precio">
+
+<label>Stock</label>
+<input type="number" name="stock">
+
+<button type="submit">
+Guardar Cambios
+</button>
+
+</form>
+
+</body>
+</html>

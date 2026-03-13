@@ -1,0 +1,107 @@
+{% load static %}
+
+<!DOCTYPE html>
+
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+<title>Reporte de Ventas</title>
+
+<link rel="stylesheet" href="{% static 'css/reportes.css' %}">
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<header class="topbar">
+
+<h1>📊 Reporte de Ventas</h1>
+
+<a href="{% url 'panel_admin' %}" class="btn-volver">
+⬅ Volver al Panel
+</a>
+
+</header>
+
+<section class="filtros">
+
+<h3>Generar Reporte</h3>
+
+<form method="GET" action="{% url 'generar_pdf' %}">
+
+<div class="campo">
+
+<label>Fecha Inicio</label> <input type="date" name="fecha_inicio" required>
+
+</div>
+
+<div class="campo">
+
+<label>Fecha Fin</label> <input type="date" name="fecha_fin" required>
+
+</div>
+
+<button type="submit" class="btn-reporte">
+📄 Generar Reporte
+</button>
+
+</form>
+
+</section>
+
+<section class="tabla-container">
+
+<h3>Ventas Registradas</h3>
+
+<table>
+
+<thead>
+
+<tr>
+<th>ID</th>
+<th>Cliente</th>
+<th>Producto</th>
+<th>Cantidad</th>
+<th>Total</th>
+<th>Fecha</th>
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for venta in ventas %}
+
+<tr>
+
+<td>{{ venta.id }}</td>
+<td>{{ venta.cliente }}</td>
+<td>{{ venta.producto }}</td>
+<td>{{ venta.cantidad }}</td>
+<td>${{ venta.total }}</td>
+<td>{{ venta.fecha }}</td>
+
+</tr>
+
+{% empty %}
+
+<tr>
+<td colspan="6">No hay ventas registradas</td>
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</section>
+
+</div>
+
+</body>
+</html>

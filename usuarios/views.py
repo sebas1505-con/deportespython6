@@ -1,11 +1,15 @@
-from django.shortcuts import render, redirect 
+from django.shortcuts import render, redirect, get_list_or_404,get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Usuario, Cliente, Repartidor
+from .models import Usuario, Cliente, Repartidor, Producto
 from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
+from django.http import HttpResponse
+from reportlab.pdfgen import canvas 
+from django.core.mail import send_mail
+
 
 def index(request):
     return render(request, 'index.html')
@@ -25,23 +29,17 @@ def sinacceso(request):
 def recuperar_contraseña(request):
     return render(request, 'recuperar_contraseña.html')
 
-def productos(request):
-    return render(request, 'productos.html')
-
 def pedidos(request):
     return render(request, 'pedidos.html')
+
+def reportes_admin(request):
+    return render(request, 'productos/reportes_admin.html')
 
 def inventario(request):
     return render(request, 'inventario.html')
 
-def crear_admin(request):
-    return render(request, 'crear_admin.html')
-
 def catalogo(request):
     return render(request, 'catalogo.html')
-
-def panel_admin(request):
-    return render(request, 'admin/panel.html')
 
 def detalle_pedido(request):
     return render(request, 'detalle_pedido.html')
@@ -58,9 +56,42 @@ def paginaNo(request):
 def crear_admin(request):
     return render(request, 'crear_admin.html')
 
+def reportesVentas(request):
+    return render(request, "productos/reportes_ventas.html")
+
+def productos(request):
+
+    lista_productos = PRODUCTOS.values()
+
+    return render(request, "productos/productos.html", {
+        "productos": lista_productos
+    })
+
+def producto_nuevo(request):
+    return render(request, "productos/producto_nuevo.html")
+
+def producto_editar(request):
+    return render(request, 'productos/producto_editar.html')
+
+def producto_eliminar(request, id):
+    producto = get_list_or_404(productos, id=id)
+    producto.delete()
+    return redirect('productos')
+
+def eliminar_usuario(request, id):
+    usuario = get_object_or_404(Usuario, id=id)
+    usuario.delete()
+    return redirect('panel_admin')
+
 def logout_view(request):
     request.session.flush()
     return redirect('login')
+
+def admin(request):
+    usuarios = Usuario.objects.all()
+    return render(request, 'admin.html', {
+        'usuarios': usuarios
+    })
 
 def usuario(request):
     usuario_id = request.session.get('usuario_id')
@@ -128,9 +159,8 @@ def carrito(request):
     if request.method == 'POST':
 
         if 'eliminar' in request.POST:
-            slug = request.POST['eliminar']
-            if slug in carrito:
-                del carrito[slug]
+            slug = request.POST.get('eliminar')
+            carrito.pop(slug, None)
 
         if 'vaciar' in request.POST:
             carrito = {}
@@ -138,12 +168,13 @@ def carrito(request):
         request.session['carrito'] = carrito
         return redirect('carrito')
 
+    cantidad = sum(item['cantidad'] for item in carrito.values())
     total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
 
     return render(request, 'productos/carrito.html', {
         'productos': carrito,
         'total': total,
-        'cantidad': sum(item['cantidad'] for item in carrito.values())
+        'cantidad': cantidad
     })
 
 def registro_cliente(request):
@@ -214,7 +245,7 @@ def login_view(request):
                 elif usuario.rol == 'REPARTIDOR':
                     return redirect('repartidor')
                 elif usuario.rol == 'ADMIN':
-                    return redirect('panel_admin')
+                     return redirect('panel_admin')
                 else:
                     return redirect('login')
             else:
@@ -230,17 +261,41 @@ def restablecer_password(request):
         correo = request.POST.get('correo')
 
         try:
-            usuario = Usuario.objects.get(correo=correo)
+            usuario = Usuario.objects.get(email=correo) 
 
-            # 🔥 Aquí luego puedes enviar email real
-            messages.success(request, "Se envió un correo de recuperación (simulado).")
+            # Enviar correo real
+            send_mail(
+                subject="Recuperación de contraseña",
+                message=f"Hola {usuario.first_name}, haz clic en el siguiente enlace para restablecer tu contraseña: http://localhost:8000/reset/{usuario.id}/",
+                from_email="tu_correo@gmail.com",
+                recipient_list=[correo],
+                fail_silently=False,
+            )
 
+            messages.success(request, "Se envió un correo de recuperación.")
         except Usuario.DoesNotExist:
             messages.error(request, "El correo no está registrado.")
 
         return redirect('restablecer')
 
     return render(request, 'restablecer.html')
+
+
+def factura(request):
+
+    carrito = request.session.get('carrito', {})
+
+    usuario_id = request.session.get('usuario_id')
+
+    cliente = Usuario.objects.get(id=usuario_id)
+
+    total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
+
+    return render(request, 'productos/factura.html', {
+        'cliente': cliente,
+        'productos': carrito,
+        'total': total
+    })
 
 def formulario_compra(request):
 
@@ -249,11 +304,18 @@ def formulario_compra(request):
     cantidad = sum(item['cantidad'] for item in carrito.values())
     total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
 
+    usuario_id = request.session.get('usuario_id')
+
+    if usuario_id:
+        cliente = Usuario.objects.get(id=usuario_id)
+    else:
+        cliente = None
+
     if request.method == 'POST':
         form = CompraForm(request.POST)
 
         if form.is_valid():
-            return redirect('carrito')
+            return redirect('factura')
 
     else:
         form = CompraForm(initial={
@@ -261,7 +323,12 @@ def formulario_compra(request):
             'total_venta': total,
         })
 
-    return render(request, 'productos/formulario_compra.html', {'form': form})
+    return render(request, 'productos/formulario_compra.html', {
+        'form': form,
+        'cliente': cliente,
+        'productos': carrito,
+        'total': total
+    })
 
 PRODUCTOS = {
     'camiseta': {
@@ -428,18 +495,64 @@ def agregar_al_carrito(request, producto_id):
 
     return redirect('carrito')
 
-def registrar_admin(request):
+def crear_admin(request):
     if request.method == "POST":
-        form = AdminForm(request.POST)
-        if form.is_valid():
-            usuario = form.save(commit=False)
-            usuario.rol = "ADMIN"
-            usuario.set_password(form.cleaned_data['password'])
-            usuario.is_staff = True
-            usuario.is_superuser = True
-            usuario.save()
-            return redirect("login")
-    else:
-        form = AdminForm()
+        usuario = request.POST.get("usuario")
+        correo = request.POST.get("correo")
+        telefono = request.POST.get("telefono")
+        codigo = request.POST.get("codigo")
+        contrasena = request.POST.get("contrasena")
+        confirmar = request.POST.get("confirmar")
+        first_name = request.POST.get("first_name")
+        fecha_nacimiento = request.POST.get("fecha_nacimiento")
+        barrio = request.POST.get("barrio")
 
-    return render(request, "registro_admin.html", {"form": form})
+        if contrasena != confirmar:
+            return render(request, "crear_admin.html", {"error": "Las contraseñas no coinciden"})
+
+        CODIGOS_VALIDOS = ["ADM-000", "ADM-123", "ADM-456"]
+        if codigo not in CODIGOS_VALIDOS:
+            return render(request, "crear_admin.html", {"error": "Código incorrecto"})
+
+        if Usuario.objects.filter(username=usuario).exists():
+            return render(request, "crear_admin.html", {"error": "El usuario ya existe"})
+
+        Usuario.objects.create(
+            username=usuario,
+            email=correo,
+            telefono=telefono,
+            password=make_password(contrasena),
+            rol="ADMIN",
+            first_name=first_name,
+            fecha_nacimiento=fecha_nacimiento if fecha_nacimiento else None,
+            barrio=barrio,
+            is_staff=True,
+            is_superuser=True
+        )
+
+        return redirect("login")
+
+    return render(request, "crear_admin.html")
+
+def generar_pdf(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="reporte.pdf"'
+
+    p = canvas.Canvas(response)
+    p.drawString(100, 750, "Reporte generado desde Django")
+    p.showPage()
+    p.save()
+
+    return response
+
+def prueba_correo(request):
+    correo = EmailMessage(
+        subject="Recuperación de contraseña",  # aquí está la ñ
+        body="Haz clic en el enlace para restablecer tu contraseña.",
+        from_email="tu_correo@gmail.com",
+        to=["destinatario@ejemplo.com"],
+    )
+    correo.content_subtype = "plain"  # o "html" si quieres HTML
+    correo.encoding = "utf-8"         # 👈 fuerza UTF-8
+    correo.send()
+    return HttpResponse("Correo enviado")

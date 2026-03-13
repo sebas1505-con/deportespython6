@@ -108,3 +108,20 @@ body {
   background: #b30000;   
   text-decoration: none; 
 }
+.error{
+
+background:#ffdede;
+
+color:#b30000;
+
+padding:10px;
+
+border-radius:8px;
+
+text-align:center;
+
+margin-bottom:15px;
+
+font-size:14px;
+
+}

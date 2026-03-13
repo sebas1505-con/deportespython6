@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+
+<meta charset="UTF-8">
+<title>Factura - Deportes 360</title>
+
+<link rel="stylesheet" href="{% static 'css/factura.css' %}">
+
+</head>
+
+<body>
+
+<div class="factura-container">
+
+    <h1>Factura de Compra</h1>
+
+    <div class="datos-cliente">
+
+        <h3>Datos del Cliente</h3>
+
+        <p><strong>Nombre:</strong> {{ cliente.first_name }}</p>
+        <p><strong>Email:</strong> {{ cliente.email }}</p>
+        <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
+
+    </div>
+
+    <table class="tabla-productos">
+
+        <tr>
+            <th>Producto</th>
+            <th>Talla</th>
+            <th>Cantidad</th>
+            <th>Precio</th>
+        </tr>
+
+        {% for slug,p in productos.items %}
+
+        <tr>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.talla }}</td>
+            <td>{{ p.cantidad }}</td>
+            <td>${{ p.precio }}</td>
+        </tr>
+
+        {% endfor %}
+
+    </table>
+
+    <div class="total">
+
+        <h2>Total: ${{ total }}</h2>
+
+    </div>
+
+    <div class="botones">
+
+        <a href="{% url 'catalogo' %}" class="btn">Seguir comprando</a>
+
+        <a href="{% url 'usuario' %}" class="btn">Volver al inicio</a>
+
+    </div>
+
+</div>
+
+</body>
+</html>

@@ -1,64 +1,133 @@
-.recover-container {
-    max-width: 400px;
-    margin: 50px auto;
-    padding: 30px;
-    
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-    background-color: #f9f9f9;
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: url("{% static 'images/Fondo.png' %}") no-repeat center center fixed;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
 }
 
+/* Contenedor principal */
+.recover-container {
+    max-width: 420px;
+    margin: 50px auto;
+    padding: 35px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 12px 30px rgba(0,0,0,0.25);
+    animation: fadeIn 0.8s ease-in-out;
+}
+
+/* Encabezado */
 .recover-header {
     text-align: center;
-    margin-bottom: 20px;
-    
+    margin-bottom: 25px;
 }
 
 .logo {
-    width: 80px;
+    width: 90px;
     height: auto;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
 }
 
-.recover-form .input {
+.recover-header h2 {
+    margin: 0;
+    color: #222;
+    font-size: 1.6rem;
+    font-weight: bold;
+}
+
+.subtitle {
+    font-size: 0.95rem;
+    color: #555;
+    margin-top: 6px;
+}
+
+/* Formulario */
+.recover-form label {
+    display: block;
+    text-align: left;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
+
+.recover-form input[type="email"] {
     width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border-radius: 5px;
+    padding: 14px;
+    margin-bottom: 18px;
+    border-radius: 10px;
     border: 1px solid #ccc;
+    transition: border-color 0.3s, box-shadow 0.3s;
+    font-size: 0.95rem;
 }
 
+.recover-form input[type="email"]:focus {
+    border-color: #0077cc;
+    box-shadow: 0 0 8px rgba(0, 119, 204, 0.4);
+    outline: none;
+}
+
+/* Botón principal */
 .btn-recover {
     width: 100%;
-    padding: 10px;
-    background-color: #0077cc;
+    padding: 14px;
+    background: linear-gradient(135deg, #0077cc, #005fa3);
     color: #fff;
     border: none;
-    border-radius: 5px;
+    border-radius: 10px;
     cursor: pointer;
-    
+    font-weight: bold;
+    font-size: 1rem;
+    transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
 }
 
 .btn-recover:hover {
-    background-color: #005fa3;
+    background: linear-gradient(135deg, #005fa3, #004080);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
 }
 
-.btn-volver {
+/* Link volver */
+.back-link {
     display: block;
-    margin-top: 15px;
+    margin-top: 18px;
     text-align: center;
     color: #0077cc;
     text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
 }
-body {
-  margin: 0;
-  padding: 0;
-  font-family: Arial, sans-serif;
-  background: url("#{resource['images/Fondo.png']}") no-repeat center center fixed;
-  background-size: cover;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
+
+.back-link:hover {
+    text-decoration: underline;
+}
+
+/* Mensajes */
+.alert {
+    margin-top: 1rem;
+    padding: 0.9rem;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.alert.success {
+    background: #d4edda;
+    color: #155724;
+}
+
+.alert.error {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+/* Animación */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
 }

@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Productos - Deportes 360</title>
+
+    <link rel="icon" type="image/x-icon" href="{% static 'images/Logo.png' %}" />
+    <link rel="stylesheet" href="{% static 'css/productos.css' %}">
+</head>
+
+<body>
+
+<header class="header">
+    <div class="container menu">
+
+        <a href="#" class="logo">DEPORTES 360</a>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="{% url 'panel_admin' %}">Volver</a></li>
+                <li><a href="{% url 'reportes_admin' %}">Reportes</a></li>
+            </ul>
+        </nav>
+
+    </div>
+</header>
+
+{% load static %}
+
+<main class="Prodcts container" id="productos">
+    <h2>Productos</h2>
+
+    <div class="Prodcts-content">
+
+        {% for producto in productos %}
+
+        <div class="Prodcts-1">
+
+            <img src="{% static producto.imagen %}" alt="{{ producto.nombre }}"/>
+
+            <h4>{{ producto.nombre }}</h4>
+
+            <p>${{ producto.precio }}</p>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+</main>
+
+<footer class="footer">
+    <div class="container footer-content">
+
+        <a href="#" class="logo">DEPORTES 360</a>
+
+        <ul>
+            <li><a href="{% url 'menu' %}">Panel</a></li>
+            <li><a href="{% url 'pedidos' %}">Pedidos</a></li>
+        </ul>
+
+    </div>
+</footer>
+
+</body>
+</html>

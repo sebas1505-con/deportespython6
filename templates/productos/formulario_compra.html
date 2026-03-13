@@ -1,62 +1,94 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
+
 <head>
-    <meta charset="UTF-8">
-    <title>Formulario de Compra - Deportes 360</title>
-    <link rel="icon" type="image/png" href="{% static 'images/Re.png' %}">
-    <link rel="stylesheet" href="{% static 'css/formulario.css' %}">
+<meta charset="UTF-8">
+<title>Finalizar compra - Deportes 360</title>
+<link rel="icon" type="image/png" href="{% static 'images/Re.png' %}">
+<link rel="stylesheet" href="{% static 'css/formulario.css' %}?v=2">
+
 </head>
+
 <body>
 
 <div class="formulario-container">
 
-    <h2>📝 Finalizar compra</h2>
+<a href="{% url 'carrito' %}" class="btn-volver">
+⬅ Volver al carrito
+</a>
 
-    <form method="post">
-        {% csrf_token %}
+<h2>🛒 Finalizar compra</h2>
 
-        {{ form.non_field_errors }}
+<form method="post">
 
-        <div>
-            {{ form.cant_producto.label_tag }}
-            {{ form.cant_producto }}
-        </div>
+{% csrf_token %}
 
-        <div>
-            {{ form.metodo_envio.label_tag }}
-            {{ form.metodo_envio }}
-        </div>
+<!-- DATOS DEL CLIENTE -->
 
-        <div>
-            {{ form.total_venta.label_tag }}
-            {{ form.total_venta }}
-        </div>
+<div class="seccion">
 
-        <div>
-            {{ form.metodo_pago.label_tag }}
-            {{ form.metodo_pago }}
-        </div>
+<h3>👤 Datos del cliente</h3>
 
-        <div>
-            {{ form.direccion_envio.label_tag }}
-            {{ form.direccion_envio }}
-        </div>
+<div class="info-cliente">
 
-        <div>
-            {{ form.telefono_contacto.label_tag }}
-            {{ form.telefono_contacto }}
-        </div>
+<p><strong>Nombre:</strong> {{ cliente.first_name }}</p>
+<p><strong>Email:</strong> {{ cliente.email }}</p>
+<p><strong>Dirección registrada:</strong> {{ cliente.direccion }}</p>
 
-        <div>
-            {{ form.observaciones.label_tag }}
-            {{ form.observaciones }}
-        </div>
+</div>
 
-        <button type="submit" class="btn-finalizar">Confirmar compra</button>
-    </form>
+</div>
 
-    <a href="{% url 'carrito' %}" class="btn-volver-home">Volver</a>
+
+<!-- DATOS DE LA COMPRA -->
+
+<div class="seccion">
+
+<h3>📦 Datos de la compra</h3>
+
+<div class="campo">
+{{ form.cant_producto.label_tag }}
+{{ form.cant_producto }}
+</div>
+
+<div class="campo">
+{{ form.metodo_envio.label_tag }}
+{{ form.metodo_envio }}
+</div>
+
+<div class="campo">
+{{ form.total_venta.label_tag }}
+{{ form.total_venta }}
+</div>
+
+<div class="campo">
+{{ form.metodo_pago.label_tag }}
+{{ form.metodo_pago }}
+</div>
+
+<div class="campo">
+{{ form.direccion_envio.label_tag }}
+{{ form.direccion_envio }}
+</div>
+
+<div class="campo">
+{{ form.telefono_contacto.label_tag }}
+{{ form.telefono_contacto }}
+</div>
+
+<div class="campo">
+{{ form.observaciones.label_tag }}
+{{ form.observaciones }}
+</div>
+
+</div>
+
+<button type="submit" class="btn-finalizar">
+Confirmar compra
+</button>
+
+</form>
 
 </div>
 

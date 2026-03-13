@@ -1,0 +1,169 @@
+/* ===== GENERAL ===== */
+
+body{
+margin:0;
+font-family:Poppins, sans-serif;
+background:#0f172a;
+color:white;
+}
+
+/* HEADER */
+
+.header{
+background:#020617;
+padding:18px 0;
+box-shadow:0 4px 10px rgba(0,0,0,0.5);
+position:sticky;
+top:0;
+z-index:1000;
+}
+
+.menu{
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.logo{
+height:45px;
+}
+
+.navbar ul{
+display:flex;
+gap:30px;
+list-style:none;
+}
+
+.navbar a{
+color:#cbd5f5;
+text-decoration:none;
+font-weight:500;
+transition:.3s;
+}
+
+.navbar a:hover{
+color:#38bdf8;
+}
+
+.navbar .active{
+color:#38bdf8;
+font-weight:700;
+}
+
+/* CONTENEDOR */
+
+.container{
+width:90%;
+max-width:1200px;
+margin:auto;
+}
+
+/* TITULO */
+
+.pedidos h2{
+margin-top:120px;
+margin-bottom:30px;
+font-size:32px;
+}
+
+/* TARJETA PEDIDO */
+
+.pedido-card{
+
+background:#1e293b;
+padding:20px;
+border-radius:12px;
+margin-bottom:20px;
+
+display:flex;
+flex-direction:column;
+
+box-shadow:0 6px 20px rgba(0,0,0,0.4);
+
+transition:.3s;
+}
+
+.pedido-card:hover{
+
+transform:translateY(-4px);
+
+}
+
+/* INFO */
+
+.pedido-info h3{
+
+margin:0;
+color:#38bdf8;
+
+}
+
+.pedido-info p{
+
+margin:6px 0;
+
+}
+
+/* BOTON */
+
+.btn-detalle{
+
+margin-top:12px;
+
+background:#38bdf8;
+border:none;
+color:white;
+
+padding:10px 16px;
+
+border-radius:8px;
+
+cursor:pointer;
+
+font-weight:600;
+
+transition:.3s;
+
+}
+
+.btn-detalle:hover{
+
+background:#0284c7;
+
+}
+
+/* DETALLE */
+
+.detalle{
+
+display:none;
+
+margin-top:15px;
+
+padding:15px;
+
+background:#020617;
+
+border-radius:8px;
+
+}
+
+.sin-repartidor{
+
+color:#facc15;
+
+}
+
+/* MENSAJE SIN PEDIDOS */
+
+.sin-pedidos{
+
+background:#1e293b;
+
+padding:20px;
+
+border-radius:10px;
+
+text-align:center;
+
+}

@@ -1,10 +1,44 @@
 {% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
 
-<h2>Mi Perfil</h2>
+<meta charset="UTF-8">
+<title>Perfil de Usuario</title>
 
-<p><strong>Usuario:</strong> {{ user.username }}</p>
-<p><strong>Email:</strong> {{ user.email }}</p>
+<link rel="stylesheet" href="{% static 'css/perfil.css' %}">
 
-<a href="{% url 'actualizar_usuario' %}">
-<button>Actualizar Datos</button>
-</a>
+</head>
+
+<body>
+
+<div class="perfil-container">
+
+    <div class="perfil-card">
+
+        <img src="{% static 'images/logo.png' %}" class="perfil-img">
+
+        <h2>Mi Perfil</h2>
+
+        <div class="perfil-info">
+
+            <p><strong>Usuario:</strong> {{ user.username }}</p>
+            <p><strong>Email:</strong> {{ user.email }}</p>
+
+        </div>
+
+        <a href="{% url 'usuario' %}" class="btn-volver">
+            Volver
+        </a>
+
+
+        <a href="{% url 'actualizar_usuario' %}" class="btn-editar">
+            Actualizar Datos
+        </a>
+
+    </div>
+
+</div>
+
+</body>
+</html>
