@@ -219,7 +219,6 @@ def login_view(request):
                 # iniciar sesión
                 request.session['usuario_id'] = usuario.id
                 request.session['rol'] = usuario.rol
-                messages.success(request, f"¡Bienvenido {usuario.first_name}!")
 
                 if usuario.rol == 'CLIENTE':
                     return redirect('usuario')
