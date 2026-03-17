@@ -9,6 +9,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas 
 from django.core.mail import send_mail
+from django.core.mail import EmailMessage
 
 
 def index(request):
@@ -313,16 +314,18 @@ def restablecer_password(request):
         correo = request.POST.get('correo')
 
         try:
-            usuario = Usuario.objects.get(email=correo) 
+            usuario = Usuario.objects.get(email=correo)
 
-            # Enviar correo real
-            send_mail(
+            cuerpo = f"Hola {usuario.first_name}, haz clic en el siguiente enlace para restablecer tu contraseña: http://localhost:8000/reset/{usuario.id}/"
+
+            email = EmailMessage(
                 subject="Recuperación de contraseña",
-                message=f"Hola {usuario.first_name}, haz clic en el siguiente enlace para restablecer tu contraseña: http://localhost:8000/reset/{usuario.id}/",
+                body=cuerpo,
                 from_email="tu_correo@gmail.com",
-                recipient_list=[correo],
-                fail_silently=False,
+                to=[correo],
             )
+            email.encoding = 'utf-8'
+            email.send(fail_silently=False)
 
             messages.success(request, "Se envió un correo de recuperación.")
         except Usuario.DoesNotExist:
@@ -331,7 +334,6 @@ def restablecer_password(request):
         return redirect('restablecer')
 
     return render(request, 'restablecer.html')
-
 
 def factura(request):
 
@@ -599,12 +601,12 @@ def generar_pdf(request):
 
 def prueba_correo(request):
     correo = EmailMessage(
-        subject="Recuperación de contraseña",  # aquí está la ñ
+        subject="Recuperación de contraseña",  
         body="Haz clic en el enlace para restablecer tu contraseña.",
         from_email="tu_correo@gmail.com",
         to=["destinatario@ejemplo.com"],
     )
-    correo.content_subtype = "plain"  # o "html" si quieres HTML
-    correo.encoding = "utf-8"         # 👈 fuerza UTF-8
+    correo.content_subtype = "plain"  
+    correo.encoding = "utf-8"         
     correo.send()
     return HttpResponse("Correo enviado")
