@@ -1,5 +1,8 @@
+from django.core.exceptions import ValidationError
+from datetime import date
 from django.db import models
 from django.contrib.auth.models import AbstractUser
+
 
 class Usuario(models.Model):
 
@@ -156,6 +159,18 @@ class Reporte(models.Model):
     fecha_fin = models.DateField()
     total_ventas = models.DecimalField(max_digits=10, decimal_places=2)
     total_productos_vendidos = models.IntegerField()
+    
+    def clean(self):
+        hoy = date.today()
+
+        if self.fecha_inicio < hoy:
+            raise ValidationError("La fecha de inicio no puede ser anterior a hoy")
+
+        if self.fecha_fin < hoy:
+            raise ValidationError("La fecha de fin no puede ser anterior a hoy")
+
+        if self.fecha_fin < self.fecha_inicio:
+            raise ValidationError("La fecha fin no puede ser menor que la fecha inicio")
 
     def __str__(self):
         return f"Reporte {self.id} - {self.fecha_inicio} a {self.fecha_fin}"
