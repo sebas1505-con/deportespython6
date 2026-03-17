@@ -8,9 +8,7 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas 
-from django.core.mail import send_mail
 from django.core.mail import EmailMessage
-
 
 def index(request):
     usuario_id = request.session.get('usuario_id')
@@ -41,6 +39,31 @@ def pedidos(request):
 
 def reportes_admin(request):
     return render(request, 'productos/reportes_admin.html')
+
+def catalogo(request):
+    return render(request, 'catalogo.html')
+
+def detalle_pedido(request):
+    return render(request, 'detalle_pedido.html')
+
+def sugerencias(request):
+    return render(request, 'sugerencias.html')
+
+def contactousu(request):
+    return render(request, 'contactousu.html')
+
+def paginaNo(request):
+    return render(request, 'paginaNo.html')
+
+def crear_admin(request):
+    return render(request, 'crear_admin.html')
+
+def reportesVentas(request):
+    return render(request, "productos/reportes_ventas.html")
+
+def logout_view(request):
+    request.session.flush()
+    return redirect('login')
 
 def inventario(request):
     
@@ -89,27 +112,6 @@ def producto_editar(request, id):
     
     return render(request, 'productos/producto_editar.html', {'producto': producto})
 
-def catalogo(request):
-    return render(request, 'catalogo.html')
-
-def detalle_pedido(request):
-    return render(request, 'detalle_pedido.html')
-
-def sugerencias(request):
-    return render(request, 'sugerencias.html')
-
-def contactousu(request):
-    return render(request, 'contactousu.html')
-
-def paginaNo(request):
-    return render(request, 'paginaNo.html')
-
-def crear_admin(request):
-    return render(request, 'crear_admin.html')
-
-def reportesVentas(request):
-    return render(request, "productos/reportes_ventas.html")
-
 def productos(request):
 
     lista_productos = PRODUCTOS.values()
@@ -130,10 +132,6 @@ def eliminar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
     usuario.delete()
     return redirect('panel_admin')
-
-def logout_view(request):
-    request.session.flush()
-    return redirect('login')
 
 def admin(request):
     usuarios = Usuario.objects.all()
@@ -180,7 +178,7 @@ def perfil_usuario(request):
 
     usuario = Usuario.objects.get(id=usuario_id)
 
-    return render(request, 'usuarios/perfil.html', {"usuario": usuario})
+    return render(request, 'usuarios/perfil.html', {"user": usuario})
 
 def repartidor(request):
     usuario_id = request.session.get('usuario_id')
