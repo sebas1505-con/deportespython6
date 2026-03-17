@@ -57,6 +57,7 @@ class Producto(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.CharField(max_length=50)
     imagen = models.ImageField(upload_to="productos/", null=True, blank=True)
+    stock = models.IntegerField(default=0)
 
     def __str__(self):
         return self.nombre
@@ -94,7 +95,20 @@ class DetalleVentaProductos(models.Model):
     descuento = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     fecha_inicio_descuento = models.DateField(null=True, blank=True)
     fecha_fin_descuento = models.DateField(null=True, blank=True)
-
+    
+    ## Sobrescribimos el método save para actualizar el stock del producto al guardar un detalle de venta
+    def save(self, *args, **kwargs):
+        
+        producto = self.producto
+        
+        if producto.stock >= self.cantidad:
+            producto.stock -= self.cantidad
+            producto.save()
+        else:
+            raise ValueError("No hay suficiente stock para este producto.")
+        
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.producto.nombre} x{self.cantidad}"
 

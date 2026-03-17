@@ -36,7 +36,51 @@ def reportes_admin(request):
     return render(request, 'productos/reportes_admin.html')
 
 def inventario(request):
-    return render(request, 'inventario.html')
+    
+    productos = Producto.objects.all()
+    
+    return render(request, 'inventario.html', {'productos': productos})
+
+def agregar_stock(request, id):
+    
+    producto = get_object_or_404(Producto, id=id)
+    
+    if request.method == 'POST':
+        cantidad = int(request.POST['cantidad'])
+        
+        producto.stock += cantidad
+        producto.save()
+        
+        return redirect('inventario')
+    
+    return render(request, 'agregar_stock.html', {'producto': producto})
+
+def agregar_producto(request):
+    
+    if request.method == 'POST':
+        
+        nombre = request.POST['nombre']
+        cantidad = int(request.POST['cantidad'])
+        precio = float(request.POST['precio'])
+    
+        Producto.objects.create(nombre=nombre, stock=cantidad, precio=precio)
+        
+        return redirect('inventario')
+    
+def producto_editar(request, id):
+    
+    producto = get_object_or_404(Producto, id=id)
+    
+    if request.method == 'POST':
+        producto.nombre = request.POST.get('nombre')
+        producto.stock = int(request.POST.get('stock'))
+        producto.precio = float(request.POST.get('precio'))
+        
+        producto.save()
+        
+        return redirect('inventario')
+    
+    return render(request, 'productos/producto_editar.html', {'producto': producto})
 
 def catalogo(request):
     return render(request, 'catalogo.html')
@@ -70,13 +114,10 @@ def productos(request):
 def producto_nuevo(request):
     return render(request, "productos/producto_nuevo.html")
 
-def producto_editar(request):
-    return render(request, 'productos/producto_editar.html')
-
 def producto_eliminar(request, id):
-    producto = get_list_or_404(productos, id=id)
+    producto = get_object_or_404(Producto, id=id)
     producto.delete()
-    return redirect('productos')
+    return redirect('inventario')
 
 def eliminar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)

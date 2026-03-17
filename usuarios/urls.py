@@ -16,7 +16,6 @@ urlpatterns = [
     path('sugerencias/', views.sugerencias, name='sugerencias'),
     path('productos/', views.productos, name='productos'),
     path('pedidos/', views.pedidos, name='pedidos'),
-    path('reportes-admin/', views.reportes_admin, name='reportes_admin'),
     path('inventario/', views.inventario, name='inventario'),
     path('crear-admin/', views.crear_admin, name='crear_admin'),
     path('catalogo/', views.catalogo, name='catalogo'),
@@ -33,13 +32,14 @@ urlpatterns = [
     path('generar-pdf/', views.generar_pdf, name='generar_pdf'),
     path('reportes-ventas/', views.reportesVentas, name='reportesVentas'),
     path('producto-nuevo/', views.producto_nuevo, name='producto_nuevo'),
-    path('producto-editar/', views.producto_editar, name='producto_editar'),
     path('producto/<int:id>/', views.producto_detalle, name='producto_detalle'),
     path('producto-editar/<int:id>/', views.producto_editar, name='producto_editar'),
     path('producto-eliminar/<int:id>/', views.producto_eliminar, name='producto_eliminar'),
     path('eliminar-usuario/<int:id>/', views.eliminar_usuario, name='eliminar_usuario'),
     path('restablecer/', views.restablecer_password, name='restablecer'),
     path("prueba-correo/", views.prueba_correo),
-
+    path('agregar_stock/<int:id>/', views.agregar_stock, name='agregar_stock'),
+    path('agregar_producto/', views.agregar_producto, name='agregar_producto'),
+    path('producto-editar/<int:id>/', views.producto_editar, name='producto_editar'),
 
 ]
