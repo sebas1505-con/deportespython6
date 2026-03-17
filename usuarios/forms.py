@@ -1,5 +1,7 @@
 from django import forms
-from .models import Usuario, Administrador, Cliente
+from django.core.exceptions import ValidationError
+from datetime import date
+from .models import Usuario, Administrador, Cliente, Reporte
 from django.contrib.auth.hashers import make_password
 
 class RegistroClienteForm(forms.ModelForm):
@@ -111,3 +113,29 @@ class SeleccionTallaForm(forms.Form):
         ('XL', 'XL - Extra Larga'),
     ]
     talla = forms.ChoiceField(label="Selecciona tu talla", choices=TALLAS, required=False)
+    
+class ReportesForm(forms.ModelForm):
+    class Meta:
+        
+        model = Reporte
+        fields = ['fecha_inicio', 'fecha_fin']
+        
+    def clean(self):
+        
+        cleaned_data = super().clean()
+        fecha_inicio = cleaned_data.get("fecha_inicio")
+        fecha_fin = cleaned_data.get("fecha_fin")
+        
+        hoy = date.today()
+
+        if fecha_inicio and fecha_inicio < hoy:
+            raise ValidationError("La fecha de inicio no puede ser posterior a la fecha actual")
+
+        if fecha_fin and fecha_fin < hoy:
+            raise ValidationError("La fecha de fin no puede ser posterior a la fecha actual")
+        
+        if fecha_inicio and fecha_fin:
+            if fecha_inicio > fecha_fin:
+                raise ValidationError("La fecha de inicio no puede ser posterior a la fecha de fin")
+            
+        return cleaned_data

@@ -150,3 +150,12 @@ class Proveedor(models.Model):
 
     def __str__(self):
         return f"Proveedor {self.id}"
+    
+class Reporte(models.Model):
+    fecha_inicio = models.DateField()
+    fecha_fin = models.DateField()
+    total_ventas = models.DecimalField(max_digits=10, decimal_places=2)
+    total_productos_vendidos = models.IntegerField()
+
+    def __str__(self):
+        return f"Reporte {self.id} - {self.fecha_inicio} a {self.fecha_fin}"
