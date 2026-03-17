@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/x-icon" href="{% static 'images/usu.png' %}">
-    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <link rel="stylesheet" href="{% static 'css/usuario.css' %}">
     
     <title>Deportes 360</title>
 </head>
@@ -19,6 +19,7 @@
             <img class="logo"
                  src="{% static 'images/logo-deporte.png' %}"
                  alt="Logo Deportes 360" />
+
 
             <input type="checkbox" id="menu" />
             <label for="menu">
@@ -40,21 +41,49 @@
     </div>
 </header>
 
+
 <div class="hero-section">
     <div class="container hero-content">
 
         <div class="hero-text">
+
+            {% if usuario %}
+            <p class="usuario-bienvenida">
+                Hola {{ usuario.username }}
+            </p>
+            {% endif %}
+
             <h1>CELEBRA CADA MOVIMIENTO</h1>
+
             <p>TECNOLOGÍA, COMODIDAD Y ESTILO PARA CADA DÍA.</p>
-            <a href="{% url 'catalogo' %}" class="btn-2">Catálogo</a>
+
+
         </div>
 
-        <div class="hero-image">
-            <img src="{% static 'images/atleta-hero.png' %}" alt="Atleta saltando" />
+        <div class="hero-img">
+            <img src="{% static 'images/atleta-hero.png' %}" alt="producto">
         </div>
 
     </div>
 </div>
+
+<section class="hero-category">
+
+    <div class="category-item">
+        <a href="#">
+        <img src="{% static 'images/hombre.jpg' %}">
+        <span class="category-text">HOMBRE</span>
+        </a>
+    </div>
+
+    <div class="category-item">
+        <a href="#">
+        <img src="{% static 'images/mujer.jpg' %}">
+        <span class="category-text">MUJER</span>
+        </a>
+    </div>
+
+</section>
 
 <section class="services">
     <div class="container">
