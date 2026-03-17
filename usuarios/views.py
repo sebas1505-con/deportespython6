@@ -1,9 +1,9 @@
-from django.shortcuts import render, redirect, get_list_or_404,get_object_or_404
+from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
+from django.contrib.sites.shortcuts import get_current_site
 from django.contrib.auth.models import User
 from .models import Usuario, Cliente, Repartidor, Producto
-from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm
+from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
@@ -314,7 +314,11 @@ def restablecer_password(request):
         try:
             usuario = Usuario.objects.get(email=correo)
 
-            cuerpo = f"Hola {usuario.first_name}, haz clic en el siguiente enlace para restablecer tu contraseña: http://localhost:8000/reset/{usuario.id}/"
+            # Obtener el dominio actual de la petición
+            current_site = get_current_site(request)
+            enlace = f"http://{current_site.domain}/reset/{usuario.id}/"
+
+            cuerpo = f"Hola {usuario.first_name}, haz clic en el siguiente enlace para restablecer tu contraseña: {enlace}"
 
             email = EmailMessage(
                 subject="Recuperación de contraseña",
@@ -325,7 +329,7 @@ def restablecer_password(request):
             email.encoding = 'utf-8'
             email.send(fail_silently=False)
 
-            messages.success(request, "Se envió un correo de recuperación.")
+            messages.success(request, "Se envió un correo de recuperación!.")
         except Usuario.DoesNotExist:
             messages.error(request, "El correo no está registrado.")
 
@@ -627,3 +631,30 @@ def prueba_correo(request):
     correo.encoding = "utf-8"         
     correo.send()
     return HttpResponse("Correo enviado")
+
+def nueva_contrasena(request, token):
+    user_id = password_reset_tokens.get(token)
+    if not user_id:
+        messages.error(request, 'Enlace inválido o expirado.')
+        return redirect('login')
+
+    usuario = get_object_or_404(User, id=user_id)
+
+    if request.method == "POST":
+        password1 = request.POST.get('password')
+        password2 = request.POST.get('confirm_password')
+
+        if not password1 or not password2:
+            messages.error(request, 'Por favor completa ambos campos.')
+        elif password1 != password2:
+            messages.error(request, 'Las contraseñas no coinciden.')
+        elif len(password1) < 6:
+            messages.error(request, 'La contraseña debe tener al menos 6 caracteres.')
+        else:
+            usuario.set_password(password1)
+            usuario.save()
+            messages.success(request, 'Contraseña actualizada correctamente.')
+            del password_reset_tokens[token]
+            return redirect('login')
+
+    return render(request, 'nueva_contrasena.html', {'usuario': usuario})

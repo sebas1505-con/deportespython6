@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Deportes 360 - Restablecer Contraseña</title>
+
+<link rel="stylesheet" href="{% static 'css/nueva_contraseña.css' %}" />
+</head>
+<body>
+
+<div class="reset-container">
+    <div class="logo-circle">
+      <img src="{% static 'images/Cuenta.png' %}" alt="Icono Usuario" />
+    </div>
+    <h1>Deportes 360</h1>
+    <p class="subtitle">Nueva contraseña</p>
+
+    {% if messages %}
+      {% for message in messages %}
+        <div class="message {{ message.tags }}">{{ message }}</div>
+      {% endfor %}
+    {% endif %}
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <label for="password">Nueva contraseña</label>
+        <input type="password" id="password" name="password" placeholder="Escribe tu nueva contraseña" required minlength="6" />
+
+        <label for="confirm_password">Confirmar contraseña</label>
+        <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirma tu contraseña" required minlength="6" />
+
+        <button type="submit">Guardar contraseña</button>
+    </form>
+
+    <div class="footer-links">
+      <a href="{% url 'login' %}">Volver al login</a>
+    </div>
+</div>
+
+<script>
+  const form = document.querySelector('form');
+  const password = document.getElementById('password');
+  const confirm_password = document.getElementById('confirm_password');
+
+  form.addEventListener('submit', (e) => {
+    if (password.value !== confirm_password.value) {
+      e.preventDefault();
+      alert("Las contraseñas no coinciden.");
+      confirm_password.focus();
+    }
+  });
+</script>
+
+</body>
+</html>
