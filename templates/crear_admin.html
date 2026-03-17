@@ -1,72 +1,76 @@
 {% load static %}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Formulario de Registro</title>
-    <link rel="stylesheet" href="{% static 'css/crear-admin.css' %}">
+<meta charset="UTF-8">
+<title>Registro Administrador</title>
+<link rel="stylesheet" href="{% static 'css/crear-admin.css' %}">
+
 </head>
 
 <body>
 
 <div class="login-container">
 
-    <div class="login-header">
-        <h2>Formulario de Registro</h2>
+```
+<div class="login-header">
+    <h2>Registro de Administrador</h2>
+    <img src="{% static 'images/logo-deporte.png' %}" alt="Logo">
+</div>
 
-        <!-- Imagen de cabecera -->
-        <img src="{% static 'images/logo-deporte.png' %}" alt="Logo">
+<form class="login-form" method="POST" action="{% url 'crear_admin' %}">
+
+    {% csrf_token %}
+
+    {% if error %}
+    <div class="error">
+        {{ error }}
     </div>
+    {% endif %}
 
-    <form class="login-form" method="POST">
-        {% csrf_token %}
+    <label>Nombre</label>
+    <input type="text" name="first_name" placeholder="Tu nombre" required>
 
-        <!-- Aquí luego pondrás mensajes -->
-        <!-- {{ messages }} -->
 
-        <!-- Usuario -->
-        <label for="usuario">Usuario</label>
-        <input type="text" id="usuario" name="usuario"
-               placeholder="Crea tu usuario" required>
+    <label>Barrio</label>
+    <input type="text" name="barrio" placeholder="Tu barrio">
 
-        <!-- Correo -->
-        <label for="correo">Correo</label>
-        <input type="email" id="correo" name="correo"
-               placeholder="ejemplo@correo.com" required>
 
-        <!-- Teléfono -->
-        <label for="telefono">Teléfono</label>
-        <input type="text" id="telefono" name="telefono"
-               placeholder="+57 300 000 0000" required>
+    <label>Usuario</label>
+    <input type="text" name="usuario" placeholder="Crea tu usuario" required>
 
-        <!-- Código -->
-        <label for="codigo">Código</label>
-        <input type="text" id="codigo" name="codigo"
-               placeholder="ADM-000" required>
+    <label>Correo</label>
+    <input type="email" name="correo" placeholder="ejemplo@correo.com" required>
 
-        <!-- Contraseña -->
-        <label for="contrasena">Contraseña</label>
-        <input type="password" id="contrasena" name="contrasena"
-               placeholder="Crea una contraseña" required>
+    <label>Teléfono</label>
+    <input type="text" name="telefono" placeholder="+57 300 000 0000" required>
 
-        <!-- Confirmar contraseña -->
-        <label for="confirmar">Confirmar Contraseña</label>
-        <input type="password" id="confirmar" name="confirmar"
-               placeholder="Repite tu contraseña" required>
+    <label>Código administrador</label>
+    <input type="text" name="codigo" placeholder="ADM-000" required>
 
-        <!-- Botón -->
-        <button type="submit" class="btn btn-success">
-            Registrarse
-        </button>
+    <label>Contraseña</label>
+    <input type="password" name="contrasena" placeholder="Crea una contraseña" required>
 
-    </form>
+    <label>Confirmar contraseña</label>
+    <input type="password" name="confirmar" placeholder="Repite la contraseña" required>
 
-    <!-- Volver -->
-    <a href="menu" class="btn-volver-home">
-        Volver
-    </a>
+    <label>Fecha de nacimiento</label>
+    <input type="date" name="fecha_nacimiento">
+
+    <button type="submit">
+        Registrarse
+    </button>
+
+</form>
+
+<a href="{% url 'menu' %}" class="btn-volver-home">
+    ⬅ Volver
+</a>
+```
 
 </div>
 
 </body>
+
 </html>

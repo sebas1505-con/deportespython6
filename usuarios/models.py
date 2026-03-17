@@ -9,8 +9,12 @@ class Usuario(models.Model):
         ('ADMIN', 'Administrador'),
     ]
 
+
     username = models.CharField(max_length=50)
     email = models.EmailField(unique=True)
+    username = models.CharField(max_length=50, unique=True)
+    email = models.EmailField(unique=True) 
+
     first_name = models.CharField(max_length=50)
     password = models.CharField(max_length=128)
 
@@ -19,10 +23,14 @@ class Usuario(models.Model):
     fecha_nacimiento = models.DateField(null=True, blank=True)
     barrio = models.CharField(max_length=50, null=True, blank=True)
 
+
     # 🔹 AGREGA ESTO
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
+
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
 
     def __str__(self):
         return self.username
@@ -58,6 +66,7 @@ class Producto(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     categoria = models.CharField(max_length=50)
     imagen = models.ImageField(upload_to="productos/", null=True, blank=True)
+    stock = models.IntegerField(default=0)
 
     def __str__(self):
         return self.nombre
@@ -95,7 +104,20 @@ class DetalleVentaProductos(models.Model):
     descuento = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     fecha_inicio_descuento = models.DateField(null=True, blank=True)
     fecha_fin_descuento = models.DateField(null=True, blank=True)
-
+    
+    ## Sobrescribimos el método save para actualizar el stock del producto al guardar un detalle de venta
+    def save(self, *args, **kwargs):
+        
+        producto = self.producto
+        
+        if producto.stock >= self.cantidad:
+            producto.stock -= self.cantidad
+            producto.save()
+        else:
+            raise ValueError("No hay suficiente stock para este producto.")
+        
+        super().save(*args, **kwargs)
+    
     def __str__(self):
         return f"{self.producto.nombre} x{self.cantidad}"
 

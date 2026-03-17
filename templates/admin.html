@@ -18,19 +18,14 @@
 </header>
 
 <nav class="sidebar">
+    <br><br>
    <ul>
     <li><a href="{% url 'pedidos' %}">Pedidos</a></li>
-
-    <li>
-        <a href="{% url 'generar_pdf' %}">Generar PDF</a>
-    </li>
-
+    <li><a href="{% url 'generar_pdf' %}">Generar PDF</a></li>
     <li><a href="{% url 'productos' %}">Productos</a></li>
     <li><a href="{% url 'reportesVentas' %}">Reportes</a></li>
     <li><a href="{% url 'inventario' %}">Inventario</a></li>
     <li><a href="{% url 'producto_nuevo' %}">Nuevo Producto</a></li>
-    <li><a href="{% url 'producto_editar' %}">Editar Producto</a></li>
-    <li><a href="{% url 'pedidos' %}">Productos Vendidos</a></li>
     <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
    </ul>
 </nav>
@@ -118,40 +113,65 @@
     });
     </script>
 
-    <!-- USUARIOS -->
-    <section class="usuarios">
-        <h2>Gestión de Usuarios</h2>
-        <table class="tabla-usuarios">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Nombre</th>
-                    <th>Correo</th>
-                    <th>Rol</th>
-                    <th>Acción</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for u in usuarios %}
-                <tr>
-                    <td>{{ u.id }}</td>
-                    <td>{{ u.nombre }}</td>
-                    <td>{{ u.email }}</td>
-                    <td>{{ u.rol }}</td>
-                    <td>
-                        <form method="post" action="{% url 'eliminar_usuario' u.id %}">
-                            {% csrf_token %}
-                            <button type="submit"
-                              onclick="return confirm('¿Seguro que deseas eliminar este usuario?');">
-                              Eliminar
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </section>
+<section class="usuarios">
+
+    <h2>Gestión de Usuarios</h2>
+
+    <table class="tabla-usuarios">
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Correo</th>
+                <th>Rol</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for u in usuarios %}
+            <tr>
+
+                <td>#{{ u.id }}</td>
+
+                <td class="usuario-nombre">
+                    {{ u.nombre }}
+                </td>
+
+                <td>{{ u.email }}</td>
+
+                <td>
+                    <span class="badge-rol">
+                        {{ u.rol }}
+                    </span>
+                </td>
+
+                <td>
+
+                    <form method="post" action="{% url 'eliminar_usuario' u.id %}">
+                        {% csrf_token %}
+
+                        <button class="btn-eliminar"
+                         onclick="return confirm('¿Seguro que deseas eliminar este usuario?');">
+
+                         Eliminar
+
+                        </button>
+
+                    </form>
+
+                </td>
+
+            </tr>
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</section>
 
 </main>
 </body>

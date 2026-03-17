@@ -1,55 +1,138 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Actualizar Datos</title>
+<title>Actualizar Datos</title>
 
-    <style>
+<style>
 
-        body{
-            font-family: Arial;
-            background:#f2f2f2;
-            display:flex;
-            justify-content:center;
-            align-items:center;
-            height:100vh;
-        }
+body{
+margin:0;
+padding:0;
+font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 
-        .contenedor{
-            background:white;
-            padding:30px;
-            border-radius:10px;
-            width:400px;
-            box-shadow:0px 0px 10px rgba(0,0,0,0.2);
-        }
+background:url("../static/images/Fondo3.png") no-repeat center center fixed;
+background-size:cover;
 
-        h2{
-            text-align:center;
-        }
+display:flex;
+justify-content:center;
+align-items:center;
 
-        input{
-            width:100%;
-            padding:10px;
-            margin:10px 0;
-            border-radius:5px;
-            border:1px solid #ccc;
-        }
+height:100vh;
+}
 
-        button{
-            width:100%;
-            padding:10px;
-            background:#28a745;
-            border:none;
-            color:white;
-            font-size:16px;
-            border-radius:5px;
-            cursor:pointer;
-        }
+/* tarjeta del formulario */
 
-        button:hover{
-            background:#218838;
-        }
+.contenedor{
 
-    </style>
+background:rgba(255,255,255,0.95);
+
+padding:35px;
+
+border-radius:15px;
+
+width:420px;
+
+box-shadow:0 8px 20px rgba(0,0,0,0.25);
+
+backdrop-filter:blur(6px);
+
+}
+
+/* titulo */
+
+h2{
+
+text-align:center;
+
+margin-bottom:25px;
+
+color:#222;
+
+}
+
+/* inputs */
+
+input{
+
+width:100%;
+
+padding:12px;
+
+margin:10px 0;
+
+border-radius:8px;
+
+border:2px solid #ddd;
+
+font-size:15px;
+
+transition:0.3s;
+
+}
+
+input:focus{
+
+border-color:#a74a4a;
+
+outline:none;
+
+}
+
+/* boton */
+
+button{
+
+width:100%;
+
+padding:12px;
+
+background:#a74a4a;
+
+border:none;
+
+color:white;
+
+font-size:16px;
+
+border-radius:8px;
+
+cursor:pointer;
+
+font-weight:bold;
+
+transition:0.3s;
+
+}
+
+button:hover{
+
+background:#bf0f0f;
+
+}
+
+/* link volver */
+
+.volver{
+
+display:block;
+
+text-align:center;
+
+margin-top:15px;
+
+text-decoration:none;
+
+color:#555;
+
+}
+
+.volver:hover{
+
+color:#a74a4a;
+
+}
+
+</style>
 
 </head>
 
@@ -60,13 +143,20 @@
 <h2>Actualizar Datos</h2>
 
 <form method="POST">
-    {% csrf_token %}
-    {{ form.as_p }}
 
-    <button type="submit">
-        Guardar Cambios
-    </button>
+{% csrf_token %}
+
+{{ form.as_p }}
+
+<button type="submit">
+Guardar Cambios
+</button>
+
 </form>
+
+<a href="{% url 'perfil' %}" class="volver">
+Volver al perfil
+</a>
 
 </div>
 

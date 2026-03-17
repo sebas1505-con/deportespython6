@@ -1,0 +1,18 @@
+<form method="POST">
+
+{% csrf_token %}
+
+<label>Nombre</label>
+<input type="text" name="nombre" value="{{ producto.nombre }}">
+
+<label>Precio</label>
+<input type="number" name="precio" value="{{ producto.precio }}">
+
+<label>Stock</label>
+<input type="number" name="stock" value="{{ producto.stock }}">
+
+<button type="submit">
+Guardar Cambios
+</button>
+
+</form>

@@ -1,86 +1,90 @@
 /* Estilos generales del body */
 body {
   margin: 0;
-  padding: 0;
+  padding: 20px;
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   background: url("../images/Fondo3.png") no-repeat center center fixed;
   background-size: cover;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
 }
 
-/* Contenedor del login */
+/* Contenedor del registro */
 .login-container {
   background: rgba(255, 255, 255, 0.95);
-  padding: 30px;
+  padding: 20px;
   border-radius: 15px;
-  width: 380px;
+  width: 330px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: 0 8px 20px rgba(0,0,0,0.2);
   text-align: center;
   backdrop-filter: blur(6px);
 }
 
-/* Cabecera del login */
-.login-header img.logo {
-  width: 90px;
+/* Cabecera */
+.login-header img {
+  width: 80px;
   margin-bottom: 10px;
 }
 
 .login-header h2 {
   margin: 0;
   color: #222;
-  font-size: 1.5rem;
+  font-size: 1.4rem;
 }
 
 /* Formulario */
 .login-form {
   display: grid;
-  grid-template-columns: 1fr; /* 1 columna para inputs */
-  gap: 15px; /* espacio entre filas */
-  margin-top: 20px;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-top: 15px;
   text-align: left;
 }
 
 /* Labels */
 .login-form label {
-  margin-top: 10px;
+  margin-top: 5px;
   font-weight: bold;
   color: #1b1b1d;
   display: block;
+  font-size: 14px;
 }
 
-/* Inputs y selects */
+/* Inputs */
 .login-form input,
 .login-form select {
-  padding: 10px;
-  margin-top: 5px;
+  padding: 8px;
+  margin-top: 3px;
   border: 2px solid #bf0f0f;
   border-radius: 5px;
-  font-size: 15px;
+  font-size: 14px;
   width: 100%;
   box-sizing: border-box;
   outline: none;
   transition: border-color 0.3s;
 }
 
+/* Focus */
 .login-form input:focus,
 .login-form select:focus {
   border-color: #a74a4a;
 }
 
-/* Botón de enviar */
+/* Botón registrar */
 .login-form button {
-  margin-top: 20px;
+  margin-top: 15px;
   background-color: #a74a4a;
   color: white;
   font-weight: bold;
   border: none;
-  padding: 12px;
+  padding: 10px;
   border-radius: 5px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 15px;
   transition: background 0.3s ease;
 }
 
@@ -88,23 +92,34 @@ body {
   background-color: #bf0f0f;
 }
 
-/* Botón de volver a home */
+/* Botón volver */
 .btn-volver-home {
   position: absolute;
-  top: 20px;       
-  left: 20px;      
-  background: #ff0800;   
-  color: #fff;           
-  padding: 8px 15px;     
-  border-radius: 8px;    
+  top: 20px;
+  left: 20px;
+  background: #ff0800;
+  color: #fff;
+  padding: 8px 15px;
+  border-radius: 8px;
   font-size: 14px;
   font-weight: bold;
   text-decoration: none;
-  box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   transition: background 0.3s ease;
 }
 
 .btn-volver-home:hover {
-  background: #b30000;   
-  text-decoration: none; 
+  background: #b30000;
+  text-decoration: none;
+}
+
+/* Error */
+.error {
+  background: #ffdede;
+  color: #b30000;
+  padding: 10px;
+  border-radius: 8px;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 13px;
 }
