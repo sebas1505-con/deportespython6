@@ -10,7 +10,7 @@ class Usuario(models.Model):
     ]
 
     username = models.CharField(max_length=50)
-    email = models.EmailField(unique=True) 
+    email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=50)
     password = models.CharField(max_length=128)
 
@@ -19,9 +19,13 @@ class Usuario(models.Model):
     fecha_nacimiento = models.DateField(null=True, blank=True)
     barrio = models.CharField(max_length=50, null=True, blank=True)
 
+    # 🔹 AGREGA ESTO
+    is_staff = models.BooleanField(default=False)
+    is_superuser = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+
     def __str__(self):
         return self.username
-
 
 class Cliente(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)

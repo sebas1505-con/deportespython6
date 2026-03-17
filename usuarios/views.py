@@ -8,7 +8,13 @@ from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 
 def index(request):
-    return render(request, 'index.html')
+    usuario_id = request.session.get('usuario_id')
+    usuario = None
+    if usuario_id:
+        usuario = Usuario.objects.get(id=usuario_id)
+    return render(request, 'index.html', {
+        'usuario': usuario
+    })
 
 def quienes(request):
     return render(request, 'quienes.html')
@@ -153,6 +159,12 @@ def registro_cliente(request):
             usuario = form.save(commit=False)
             usuario.rol = "CLIENTE"
             usuario.password = make_password(form.cleaned_data['password'])
+
+            # 👇 AGREGA ESTO
+            usuario.is_staff = False
+            usuario.is_superuser = False
+            usuario.is_active = True
+
             usuario.save()
 
             Cliente.objects.create(
