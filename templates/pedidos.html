@@ -21,10 +21,10 @@
 
             <div class="navbar">
                 <ul>
-                    <li><a href="panel">Panel</a></li>
-                    <li><a href="productos">Productos</a></li>
-                    <li><a href="#" class="active">Mis Pedidos</a></li>
-                    <li><a href="login">Cerrar sesión</a></li>
+                    <li><a href="{% url 'admin' %}">Panel</a></li>
+                    <li><a href="{% url 'productos' %}">Productos</a></li>
+                    <li><a href="{% url 'pedidos' %}" class="active">Mis Pedidos</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar sesión</a></li>
                 </ul>
             </div>
 

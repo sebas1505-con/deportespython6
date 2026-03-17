@@ -587,16 +587,35 @@ def crear_admin(request):
     return render(request, "crear_admin.html")
 
 def generar_pdf(request):
-    response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="reporte.pdf"'
+    form = ReportesForm(request.GET)
+    if form.is_valid():
+        fecha_inicio = form.cleaned_data['fecha_inicio']
+        fecha_fin = form.cleaned_data['fecha_fin']
 
-    p = canvas.Canvas(response)
-    p.drawString(100, 750, "Reporte generado desde Django")
-    p.showPage()
-    p.save()
+        ventas = Venta.objects.filter(fecha__range=[fecha_inicio, fecha_fin])
 
-    return response
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="reporte.pdf"'
 
+        p = canvas.Canvas(response)
+        p.drawString(100, 800, f"Reporte de Ventas desde {fecha_inicio} hasta {fecha_fin}")
+
+        y = 750
+        for venta in ventas:
+            texto = f"ID: {venta.id} | Cliente: {venta.cliente} | Total: ${venta.total} | Fecha: {venta.fecha}"
+            p.drawString(50, y, texto)
+            y -= 20
+            if y < 50:  
+                p.showPage()
+                y = 800
+
+        p.showPage()
+        p.save()
+        return response
+    else:
+        messages.error(request, "Fechas inválidas. Por favor corrige e intenta de nuevo.")
+        return render(request, 'reportes.html', {'form': form})
+    
 def prueba_correo(request):
     correo = EmailMessage(
         subject="Recuperación de contraseña",  

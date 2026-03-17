@@ -32,19 +32,15 @@
 <h3>Generar Reporte</h3>
 
 <form method="GET" action="{% url 'generar_pdf' %}">
-
+{{ form.non_field_errors }}
 <div class="campo">
-
 <label>Fecha Inicio</label> <input type="date" name="fecha_inicio" required>
-
+{{ form.fecha_inicio }}
 </div>
-
 <div class="campo">
-
 <label>Fecha Fin</label> <input type="date" name="fecha_fin" required>
-
+{{ form.fecha_fin }}
 </div>
-
 <button type="submit" class="btn-reporte">
 📄 Generar Reporte
 </button>
