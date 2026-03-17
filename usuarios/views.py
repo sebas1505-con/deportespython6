@@ -562,7 +562,7 @@ def crear_admin(request):
         if contrasena != confirmar:
             return render(request, "crear_admin.html", {"error": "Las contraseñas no coinciden"})
 
-        CODIGOS_VALIDOS = ["ADM-000", "ADM-123", "ADM-456"]
+        CODIGOS_VALIDOS = [ "ADM-123", "ADM-456"]
         if codigo not in CODIGOS_VALIDOS:
             return render(request, "crear_admin.html", {"error": "Código incorrecto"})
 
