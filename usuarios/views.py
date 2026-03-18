@@ -1,14 +1,12 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from django.contrib.sites.shortcuts import get_current_site
-from django.contrib.auth.models import User
 from .models import Usuario, Cliente, Repartidor, Producto
 from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm
-from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas 
 from django.core.mail import EmailMessage
+import uuid
 
 def index(request):
     usuario_id = request.session.get('usuario_id')
@@ -307,36 +305,6 @@ def login_view(request):
 
     return render(request, 'login.html')
 
-def restablecer_password(request):
-    if request.method == 'POST':
-        correo = request.POST.get('correo')
-
-        try:
-            usuario = Usuario.objects.get(email=correo)
-
-            # Obtener el dominio actual de la petición
-            current_site = get_current_site(request)
-            enlace = f"http://{current_site.domain}/reset/{usuario.id}/"
-
-            cuerpo = f"Hola {usuario.first_name}, haz clic en el siguiente enlace para restablecer tu contraseña: {enlace}"
-
-            email = EmailMessage(
-                subject="Recuperación de contraseña",
-                body=cuerpo,
-                from_email="tu_correo@gmail.com",
-                to=[correo],
-            )
-            email.encoding = 'utf-8'
-            email.send(fail_silently=False)
-
-            messages.success(request, "Se envió un correo de recuperación!.")
-        except Usuario.DoesNotExist:
-            messages.error(request, "El correo no está registrado.")
-
-        return redirect('restablecer')
-
-    return render(request, 'restablecer.html')
-
 def factura(request):
 
     carrito = request.session.get('carrito', {})
@@ -622,39 +590,168 @@ def generar_pdf(request):
     
 def prueba_correo(request):
     correo = EmailMessage(
-        subject="Recuperación de contraseña",  
-        body="Haz clic en el enlace para restablecer tu contraseña.",
-        from_email="tu_correo@gmail.com",
-        to=["destinatario@ejemplo.com"],
+        subject="Prueba de correo",
+        body="Este es un correo de prueba desde Django.",
+        from_email="juancerquera104@gmail.com",
+        to=["juancerquera104@gmail.com"], 
     )
-    correo.content_subtype = "plain"  
-    correo.encoding = "utf-8"         
-    correo.send()
-    return HttpResponse("Correo enviado")
+    correo.send(fail_silently=False)  
+    return HttpResponse("Correo enviado correctamente")
 
 def nueva_contrasena(request, token):
-    user_id = password_reset_tokens.get(token)
-    if not user_id:
+    print("🔐 TOKEN RECIBIDO:", token)
+
+    usuario = Usuario.objects.filter(token_recuperacion=token).first()
+
+    if not usuario:
         messages.error(request, 'Enlace inválido o expirado.')
         return redirect('login')
-
-    usuario = get_object_or_404(User, id=user_id)
 
     if request.method == "POST":
         password1 = request.POST.get('password')
         password2 = request.POST.get('confirm_password')
 
         if not password1 or not password2:
-            messages.error(request, 'Por favor completa ambos campos.')
+            messages.error(request, 'Completa ambos campos.')
+
         elif password1 != password2:
             messages.error(request, 'Las contraseñas no coinciden.')
+
         elif len(password1) < 6:
-            messages.error(request, 'La contraseña debe tener al menos 6 caracteres.')
+            messages.error(request, 'Debe tener mínimo 6 caracteres.')
+
         else:
-            usuario.set_password(password1)
+            # 🔐 ENCRIPTAR CONTRASEÑA
+            usuario.password = make_password(password1)
+
+            usuario.token_recuperacion = None
+
             usuario.save()
+
+            print("✅ CONTRASEÑA ACTUALIZADA")
+
             messages.success(request, 'Contraseña actualizada correctamente.')
-            del password_reset_tokens[token]
             return redirect('login')
 
-    return render(request, 'nueva_contrasena.html', {'usuario': usuario})
+    return render(request, 'usuarios/nueva_contrasena.html')
+
+def restablecer_password(request):
+
+    if request.method == 'POST':
+
+        email = request.POST.get('email')
+        print("📧 EMAIL:", email)
+
+        if not email:
+            messages.error(request, "Debes ingresar un correo.")
+            return redirect('restablecer')
+
+        email = email.strip().lower()
+
+        usuario = Usuario.objects.filter(email__iexact=email).first()
+
+        if usuario:
+            print("✅ USUARIO ENCONTRADO:", usuario.email)
+
+            token = str(uuid.uuid4())
+            usuario.token_recuperacion = token
+            usuario.save()
+
+            enlace = f"http://127.0.0.1:8000/nueva_contrasena/{token}/"
+
+            cuerpo = f"""
+<html>
+<body style="margin:0; padding:0; background:#0f172a; font-family:Arial, sans-serif;">
+
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#0f172a; padding:40px 0;">
+<tr>
+<td align="center">
+
+<!-- CONTENEDOR -->
+<table width="600" style="background:#ffffff; border-radius:15px; overflow:hidden; box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+
+    <!-- IMAGEN HEADER -->
+    <tr>
+        <td>
+            <img src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438"
+                 width="100%" style="display:block;">
+        </td>
+    </tr>
+
+    <!-- CONTENIDO -->
+    <tr>
+        <td style="padding:40px; text-align:center;">
+
+            <h1 style="color:#0f172a; margin-bottom:10px;">
+                 Recuperar Contraseña
+            </h1>
+
+            <p style="color:#555; font-size:16px;">
+                Hola <strong>{usuario.first_name or "Usuario"}</strong>
+            </p>
+
+            <p style="color:#777; font-size:15px; line-height:1.6;">
+                Recibimos una solicitud para restablecer tu contraseña.
+                Haz clic en el botón de abajo para continuar.
+            </p>
+
+            <!-- BOTÓN -->
+            <a href="{enlace}"
+            style="
+                display:inline-block;
+                margin-top:25px;
+                background:linear-gradient(135deg,#3b82f6,#1d4ed8);
+                color:#fff;
+                padding:14px 30px;
+                text-decoration:none;
+                border-radius:8px;
+                font-weight:bold;
+                font-size:16px;
+                box-shadow:0 5px 15px rgba(59,130,246,0.4);
+            ">
+                Restablecer contraseña 
+            </a>
+
+            <p style="margin-top:30px; color:#999; font-size:13px;">
+                Si no solicitaste este cambio, puedes ignorar este correo.
+            </p>
+
+        </td>
+    </tr>
+
+    <!-- FOOTER -->
+    <tr>
+        <td style="background:#f1f5f9; padding:20px; text-align:center; font-size:12px; color:#888;">
+            © 2026 Deportes360 • Todos los derechos reservados
+        </td>
+    </tr>
+
+</table>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
+"""
+
+            correo = EmailMessage(
+                subject="Recuperación de contraseña",
+                body=cuerpo,
+                from_email="juancerquera104@gmail.com",
+                to=[usuario.email],
+            )
+
+            correo.content_subtype = "html"
+            correo.send(fail_silently=False)
+
+            print("✅ CORREO ENVIADO")
+
+        else:
+            print("❌ NO EXISTE USUARIO")
+
+        messages.success(request, "Si el correo existe, se enviará un enlace.")
+        return redirect('restablecer')
+
+    return render(request, 'restablecer.html')

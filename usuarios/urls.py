@@ -36,11 +36,11 @@ urlpatterns = [
     path('producto-editar/<int:id>/', views.producto_editar, name='producto_editar'),
     path('producto-eliminar/<int:id>/', views.producto_eliminar, name='producto_eliminar'),
     path('eliminar-usuario/<int:id>/', views.eliminar_usuario, name='eliminar_usuario'),
-    path('restablecer/<int:id>/', views.restablecer_password, name='restablecer'),
+    path('restablecer/', views.restablecer_password, name='restablecer'),
+    path('nueva_contrasena/<str:token>/', views.nueva_contrasena, name='nueva_contrasena'),
     path('nueva_contrasena/', views.nueva_contrasena, name='nueva_contrasena'),
     path("prueba-correo/", views.prueba_correo),
     path('agregar_stock/<int:id>/', views.agregar_stock, name='agregar_stock'),
     path('agregar_producto/', views.agregar_producto, name='agregar_producto'),
-    path('producto-editar/<int:id>/', views.producto_editar, name='producto_editar'),
 
 ]

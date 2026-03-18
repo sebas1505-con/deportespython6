@@ -16,6 +16,7 @@ class Usuario(models.Model):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=50)
     password = models.CharField(max_length=128)
+    token_recuperacion = models.CharField(max_length=100, null=True, blank=True)
 
     rol = models.CharField(max_length=15, choices=ROLES)
     telefono = models.CharField(max_length=20)
