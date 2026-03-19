@@ -167,3 +167,11 @@ class Reporte(models.Model):
 
     def __str__(self):
         return f"Reporte {self.id} - {self.fecha_inicio} a {self.fecha_fin}"
+    
+class Sugerencia(models.Model):
+    nombre = models.CharField(max_length=100, blank=True, null=True)
+    texto = models.TextField()
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Sugerencia de {self.nombre or 'Anónimo'} - {self.fecha.strftime('%Y-%m-%d')}"

@@ -42,5 +42,6 @@ urlpatterns = [
     path('movimientos/', views.registrar_movimiento, name='movimientos'),
     path('agregar_producto/', views.agregar_producto, name='agregar_producto'),
     path('api/barrios-bogota/', views.barrios_bogota, name='api_barrios'),
+    path("panel-sugerencias/", views.panel_sugerencias, name="panel_sugerencias"),
 
 ]

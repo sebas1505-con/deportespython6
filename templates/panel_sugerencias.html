@@ -1,0 +1,37 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel de Sugerencias</title>
+    <link rel="stylesheet" href="{% static 'css/panel_sugerencias.css' %}">
+</head>
+<body>
+    <h1>Panel de Sugerencias</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Texto</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sugerencias %}
+            <tr>
+                <td>{{ s.nombre|default:"Anónimo" }}</td>
+                <td>{{ s.texto }}</td>
+                <td>{{ s.fecha|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">No hay sugerencias registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="{% url 'panel_admin' %}">Volver al menú</a>
+</body>
+</html>

@@ -1,0 +1,69 @@
+/* panel.css */
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 20px;
+    color: #333;
+}
+
+h1 {
+    text-align: center;
+    color: #2c3e50;
+    margin-bottom: 30px;
+}
+
+table {
+    width: 90%;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+thead {
+    background: linear-gradient(135deg, #090909, #cf1717);
+    color: #fff;
+}
+
+thead th {
+    padding: 15px;
+    text-align: left;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
+
+tbody td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee;
+}
+
+tbody tr:hover {
+    background: #f9f9f9;
+    transition: background 0.3s ease;
+}
+
+td:first-child {
+    font-weight: 600;
+    color: #2980b9;
+}
+
+a {
+    display: inline-block;
+    margin: 20px auto;
+    text-decoration: none;
+    background: linear-gradient(135deg, #060606, #020202);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-weight: bold;
+    transition: transform 0.2s ease, background 0.3s ease;
+}
+
+a:hover {
+    transform: scale(1.05);
+    background: linear-gradient(135deg, #db1e1e, #cc2e2e);
+}

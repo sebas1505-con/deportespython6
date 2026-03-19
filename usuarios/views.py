@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from .models import Usuario, Cliente, Repartidor, Producto
+from .models import Usuario, Cliente, Repartidor, Producto, Sugerencia
 from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm, MovimientoForm
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
@@ -51,9 +51,6 @@ def catalogo(request):
 def detalle_pedido(request):
     return render(request, 'detalle_pedido.html')
 
-def sugerencias(request):
-    return render(request, 'sugerencias.html')
-
 def contactousu(request):
     return render(request, 'contactousu.html')
 
@@ -65,6 +62,24 @@ def crear_admin(request):
 
 def reportesVentas(request):
     return render(request, "productos/reportes_ventas.html")
+
+def sugerencias(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        texto = request.POST.get("texto")
+
+        if texto: 
+            Sugerencia.objects.create(nombre=nombre, texto=texto)
+            messages.success(request, "¡Gracias por tu sugerencia!")
+            return redirect("sugerencias")  
+        else:
+            messages.error(request, "Debes escribir una sugerencia.")
+
+    return render(request, "sugerencias.html")
+
+def panel_sugerencias(request):
+    sugerencias = Sugerencia.objects.all().order_by('-fecha')
+    return render(request, "panel_sugerencias.html", {"sugerencias": sugerencias})
 
 def logout_view(request):
     request.session.flush()
