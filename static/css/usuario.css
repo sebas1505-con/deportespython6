@@ -1,4 +1,3 @@
-
 * {
   margin: 0;
   padding: 0;
@@ -126,73 +125,71 @@ img {
 }
 
 /* ---------------------------------------------------- */
-/* SECCIÓN HERO */
+/* SECCIÓN HERO - CORREGIDA */
 /* ---------------------------------------------------- */
-.hero-section{
-padding:80px 0;
-color:white;
-background:linear-gradient(135deg,#e6c11f,#2c5364,#a12c2c);
+.hero-section {
+  position: relative;
+  padding: 0; /* Eliminamos padding para que la imagen toque los bordes */
+  color: white;
+  background: linear-gradient(135deg, #e6c11f, #2c5364, #a12c2c);
+  overflow: hidden; /* Evita que la imagen grande genere scroll */
+  min-height: 450px;
 }
 
-.hero-content{
-display:flex;
-align-items:center;
-justify-content:space-between;
-gap:50px;
+.hero-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 450px; /* Altura fija para que coincida con el diseño */
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
 }
 
-.hero-text{
-max-width:500px;
+.hero-text {
+  flex: 1;
+  max-width: 500px;
+  z-index: 2; /* Asegura que el texto esté sobre la imagen en pantallas pequeñas */
 }
 
-.usuario-bienvenida{
-font-size:22px;
-font-weight:600;
-margin-bottom:10px;
-color:#00e0ff;
+.hero-text h1 {
+  font-size: 48px;
+  margin: 10px 0;
+  line-height: 1.1;
 }
 
-.hero-text h1{
-font-size:48px;
-margin:10px 0;
+.hero-text p {
+  font-size: 18px;
+  margin-bottom: 25px;
+  color: #dcdcdc;
 }
 
-.hero-text p{
-font-size:18px;
-margin-bottom:25px;
-color:#dcdcdc;
+/* CONTENEDOR DE IMAGEN */
+.hero-img {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  justify-content: flex-end; /* Pega a James y Lucho a la derecha */
+  align-items: flex-end;    /* Los pega al suelo del banner */
 }
 
-/* BOTONES HORIZONTALES */
-.hero-botones{
-display:flex;
-gap:15px;
-flex-wrap:wrap;
+.hero-img img {
+  height: 95%;    /* Un poco más alto que el contenedor para que luzca grande */
+  width: auto;     /* Mantiene la proporción */
+  max-width: none; /* Anulamos el max-width: 60% que tienes al inicio del CSS */
+  display: block;
+  object-fit: contain;
+  margin-bottom: -5px; /* Elimina cualquier espacio fantasma abajo */
+  filter: drop-shadow(-15px 5px 20px rgba(0,0,0,0.4)); /* Sombra para dar profundidad */
 }
 
-/* BOTONES CARAMELO */
-.btn-hero{
-padding:12px 25px;
-border-radius:30px;
-text-decoration:none;
-font-weight:bold;
-color:white;
-background:linear-gradient(45deg,#00c6ff,#0072ff);
-transition:0.3s;
-box-shadow:0 6px 20px rgba(0,0,0,0.3);
-}
-
-.btn-hero:hover{
-transform:translateY(-3px) scale(1.05);
-background:linear-gradient(45deg,#ff7e5f,#feb47b);
-}
-.usuario-bienvenida{
-font-size:22px;
-font-weight:600;
-color:#ffffff;
-margin-bottom:10px;
-letter-spacing:1px;
-text-shadow:2px 2px 6px rgba(0,0,0,0.6);
+.usuario-bienvenida {
+  font-size: 22px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 10px;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 6px rgba(0,0,0,0.6);
 }
 /* FIN DE ESTILOS HERO */
 
@@ -566,4 +563,5 @@ gap:20px;
     }
     
 }
+
 
