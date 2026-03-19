@@ -267,6 +267,66 @@ body {
   transform: scale(1.06);
 }
 
+/* ---------------------------
+   GESTIÓN DE PRODUCTOS
+--------------------------- */
+
+.productos {
+  margin: 24px 20px;
+  background: #ffffff;
+  padding: 22px;
+  border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+}
+
+.productos h2 {
+  font-size: 22px;
+  margin-bottom: 15px;
+}
+
+/* Tabla productos */
+.tabla-productos {
+  width: 100%;
+  border-collapse: collapse;
+  border-radius: 12px;
+  overflow: hidden;
+  background: white;
+}
+
+.tabla-productos thead th {
+  background-color: #d40000;
+  color: white;
+  padding: 14px;
+  font-size: 14px;
+}
+
+.tabla-productos td {
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+  font-size: 14px;
+}
+
+.tabla-productos tr:hover {
+  background-color: #f8f8f8;
+}
+
+/* Botón eliminar */
+.btn-eliminar {
+  background: linear-gradient(180deg,#ff4b4b,#e60000);
+  color: #fff;
+  border: 0;
+  padding: 8px 14px;
+  font-size: 13px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-eliminar:hover {
+  opacity: 0.9;
+  transform: scale(1.06);
+}
+
 /* -----------------------
    RESPONSIVO
 ------------------------*/

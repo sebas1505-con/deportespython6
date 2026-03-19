@@ -180,6 +180,62 @@
 
 </section>
 
+<section class="productos">
+
+    <h2>Gestión de Productos</h2>
+
+    <table class="tabla-productos">
+
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Precio</th>
+                <th>Cantidad</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+
+        <tbody>
+
+            {% for p in productos %}
+            <tr>
+
+                <td>#{{ p.id }}</td>
+
+               <td class="producto-nombre">
+                   {{ p.nombre }}
+               </td>
+
+                <td>{{ p.precio }}</td>
+
+                <td>{{ p.cantidad }}</td>
+
+                <td>
+
+                    <form method="post" action="{% url 'producto_eliminar' p.id %}">
+                        {% csrf_token %}
+
+                        <button class="btn-eliminar"
+                         onclick="return confirm('¿Seguro que deseas eliminar este producto?');">
+
+                         Eliminar
+
+                        </button>
+
+                    </form>
+
+                </td>
+
+            </tr>
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</section>
+
 </main>
 </body>
 </html>
