@@ -16,8 +16,6 @@ class Usuario(models.Model):
     email = models.EmailField(unique=True)
     first_name = models.CharField(max_length=50)
     password = models.CharField(max_length=128)
-    token_recuperacion = models.CharField(max_length=100, null=True, blank=True)
-
     rol = models.CharField(max_length=15, choices=ROLES)
     telefono = models.CharField(max_length=20)
     fecha_nacimiento = models.DateField(null=True, blank=True)
@@ -25,6 +23,7 @@ class Usuario(models.Model):
     tipo_documento = models.CharField(max_length=5, null=True, blank=True)
     cedula = models.CharField(max_length=20, unique=True, null=True, blank=True) 
     localidad = models.CharField(max_length=50, null=True, blank=True)
+    token_recuperacion = models.CharField(max_length=100, null=True, blank=True)
 
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)

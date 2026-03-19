@@ -45,6 +45,7 @@ def reportes_admin(request):
     return render(request, 'productos/reportes_admin.html')
 
 def catalogo(request):
+    productos = Producto.objects.all()
     return render(request, 'catalogo.html')
 
 def detalle_pedido(request):
