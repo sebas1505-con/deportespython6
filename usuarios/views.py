@@ -98,14 +98,14 @@ def producto_nuevo(request):
         precio = request.POST.get("precio")
         descripcion = request.POST.get("descripcion")
         imagen = request.FILES.get("imagen")
-        stock = request.POST.get("stock")
+        cantidad = request.POST.get("cantidad")
 
         Producto.objects.create(
             nombre=nombre,
             precio=precio,
             descripcion=descripcion,
             imagen=imagen,
-            stock=stock
+            cantidad=cantidad,
         )
 
         return redirect('productos')

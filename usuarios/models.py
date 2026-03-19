@@ -63,7 +63,7 @@ class Producto(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField()
     imagen = models.ImageField(upload_to='productos/')
-    stock = models.IntegerField(default=0)
+    cantidad = models.IntegerField(default=0)
     slug = models.SlugField(unique=True) 
 
     def save(self, *args, **kwargs):
