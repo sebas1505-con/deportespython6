@@ -103,22 +103,19 @@ class DetalleVentaProductos(models.Model):
     fecha_inicio_descuento = models.DateField(null=True, blank=True)
     fecha_fin_descuento = models.DateField(null=True, blank=True)
     
-    ## Sobrescribimos el método save para actualizar el stock del producto al guardar un detalle de venta
+class Movimiento(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    fecha = models.DateTimeField(auto_now_add=True)
+    
     def save(self, *args, **kwargs):
-        
-        producto = self.producto
-        
-        if producto.stock >= self.cantidad:
-            producto.stock -= self.cantidad
-            producto.save()
-        else:
-            raise ValueError("No hay suficiente stock para este producto.")
-        
+        self.producto.stock += self.cantidad
+        self.producto.save()
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.producto.nombre} x{self.cantidad}"
-
+        return f"{self.producto.nombre} + {self.cantidad}"
+    
 class Envio(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
     repartidor = models.ForeignKey(Repartidor, on_delete=models.CASCADE)
@@ -136,20 +133,7 @@ class Asignacion(models.Model):
 
     def __str__(self):
         return f"Asignación {self.id} - {self.estado}"
-
-class Movimiento(models.Model):
-    inventario = models.ForeignKey(Inventario, on_delete=models.CASCADE)
-    tipo_movimiento = models.CharField(max_length=10, choices=[("salida", "Salida"), ("entrada", "Entrada")])
-    cantidad = models.IntegerField()
-    observacion = models.TextField()
-    dinero_gastado = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    dinero_ganado = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    precio_producto_venta = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    proveedor = models.ForeignKey("Proveedor", on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.tipo_movimiento} - {self.cantidad}"
-
+   
 class Proveedor(models.Model):
     fecha_registro = models.DateField(null=True, blank=True)
     telefono = models.CharField(max_length=20, null=True, blank=True)

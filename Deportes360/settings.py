@@ -137,4 +137,4 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "juancerquera104@gmail.com"
 EMAIL_HOST_PASSWORD = "xpni nsdy heqa pfia"  
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+DEFAULT_FROM_EMAIL = "Soporte Deportes360 <tucorreo@gmail.com>"

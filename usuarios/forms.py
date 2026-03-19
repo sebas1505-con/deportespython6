@@ -2,13 +2,15 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.contrib.auth.hashers import make_password
 from datetime import date
-from .models import Usuario, Administrador, Reporte
+from .models import Usuario, Administrador, Reporte, Movimiento
 
 class RegistroClienteForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput, label="Contraseña")
     confirmar_password = forms.CharField(widget=forms.PasswordInput, label="Confirmar Contraseña")
     direccion = forms.CharField(max_length=255, label="Dirección")
-    fecha_nacimiento = forms.DateField(widget=forms.DateInput(attrs={'type':'date'}), required=False)
+    fecha_nacimiento = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}, format='%Y-%m-%d'),
+    input_formats=['%Y-%m-%d'], required=False
+)
     barrio = forms.CharField(max_length=50, required=False)
 
     class Meta:
@@ -73,7 +75,7 @@ class RepartidorForm(forms.ModelForm):
 
     def save(self, commit=True):
         usuario = super().save(commit=False)
-        usuario.password = make_password(self.cleaned_data['password'])  # encriptar
+        usuario.password = make_password(self.cleaned_data['password'])  
         usuario.rol = 'REPARTIDOR'
         if commit:
             usuario.save()
@@ -183,3 +185,14 @@ class ReportesForm(forms.ModelForm):
             raise ValidationError("La fecha de inicio no puede ser posterior a la fecha de fin")
 
         return cleaned_data
+    
+class MovimientoForm(forms.ModelForm):
+    class Meta:
+        model = Movimiento
+        fields = ['producto', 'cantidad']
+        
+    def clean_cantidad(self):
+        cantidad = self.cleaned_data['cantidad']
+        if cantidad <= 0:
+            raise ValidationError("La cantidad debe ser mayor a cero")
+        return cantidad

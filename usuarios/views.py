@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
 from .models import Usuario, Cliente, Repartidor, Producto
-from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm
+from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm, MovimientoForm
+from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas 
@@ -93,19 +94,16 @@ def inventario(request):
     
     return render(request, 'inventario.html', {'productos': productos})
 
-def agregar_stock(request, id):
-    
-    producto = get_object_or_404(Producto, id=id)
-    
+def registrar_movimiento(request):
     if request.method == 'POST':
-        cantidad = int(request.POST['cantidad'])
-        
-        producto.stock += cantidad
-        producto.save()
-        
-        return redirect('inventario')
-    
-    return render(request, 'agregar_stock.html', {'producto': producto})
+        form = MovimientoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('panel_admin')
+    else:
+        form = MovimientoForm()
+
+    return render(request, 'movimientos.html', {'form': form})
 
 def agregar_producto(request):
     
@@ -617,7 +615,7 @@ def prueba_correo(request):
     correo = EmailMessage(
         subject="Prueba de correo",
         body="Este es un correo de prueba desde Django.",
-        from_email="juancerquera104@gmail.com",
+        from_email="Soporte Deportes360 <tucorreo@gmail.com>",
         to=["juancerquera104@gmail.com"], 
     )
     correo.send(fail_silently=False)  

@@ -87,6 +87,7 @@ body {
 /* -----------------------
    ESTADÍSTICAS (CARDS)
 ------------------------*/
+
 .stats {
   display: flex;
   gap: 20px;
