@@ -1,7 +1,7 @@
 from django.core.exceptions import ValidationError
 from datetime import date
 from django.db import models
-from django.contrib.auth.models import AbstractUser
+from django.utils.text import slugify
 
 
 class Usuario(models.Model):
@@ -60,11 +60,17 @@ class Administrador(models.Model):
 
 class Producto(models.Model):
     nombre = models.CharField(max_length=100)
-    talla = models.CharField(max_length=10)
+    slug = models.SlugField(unique=True, blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    categoria = models.CharField(max_length=50)
-    imagen = models.ImageField(upload_to="productos/", null=True, blank=True)
+    descripcion = models.TextField()
+    imagen = models.ImageField(upload_to='productos/')
     stock = models.IntegerField(default=0)
+    slug = models.SlugField(unique=True) 
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.nombre)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.nombre

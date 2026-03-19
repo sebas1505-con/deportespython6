@@ -11,29 +11,25 @@
 
 <div class="container">
 
-    <form method="POST" class="form-card">
-        {% csrf_token %}
+<h2>Editar Producto</h2>
 
-        <h2>Editar Producto</h2>
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
 
-        <div class="form-group">
-            <label>Nombre</label>
-            <input type="text" name="nombre" value="{{ producto.nombre }}">
-        </div>
+    <input type="text" name="nombre" value="{{ producto.nombre }}">
 
-        <div class="form-group">
-            <label>Precio</label>
-            <input type="number" name="precio" value="{{ producto.precio }}">
-        </div>
+    <input type="number" name="precio" value="{{ producto.precio }}">
 
-        <div class="form-group">
-            <label>Stock</label>
-            <input type="number" name="stock" value="{{ producto.stock }}">
-        </div>
+    <textarea name="descripcion">{{ producto.descripcion }}</textarea>
 
-        <button type="submit">Guardar Cambios</button>
+    <input type="number" name="stock" value="{{ producto.stock }}">
 
-    </form>
+    <img src="{{ producto.imagen.url }}" width="100">
+
+    <input type="file" name="imagen">
+
+    <button type="submit">Actualizar</button>
+</form>
 
 </div>
 

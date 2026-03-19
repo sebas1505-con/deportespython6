@@ -105,67 +105,24 @@
         </div>
     </div>
 </section>
-
 <main class="Prodcts container">
     <h2>Prendas Destacadas</h2>
 
     <div class="Prodcts-content">
 
+        {% for producto in productos %}
         <div class="Prodcts-1">
-            <img src="{% static 'images/camiseta.png' %}" alt="Camiseta DryFit" />
-            <h4>Camiseta DryFit Deportiva</h4>
-            <p>$59.900</p>
-            <a href="{% url 'producto-detalle' 'camiseta' %}" class="btn-1">Más Información</a>
-        </div>
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}" />
+            <h4>{{ producto.nombre }}</h4>
+            <p>${{ producto.precio }}</p>
 
-        <div class="Prodcts-1">
-            <img src="{% static 'images/sudadera.png' %}" alt="Sudadera Unisex" />
-            <h4>Sudadera Clásica Unisex</h4>
-            <p>$120.000</p>
-            <a href="{% url 'producto-detalle' 'sudadera' %}" class="btn-1">Más Información</a>
+            <a href="{% url 'producto_detalle' producto.slug %}" class="btn-1">
+                Más Información
+            </a>
         </div>
-
-        <div class="Prodcts-1">
-            <img src="{% static 'images/leggings.png' %}" alt="Leggings Mujer" />
-            <h4>Leggings Deportivos Mujer</h4>
-            <p>$85.000</p>
-            <a href="{% url 'producto-detalle' 'leggings' %}" class="btn-1">Más Información</a>
-        </div>
-
-        <div class="Prodcts-1">
-            <img src="{% static 'images/chaqueta.png' %}" alt="Chaqueta Rompevientos" />
-            <h4>Chaqueta Rompevientos</h4>
-            <p>$135.000</p>
-            <a href="{% url 'producto-detalle' 'chaqueta' %}" class="btn-1">Más Información</a>
-        </div>
-
-        <div class="Prodcts-1">
-            <img src="{% static 'images/short.png' %}" alt="Short Hombre" />
-            <h4>Short Deportivo Hombre</h4>
-            <p>$49.000</p>
-            <a href="{% url 'producto-detalle' 'short' %}" class="btn-1">Más Información</a>
-        </div>
-
-        <div class="Prodcts-1">
-            <img src="{% static 'images/top.png' %}" alt="Top Mujer" />
-            <h4>Top Deportivo Mujer</h4>
-            <p>$60.000</p>
-            <a href="{% url 'producto-detalle' 'top' %}" class="btn-1">Más Información</a>
-        </div>
-
-        <div class="Prodcts-1">
-            <img src="{% static 'images/conjunto-mujer.png' %}" alt="Conjunto Deportivo Mujer" />
-            <h4>Conjunto Deportivo Mujer</h4>
-            <p>$149.000</p>
-            <a href="{% url 'producto-detalle' 'conjunto-mujer' %}" class="btn-1">Más Información</a>
-        </div>
-
-        <div class="Prodcts-1">
-            <img src="{% static 'images/buzo-hombre.png' %}" alt="Buzo Hombre" />
-            <h4>Buzo Deportivo Hombre</h4>
-            <p>$110.000</p>
-            <a href="{% url 'producto-detalle' 'buzo-hombre' %}" class="btn-1">Más Información</a>
-        </div>
+        {% empty %}
+            <p>No hay productos disponibles</p>
+        {% endfor %}
 
     </div>
 </main>

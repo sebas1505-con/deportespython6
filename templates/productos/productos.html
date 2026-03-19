@@ -26,8 +26,6 @@
     </div>
 </header>
 
-{% load static %}
-
 <main class="Prodcts container" id="productos">
     <h2>Productos</h2>
 
@@ -37,7 +35,7 @@
 
         <div class="Prodcts-1">
 
-            <img src="{% static producto.imagen %}" alt="{{ producto.nombre }}"/>
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"/>
 
             <h4>{{ producto.nombre }}</h4>
 
@@ -45,6 +43,8 @@
 
         </div>
 
+        {% empty %}
+            <p>No hay productos registrados</p>
         {% endfor %}
 
     </div>
@@ -56,7 +56,6 @@
         <a href="#" class="logo">DEPORTES 360</a>
 
         <ul>
-            <li><a href="{% url 'menu' %}">Panel</a></li>
             <li><a href="{% url 'pedidos' %}">Pedidos</a></li>
         </ul>
 

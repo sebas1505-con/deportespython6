@@ -5,6 +5,7 @@
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>{{ producto.nombre }} - Deportes 360</title>
+
     <link rel="icon" href="{% static 'images/producto.png' %}">
     <link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
     <link rel="stylesheet" href="{% static 'css/index.css' %}">
@@ -14,11 +15,11 @@
 <header class="header">
     <div class="container menu">
         <a href="{% url 'usuario' %}" class="logo">DEPORTES 360</a>
-        <li><a href="{% url 'catalogo' %}" class="btn-1">Productos</a></li>
+
         <nav class="navbar">
             <ul>
                 <li><a href="{% url 'usuario' %}">Inicio</a></li>
-                <li><a href="{% url 'contactousu' %}">Contacto</a></li>
+                <li><a href="{% url 'catalogo' %}">Productos</a></li>
                 <li><a href="{% url 'carrito' %}">Carrito ({{ carrito_cantidad }})</a></li>
             </ul>
         </nav>
@@ -26,57 +27,49 @@
 </header>
 
 <main class="container">
+
     <div class="producto-detalle">
-        <!-- GALERÍA DE IMÁGENES -->
+
+        <!-- IMAGEN -->
         <div class="producto-galeria">
             <div class="imagen-principal">
-                <img id="imagen-principal" src="{% static producto.imagen %}" alt="{{ producto.nombre }}">
-            </div>
-            <div class="miniaturas">
-                {% for img in producto.galeria %}
-                    <img src="{% static img %}" onclick="cambiarImagen('{% static img %}')" alt="{{ producto.nombre }}">
-                {% endfor %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
             </div>
         </div>
 
-        <!-- INFORMACIÓN DEL PRODUCTO -->
+        <!-- INFO -->
         <div class="producto-info">
+
             <h2>{{ producto.nombre }}</h2>
+
             <p>{{ producto.descripcion }}</p>
+
             <p><strong>Precio:</strong> ${{ producto.precio }}</p>
 
-            <ul class="caracteristicas">
-                {% for item in producto.caracteristicas %}
-                    <li>{{ item }}</li>
-                {% endfor %}
-            </ul>
-
-            <div class="benefits-mini">
-                {% for b in producto.benefits %}
-                    <span>{{ b }}</span>
-                {% endfor %}
-            </div>
+            <p><strong>Stock:</strong> {{ producto.stock }}</p>
 
             <form method="post">
                 {% csrf_token %}
+
                 <div style="margin-top: 20px;">
                     {{ form.talla.label_tag }}
                     {{ form.talla }}
                 </div>
-                <div style="margin-top: 20px;">
-                    <a href="{% url 'catalogo' %}" class="btn-1">Volver</a>
-                    <button type="submit" class="btn-1">Agregar al Carrito</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</main>
 
-<script>
-function cambiarImagen(url) {
-    document.getElementById("imagen-principal").src = url;
-}
-</script>
+                <div style="margin-top: 20px;">
+                    <a href="{% url 'usuario' %}" class="btn-1">Volver</a>
+                    <button type="submit" class="btn-1">
+                        Agregar al carrito
+                    </button>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</main>
 
 </body>
 </html>

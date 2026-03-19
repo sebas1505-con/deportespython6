@@ -69,24 +69,59 @@ def logout_view(request):
     request.session.flush()
     return redirect('login')
 
-def producto_nuevo(request):
-    return render(request, "productos/producto_nuevo.html")
-
-def producto_eliminar(request, id):
-    producto = get_object_or_404(Producto, id=id)
-    producto.delete()
-    return redirect('inventario')
+def admin(request):
+    usuarios = Usuario.objects.all()
+    return render(request, 'admin.html', {
+        'usuarios': usuarios
+    })
 
 def eliminar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)
     usuario.delete()
     return redirect('panel_admin')
 
-def admin(request):
-    usuarios = Usuario.objects.all()
-    return render(request, 'admin.html', {
-        'usuarios': usuarios
+def producto_eliminar(request, id):
+    producto = get_object_or_404(Producto, id=id)
+    producto.delete()
+    return redirect('inventario')
+
+def productos(request):
+    productos = Producto.objects.all()
+    return render(request, 'productos/productos.html', {
+        'productos': productos
     })
+
+def producto_nuevo(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        precio = request.POST.get("precio")
+        descripcion = request.POST.get("descripcion")
+        imagen = request.FILES.get("imagen")
+        stock = request.POST.get("stock")
+
+        Producto.objects.create(
+            nombre=nombre,
+            precio=precio,
+            descripcion=descripcion,
+            imagen=imagen,
+            stock=stock
+        )
+
+        return redirect('productos')
+
+    return render(request, 'productos/producto_nuevo.html')
+
+def agregar_producto(request):
+    
+    if request.method == 'POST':
+        
+        nombre = request.POST['nombre']
+        cantidad = int(request.POST['cantidad'])
+        precio = float(request.POST['precio'])
+    
+        Producto.objects.create(nombre=nombre, stock=cantidad, precio=precio)
+        
+        return redirect('inventario')
 
 def inventario(request):
     
@@ -104,45 +139,30 @@ def registrar_movimiento(request):
         form = MovimientoForm()
 
     return render(request, 'movimientos.html', {'form': form})
-
-def agregar_producto(request):
-    
-    if request.method == 'POST':
-        
-        nombre = request.POST['nombre']
-        cantidad = int(request.POST['cantidad'])
-        precio = float(request.POST['precio'])
-    
-        Producto.objects.create(nombre=nombre, stock=cantidad, precio=precio)
-        
-        return redirect('inventario')
     
 def producto_editar(request, id):
-    
-    producto = get_object_or_404(Producto, id=id)
-    
-    if request.method == 'POST':
-        producto.nombre = request.POST.get('nombre')
-        producto.stock = int(request.POST.get('stock'))
-        producto.precio = float(request.POST.get('precio'))
-        
+    producto = Producto.objects.get(id=id)
+
+    if request.method == "POST":
+        producto.nombre = request.POST.get("nombre")
+        producto.precio = request.POST.get("precio")
+        producto.descripcion = request.POST.get("descripcion")
+        producto.stock = request.POST.get("stock")
+
+        if request.FILES.get("imagen"):
+            producto.imagen = request.FILES.get("imagen")
+
         producto.save()
-        
-        return redirect('inventario')
-    
-    return render(request, 'productos/producto_editar.html', {'producto': producto})
+        return redirect('productos')
 
-def productos(request):
-
-    lista_productos = PRODUCTOS.values()
-
-    return render(request, "productos/productos.html", {
-        "productos": lista_productos
+    return render(request, 'productos/producto_editar.html', {
+        'producto': producto
     })
 
 def usuario(request):
     usuario_id = request.session.get('usuario_id')
     rol = request.session.get('rol')
+    productos = Producto.objects.all()
 
     if not usuario_id or rol != "CLIENTE":
         return redirect("sinacceso")
@@ -259,7 +279,6 @@ def crear_repartidor(request):
         if form.is_valid():
             usuario = form.save()
             usuario.rol = "REPARTIDOR"
-            # Encriptar la contraseña
             usuario.password = make_password(form.cleaned_data['password'])
             usuario.tipo_documento = request.POST.get('tipo_documento')
             usuario.save()
@@ -287,7 +306,6 @@ def crear_admin(request):
         confirmar = request.POST.get("confirmar")
         first_name = request.POST.get("first_name")
         fecha_nacimiento = request.POST.get("fecha_nacimiento")
-
         barrio = request.POST.get("barrio")
         localidad = request.POST.get("localidad")
         tipo_documento = request.POST.get("tipo_documento")
@@ -406,114 +424,24 @@ def formulario_compra(request):
         'total': total
     })
 
-PRODUCTOS = {
-    'camiseta': {
-        'nombre': 'Camiseta DryFit Deportiva',
-        'precio': 59900,
-        'imagen': 'images/camiseta.png',
-        'descripcion': 'Material de alta calidad que se adapta a tu cuerpo.',
-        'caracteristicas': [
-            '✨ Soporte medio-alto',
-            '💨 Material transpirable',
-            '📏 Tallas: S, M, L, XL',
-            '🎨 Color: Negro',
-        ],
-        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
-        'galeria': ['images/camiseta.png', 'images/camiseta2.png', 'images/camiseta3.png']
-    },
-    'buzo': {
-        'nombre': 'Buzo Hombre Deportivo',
-        'precio': 75000,
-        'imagen': 'images/buzo-hombre.png',
-        'descripcion': 'Comodidad máxima para tus ejercicios.',
-        'caracteristicas': [
-            '✨ Soporte medio-alto',
-            '💨 Material transpirable',
-            '📏 Tallas: S, M, L, XL',
-            '🎨 Color: Negro',
-        ],
-        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
-        'galeria': ['images/buzo-hombre.png']
-    },
-    'sudadera': {
-        'nombre': 'Sudadera Clásica Unisex',
-        'precio': 99000,
-        'imagen': 'images/sudadera.png',
-        'descripcion': 'Sudadera cómoda para uso diario y deporte.',
-        'caracteristicas': [
-            '💨 Material transpirable',
-            '📏 Tallas: S, M, L, XL',
-            '🎨 Color: Gris y Negro',
-        ],
-        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
-        'galeria': ['images/sudadera.png']
-    },
-    'leggings': {
-        'nombre': 'Leggings Deportivos Mujer',
-        'precio': 85000,
-        'imagen': 'images/leggings.png',
-        'descripcion': 'Leggings flexibles y cómodos para entrenar.',
-        'caracteristicas': [
-            '💨 Material transpirable',
-            '📏 Tallas: S, M, L',
-            '🎨 Color: Negro, Azul',
-        ],
-        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
-        'galeria': ['images/leggings.png']
-    },
-    'chaqueta': {
-        'nombre': 'Chaqueta Rompevientos',
-        'precio': 135000,
-        'imagen': 'images/chaqueta.png',
-        'descripcion': 'Protección contra viento y lluvia ligera.',
-        'caracteristicas': [
-            '💨 Material resistente al viento',
-            '📏 Tallas: S, M, L, XL',
-            '🎨 Color: Azul, Negro',
-        ],
-        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
-        'galeria': ['images/chaqueta.png']
-    },
-    'short': {
-        'nombre': 'Short Deportivo Hombre',
-        'precio': 49000,
-        'imagen': 'images/short.png',
-        'descripcion': 'Short ligero para entrenamientos.',
-        'caracteristicas': [
-            '💨 Material transpirable',
-            '📏 Tallas: S, M, L, XL',
-            '🎨 Color: Negro, Gris',
-        ],
-        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
-        'galeria': ['images/short.png']
-    },
-    'top': {
-        'nombre': 'Top Deportivo Mujer',
-        'precio': 60000,
-        'imagen': 'images/top.png',
-        'descripcion': 'Top cómodo y transpirable para deporte.',
-        'caracteristicas': [
-            '💨 Material transpirable',
-            '📏 Tallas: S, M, L',
-            '🎨 Color: Azul, Rosa',
-        ],
-        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
-        'galeria': ['images/top.png']
-    },
-    'conjunto-mujer': {
-        'nombre': 'Conjunto Deportivo Mujer',
-        'precio': 149000,
-        'imagen': 'images/conjunto-mujer.png',
-        'descripcion': 'Conjunto completo para entrenamientos.',
-        'caracteristicas': [
-            '💨 Material transpirable',
-            '📏 Tallas: S, M, L',
-            '🎨 Color: Negro y Rosa',
-        ],
-        'benefits': ['Envíos', 'Pago contra entrega', 'Garantía oficial'],
-        'galeria': ['images/conjunto-mujer.png']
-    },
-}
+def cargar_productos():
+    datos = [
+        {
+            "nombre": "Camiseta DryFit Deportiva",
+            "precio": 59900,
+            "descripcion": "Material de alta calidad que se adapta a tu cuerpo.",
+            "imagen": "productos/camiseta.png"
+        },
+        {
+            "nombre": "Buzo Hombre Deportivo",
+            "precio": 75000,
+            "descripcion": "Comodidad máxima para tus ejercicios.",
+            "imagen": "productos/buzo-hombre.png"
+        },
+    ]
+
+    for d in datos:
+        Producto.objects.create(**d)
 
 @api_view(['GET'])
 def barrios_bogota(request):
@@ -529,6 +457,7 @@ def barrios_bogota(request):
 def producto_detalle(request, slug):
 
     carrito = request.session.get('carrito', {})
+    producto = Producto.objects.get(slug=slug)
 
     # asegurar que sea diccionario
     if isinstance(carrito, list):
