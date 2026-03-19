@@ -22,6 +22,9 @@ class Usuario(models.Model):
     telefono = models.CharField(max_length=20)
     fecha_nacimiento = models.DateField(null=True, blank=True)
     barrio = models.CharField(max_length=50, null=True, blank=True)
+    tipo_documento = models.CharField(max_length=5, null=True, blank=True)
+    cedula = models.CharField(max_length=20, unique=True, null=True, blank=True) 
+    localidad = models.CharField(max_length=50, null=True, blank=True)
 
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)

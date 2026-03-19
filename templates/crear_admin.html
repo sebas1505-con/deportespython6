@@ -32,11 +32,6 @@
     <label>Nombre</label>
     <input type="text" name="first_name" placeholder="Tu nombre" required>
 
-
-    <label>Barrio</label>
-    <input type="text" name="barrio" placeholder="Tu barrio">
-
-
     <label>Usuario</label>
     <input type="text" name="usuario" placeholder="Crea tu usuario" required>
 
@@ -44,7 +39,7 @@
     <input type="email" name="correo" placeholder="ejemplo@correo.com" required>
 
     <label>Teléfono</label>
-    <input type="text" name="telefono" placeholder="+57 300 000 0000" required>
+    <input type="text" name="telefono" placeholder="300 000 0000" required>
 
     <label>Código administrador</label>
     <input type="text" name="codigo" placeholder="ADM-000" required>
@@ -58,9 +53,52 @@
     <label>Fecha de nacimiento</label>
     <input type="date" name="fecha_nacimiento">
 
+    <label>Tipo de Documento:</label>
+    <select name="tipo_documento" required>
+        <option value="">Seleccione</option>
+        <option value="CC">Cédula de Ciudadanía</option>
+        <option value="TI">Tarjeta de Identidad</option>
+        <option value="CE">Cédula de Extranjería</option>
+        <option value="PAS">Pasaporte</option>
+    </select>
+
+    <label>Número de Documento:</label>
+    <input type="text" name="cedula" required>
+
+    <label>Localidad:</label>
+    <select name="localidad" id="localidad">
+        <option value="">Seleccione</option>
+        <option value="Suba">Suba</option>
+        <option value="Usaquen">Usaquén</option>
+        <option value="Kennedy">Kennedy</option>
+        <option value="Engativa">Engativá</option>
+    </select>
+
+    <label>Barrio:</label>
+    <select name="barrio" id="barrio"></select>
+
     <button type="submit">
         Registrarse
     </button>
+<script>
+document.getElementById("localidad").addEventListener("change", function() {
+    const localidad = this.value;
+
+    fetch(`/api/barrios-bogota/?localidad=${localidad}`)
+        .then(response => response.json())
+        .then(data => {
+            const barrioSelect = document.getElementById("barrio");
+            barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
+
+            data.forEach(b => {
+                const option = document.createElement("option");
+                option.value = b.nombre;
+                option.textContent = b.nombre;
+                barrioSelect.appendChild(option);
+            });
+        });
+});
+</script>
 
 </form>
 

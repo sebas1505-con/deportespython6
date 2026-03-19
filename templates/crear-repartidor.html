@@ -43,6 +43,18 @@
             <label>Nombre Completo:</label>
              {{ form.first_name }}
 
+            <label>Tipo de Documento:</label>
+            <select name="tipo_documento" id="tipo_documento" required>
+                <option value="">Seleccione</option>
+                <option value="CC">Cédula de Ciudadanía</option>
+                <option value="TI">Tarjeta de Identidad</option>
+                <option value="CE">Cédula de Extranjería</option>
+                <option value="PAS">Pasaporte</option>
+            </select>
+
+            <label>Número de Documento:</label>
+            <input type="text" name="cedula" id="cedula" placeholder="Ingrese su documento" required>
+            
             <label>Correo Electrónico:</label>
              {{ form.email }}
 
@@ -64,11 +76,65 @@
             <label>Tipo de Vehículo:</label>
              {{ form.vehiculo }}
 
+            <label>Localidad:</label>
+            <select id="localidad">
+                <option value="">Seleccione localidad</option>
+                <option value="Suba">Suba</option>
+                <option value="Usaquen">Usaquén</option>
+                <option value="Kennedy">Kennedy</option>
+                <option value="Engativa">Engativá</option>
+            </select>
+
+            <label>Barrio:</label>
+            <select name="barrio" id="barrio">
+                <option value="">Seleccione barrio</option>
+            </select>
+
             <label>Fecha de nacimiento:</label>
              {{ form.fecha_nacimiento }}
 
             <button type="submit" class="btn-login">Registrarse</button>
+<script>
+const tipoDoc = document.getElementById("tipo_documento");
+const cedulaInput = document.getElementById("cedula");
+
+tipoDoc.addEventListener("change", function() {
+    let tipo = this.value;
+
+    if (tipo === "CC") {
+        cedulaInput.placeholder = "Ej: 1234567890";
+    } 
+    else if (tipo === "TI") {
+        cedulaInput.placeholder = "Ej: 1001234567";
+    } 
+    else if (tipo === "CE") {
+        cedulaInput.placeholder = "Ej: CE123456";
+    } 
+    else if (tipo === "PAS") {
+        cedulaInput.placeholder = "Ej: AB123456";
+    }
+});
+
+document.getElementById("localidad").addEventListener("change", function() {
+    const localidad = this.value;
+
+    fetch(`/api/barrios-bogota/?localidad=${localidad}`)
+        .then(response => response.json())
+        .then(data => {
+            const barrioSelect = document.getElementById("barrio");
+            barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
+
+            data.forEach(b => {
+                const option = document.createElement("option");
+                option.value = b.nombre;
+                option.textContent = b.nombre;
+                barrioSelect.appendChild(option);
+            });
+        });
+});
+</script>
         </form>
+
     </div>
 </body>
 </html>

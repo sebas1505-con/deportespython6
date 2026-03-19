@@ -42,5 +42,6 @@ urlpatterns = [
     path("prueba-correo/", views.prueba_correo),
     path('agregar_stock/<int:id>/', views.agregar_stock, name='agregar_stock'),
     path('agregar_producto/', views.agregar_producto, name='agregar_producto'),
+    path('api/barrios-bogota/', views.barrios_bogota),
 
 ]

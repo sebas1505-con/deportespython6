@@ -45,7 +45,8 @@ class RepartidorForm(forms.ModelForm):
             'telefono',
             'fecha_nacimiento',
             'barrio',
-            'password'
+            'password',
+            'cedula'
         ]
         widgets = {
             'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'})

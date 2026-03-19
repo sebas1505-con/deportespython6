@@ -6,6 +6,11 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas 
 from django.core.mail import EmailMessage
+from .barrios import BARRIOS_BOGOTA 
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from django.conf import settings
+import os
 import uuid
 
 def index(request):
@@ -63,6 +68,25 @@ def logout_view(request):
     request.session.flush()
     return redirect('login')
 
+def producto_nuevo(request):
+    return render(request, "productos/producto_nuevo.html")
+
+def producto_eliminar(request, id):
+    producto = get_object_or_404(Producto, id=id)
+    producto.delete()
+    return redirect('inventario')
+
+def eliminar_usuario(request, id):
+    usuario = get_object_or_404(Usuario, id=id)
+    usuario.delete()
+    return redirect('panel_admin')
+
+def admin(request):
+    usuarios = Usuario.objects.all()
+    return render(request, 'admin.html', {
+        'usuarios': usuarios
+    })
+
 def inventario(request):
     
     productos = Producto.objects.all()
@@ -116,25 +140,6 @@ def productos(request):
 
     return render(request, "productos/productos.html", {
         "productos": lista_productos
-    })
-
-def producto_nuevo(request):
-    return render(request, "productos/producto_nuevo.html")
-
-def producto_eliminar(request, id):
-    producto = get_object_or_404(Producto, id=id)
-    producto.delete()
-    return redirect('inventario')
-
-def eliminar_usuario(request, id):
-    usuario = get_object_or_404(Usuario, id=id)
-    usuario.delete()
-    return redirect('panel_admin')
-
-def admin(request):
-    usuarios = Usuario.objects.all()
-    return render(request, 'admin.html', {
-        'usuarios': usuarios
     })
 
 def usuario(request):
@@ -229,10 +234,10 @@ def registro_cliente(request):
             usuario.rol = "CLIENTE"
             usuario.password = make_password(form.cleaned_data['password'])
 
-            # 👇 AGREGA ESTO
             usuario.is_staff = False
             usuario.is_superuser = False
             usuario.is_active = True
+            usuario.tipo_documento = request.POST.get('tipo_documento')
 
             usuario.save()
 
@@ -244,13 +249,11 @@ def registro_cliente(request):
             messages.success(request, "¡Registro exitoso! Ya puedes iniciar sesión.")
             return redirect("login")
         else:
-            # Para ver qué falla
             print(form.errors)
     else:
         form = RegistroClienteForm()
 
     return render(request, "registro.html", {"form": form})
-
 
 def crear_repartidor(request):
     if request.method == "POST":
@@ -260,6 +263,7 @@ def crear_repartidor(request):
             usuario.rol = "REPARTIDOR"
             # Encriptar la contraseña
             usuario.password = make_password(form.cleaned_data['password'])
+            usuario.tipo_documento = request.POST.get('tipo_documento')
             usuario.save()
 
             Repartidor.objects.create(
@@ -275,6 +279,56 @@ def crear_repartidor(request):
 
     return render(request, "crear-repartidor.html", {"form": form})
 
+def crear_admin(request):
+    if request.method == "POST":
+        usuario = request.POST.get("usuario")
+        correo = request.POST.get("correo")
+        telefono = request.POST.get("telefono")
+        codigo = request.POST.get("codigo")
+        contrasena = request.POST.get("contrasena")
+        confirmar = request.POST.get("confirmar")
+        first_name = request.POST.get("first_name")
+        fecha_nacimiento = request.POST.get("fecha_nacimiento")
+
+        barrio = request.POST.get("barrio")
+        localidad = request.POST.get("localidad")
+        tipo_documento = request.POST.get("tipo_documento")
+        cedula = request.POST.get("cedula")
+
+        # VALIDACIONES
+        if contrasena != confirmar:
+            return render(request, "crear_admin.html", {"error": "Las contraseñas no coinciden"})
+
+        CODIGOS_VALIDOS = ["ADM-123", "ADM-456"]
+        if codigo not in CODIGOS_VALIDOS:
+            return render(request, "crear_admin.html", {"error": "Código incorrecto"})
+
+        if Usuario.objects.filter(username=usuario).exists():
+            return render(request, "crear_admin.html", {"error": "El usuario ya existe"})
+
+        if Usuario.objects.filter(cedula=cedula).exists():
+            return render(request, "crear_admin.html", {"error": "La cédula ya está registrada"})
+
+        Usuario.objects.create(
+            username=usuario,
+            email=correo,
+            telefono=telefono,
+            password=make_password(contrasena),
+            rol="ADMIN",
+            first_name=first_name,
+            fecha_nacimiento=fecha_nacimiento if fecha_nacimiento else None,
+            barrio=barrio,
+            localidad=localidad,
+            tipo_documento=tipo_documento,
+            cedula=cedula,
+
+            is_staff=True,
+            is_superuser=True
+        )
+
+        return redirect("login")
+
+    return render(request, "crear_admin.html")
 
 def login_view(request):
     if request.method == 'POST':
@@ -463,6 +517,16 @@ PRODUCTOS = {
     },
 }
 
+@api_view(['GET'])
+def barrios_bogota(request):
+    localidad = request.GET.get('localidad')
+
+    data = BARRIOS_BOGOTA
+
+    if localidad:
+        data = [b for b in data if b['localidad'].lower() == localidad.lower()]
+
+    return Response(data)
 
 def producto_detalle(request, slug):
 
@@ -518,45 +582,6 @@ def agregar_al_carrito(request, producto_id):
         request.session['carrito'] = carrito
 
     return redirect('carrito')
-
-def crear_admin(request):
-    if request.method == "POST":
-        usuario = request.POST.get("usuario")
-        correo = request.POST.get("correo")
-        telefono = request.POST.get("telefono")
-        codigo = request.POST.get("codigo")
-        contrasena = request.POST.get("contrasena")
-        confirmar = request.POST.get("confirmar")
-        first_name = request.POST.get("first_name")
-        fecha_nacimiento = request.POST.get("fecha_nacimiento")
-        barrio = request.POST.get("barrio")
-
-        if contrasena != confirmar:
-            return render(request, "crear_admin.html", {"error": "Las contraseñas no coinciden"})
-
-        CODIGOS_VALIDOS = [ "ADM-123", "ADM-456"]
-        if codigo not in CODIGOS_VALIDOS:
-            return render(request, "crear_admin.html", {"error": "Código incorrecto"})
-
-        if Usuario.objects.filter(username=usuario).exists():
-            return render(request, "crear_admin.html", {"error": "El usuario ya existe"})
-
-        Usuario.objects.create(
-            username=usuario,
-            email=correo,
-            telefono=telefono,
-            password=make_password(contrasena),
-            rol="ADMIN",
-            first_name=first_name,
-            fecha_nacimiento=fecha_nacimiento if fecha_nacimiento else None,
-            barrio=barrio,
-            is_staff=True,
-            is_superuser=True
-        )
-
-        return redirect("login")
-
-    return render(request, "crear_admin.html")
 
 def generar_pdf(request):
     form = ReportesForm(request.GET)

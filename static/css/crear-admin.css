@@ -94,7 +94,7 @@ body {
 
 /* Botón volver */
 .btn-volver-home {
-  position: absolute;
+  position: fixed; /* 🔥 CAMBIO CLAVE */
   top: 20px;
   left: 20px;
   background: #ff0800;
@@ -106,6 +106,7 @@ body {
   text-decoration: none;
   box-shadow: 0 4px 6px rgba(0,0,0,0.1);
   transition: background 0.3s ease;
+  z-index: 1000; /* 🔥 para que quede encima de todo */
 }
 
 .btn-volver-home:hover {

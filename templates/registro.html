@@ -40,6 +40,9 @@
     <label>Nombre Completo:</label>
     <input type="text" name="first_name" required>
 
+    <label>Cédula:</label>
+    <input type="text" name="cedula" required>
+
     <label>Correo Electrónico:</label>
     <input type="email" name="email" required>
 
@@ -61,10 +64,43 @@
     <label>Fecha de nacimiento:</label>
     <input type="date" name="fecha_nacimiento">
 
+    <label>Localidad:</label>
+    <select id="localidad">
+        <option value="">Seleccione localidad</option>
+        <option value="Suba">Suba</option>
+        <option value="Usaquen">Usaquén</option>
+        <option value="Kennedy">Kennedy</option>
+        <option value="Engativa">Engativá</option>
+    </select>
+
     <label>Barrio:</label>
-    <input type="text" name="barrio">
+    <select name="barrio" id="barrio">
+        <option value="">Seleccione barrio</option>
+    </select>
 
     <button type="submit" class="btn-login">Registrarse</button>
+
+<script>
+document.getElementById("localidad").addEventListener("change", function() {
+    const localidad = this.value;
+
+    fetch(`/api/barrios-bogota/?localidad=${localidad}`)
+        .then(response => response.json())
+        .then(data => {
+            const barrioSelect = document.getElementById("barrio");
+            barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
+
+            data.forEach(b => {
+                const option = document.createElement("option");
+                option.value = b.nombre;
+                option.textContent = b.nombre;
+                barrioSelect.appendChild(option);
+            });
+        })
+        .catch(error => console.error("Error:", error));
+});
+</script>
+
 </form>
 
 </div>
