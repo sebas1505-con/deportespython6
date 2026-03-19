@@ -71,9 +71,9 @@ def logout_view(request):
 
 def admin(request):
     usuarios = Usuario.objects.all()
-    return render(request, 'admin.html', {
-        'usuarios': usuarios
-    })
+    productos = Producto.objects.all()
+    
+    return render(request, 'admin.html', {'usuarios': usuarios, 'productos': productos})
 
 def eliminar_usuario(request, id):
     usuario = get_object_or_404(Usuario, id=id)

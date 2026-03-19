@@ -24,7 +24,7 @@
 
 <div class="form-card">
 
-<form method="POST">
+<form method="POST" action="{% url 'producto_nuevo' %}" enctype="multipart/form-data">
 
 {% csrf_token %}
 
@@ -66,6 +66,13 @@
 <option value="accesorios">Accesorios</option>
 
 </select>
+
+</div>
+
+<div class="campo">
+
+    <label>Imagen</label>
+    <input type="file" name="imagen" accept="image/*">
 
 </div>
 
