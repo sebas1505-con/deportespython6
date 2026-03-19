@@ -249,30 +249,19 @@ def registro_cliente(request):
     if request.method == "POST":
         form = RegistroClienteForm(request.POST)
         if form.is_valid():
-            usuario = form.save(commit=False)
-            usuario.rol = "CLIENTE"
-            usuario.password = make_password(form.cleaned_data['password'])
-
-            usuario.is_staff = False
-            usuario.is_superuser = False
-            usuario.is_active = True
-            usuario.tipo_documento = request.POST.get('tipo_documento')
-
-            usuario.save()
-
+            usuario = form.save()
             Cliente.objects.create(
                 usuario=usuario,
                 direccion=form.cleaned_data['direccion']
             )
-
             messages.success(request, "¡Registro exitoso! Ya puedes iniciar sesión.")
             return redirect("login")
         else:
             print(form.errors)
     else:
         form = RegistroClienteForm()
-
     return render(request, "registro.html", {"form": form})
+
 
 def crear_repartidor(request):
     if request.method == "POST":
@@ -574,14 +563,11 @@ def nueva_contrasena(request, token):
             messages.error(request, 'Debe tener mínimo 6 caracteres.')
 
         else:
-            # 🔐 ENCRIPTAR CONTRASEÑA
             usuario.password = make_password(password1)
 
             usuario.token_recuperacion = None
 
             usuario.save()
-
-            print("✅ CONTRASEÑA ACTUALIZADA")
 
             messages.success(request, 'Contraseña actualizada correctamente.')
             return redirect('login')

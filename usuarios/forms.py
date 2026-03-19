@@ -15,7 +15,7 @@ class RegistroClienteForm(forms.ModelForm):
 
     class Meta:
         model = Usuario
-        fields = ['username', 'email', 'first_name', 'telefono', 'fecha_nacimiento', 'barrio']
+        fields = ['username', 'email', 'first_name', 'password', 'telefono', 'fecha_nacimiento', 'barrio', 'tipo_documento', 'cedula', 'localidad']
 
     def clean(self):
         cleaned_data = super().clean()
@@ -40,16 +40,7 @@ class RepartidorForm(forms.ModelForm):
 
     class Meta:
         model = Usuario
-        fields = [
-            'username',
-            'email',
-            'first_name',
-            'telefono',
-            'fecha_nacimiento',
-            'barrio',
-            'password',
-            'cedula'
-        ]
+        fields = ['username', 'email', 'first_name', 'telefono', 'fecha_nacimiento', 'barrio', 'password', 'cedula' ]
         widgets = {
             'fecha_nacimiento': forms.DateInput(attrs={'type': 'date'})
         }

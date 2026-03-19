@@ -40,6 +40,15 @@
     <label>Nombre Completo:</label>
     <input type="text" name="first_name" required>
 
+    <label>Tipo de Documento:</label>
+    <select name="tipo_documento" id="tipo_documento" required>
+        <option value="">Seleccione</option>
+        <option value="CC">Cédula de Ciudadanía</option>
+        <option value="TI">Tarjeta de Identidad</option>
+        <option value="CE">Cédula de Extranjería</option>
+        <option value="PAS">Pasaporte</option>
+    </select>
+
     <label>Cédula:</label>
     <input type="text" name="cedula" required>
 
@@ -65,7 +74,7 @@
     <input type="date" name="fecha_nacimiento">
 
     <label>Localidad:</label>
-    <select id="localidad">
+    <select name="localidad" id="localidad">
         <option value="">Seleccione localidad</option>
         <option value="Suba">Suba</option>
         <option value="Usaquen">Usaquén</option>
