@@ -3,7 +3,7 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from .models import Usuario, Cliente, Repartidor, Producto
-from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm
+from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm, MovimientoForm
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
@@ -71,19 +71,16 @@ def inventario(request):
     
     return render(request, 'inventario.html', {'productos': productos})
 
-def agregar_stock(request, id):
-    
-    producto = get_object_or_404(Producto, id=id)
-    
+def registrar_movimiento(request):
     if request.method == 'POST':
-        cantidad = int(request.POST['cantidad'])
-        
-        producto.stock += cantidad
-        producto.save()
-        
-        return redirect('inventario')
-    
-    return render(request, 'agregar_stock.html', {'producto': producto})
+        form = MovimientoForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('panel_admin')
+    else:
+        form = MovimientoForm()
+
+    return render(request, 'movimientos.html', {'form': form})
 
 def agregar_producto(request):
     

@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Movimientos</title>
+    <link rel="stylesheet" href="{% static 'css/movimiento.css' %}">
+</head>
+<body>
+
+<h2>Registrar Movimiento</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Guardar</button>
+</form>
+
+</body>
+</html>
