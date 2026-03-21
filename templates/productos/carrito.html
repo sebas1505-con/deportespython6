@@ -38,9 +38,7 @@
 
     <div class="item-left">
 
-        <img src="{% static '/' %}{{ p.imagen }}"
-             width="90" height="90"
-             style="border-radius:10px;">
+        <img src="{{ p.imagen }}" width="90" height="90" style="border-radius:10px;">
 
         <div class="item-info">
             <h4>{{ p.nombre }}</h4>
@@ -51,12 +49,24 @@
 
     </div>
 
-    <button type="submit"
-            name="eliminar"
-            value="{{ slug }}"
-            class="btn-eliminar">
-        Eliminar
-    </button>
+    <!-- BOTONES A LA DERECHA -->
+    <div class="item-actions">
+        
+        <button type="submit"
+                name="accion"
+                value="disminuir_{{ slug }}"
+                class="btn-restar">
+            -
+        </button>
+
+        <button type="submit"
+                name="accion"
+                value="aumentar_{{ slug }}"
+                class="btn-sumar">
+            +
+        </button>
+
+    </div>
 
 </div>
 {% endfor %}

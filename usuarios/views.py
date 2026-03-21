@@ -1,12 +1,13 @@
 from django.shortcuts import render, redirect,get_object_or_404
 from django.contrib import messages
-from .models import Usuario, Cliente, Repartidor, Producto
+from .models import Usuario, Cliente, Repartidor, Producto, TallaProducto
 from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm, MovimientoForm
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas 
 from django.core.mail import EmailMessage
+from django.db import transaction
 from .barrios import BARRIOS_BOGOTA 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -46,7 +47,61 @@ def reportes_admin(request):
 
 def catalogo(request):
     productos = Producto.objects.all()
-    return render(request, 'catalogo.html')
+    return render(request, 'catalogo.html', {
+        'productos': productos
+    })
+
+
+def detalle_producto(request, id):
+    producto = get_object_or_404(Producto, id=id)
+
+    tallas = TallaProducto.objects.filter(producto=producto)
+
+    # 🔥 calcular total
+    stock_total = sum(t.stock for t in tallas)
+
+    return render(request, 'productos/producto-detalle.html', {
+        'producto': producto,
+        'tallas': tallas,
+        'stock_total': stock_total
+    })
+
+def producto_detalle(request, id):
+    producto = get_object_or_404(Producto, id=id)
+
+    carrito = request.session.get('carrito', {})
+    carrito_cantidad = sum(item['cantidad'] for item in carrito.values()) if carrito else 0
+
+    from .forms import SeleccionTallaForm
+
+    if request.method == 'POST':
+        form = SeleccionTallaForm(request.POST)
+
+        if form.is_valid():
+            talla = form.cleaned_data['talla']
+
+            if str(producto.id) in carrito:
+                carrito[str(producto.id)]['cantidad'] += 1
+            else:
+                carrito[str(producto.id)] = {
+                    'nombre': producto.nombre,
+                    'precio': float(producto.precio),
+                    'imagen': producto.imagen.url,
+                    'talla': talla,
+                    'cantidad': 1
+                }
+
+            request.session['carrito'] = carrito
+            return redirect('carrito')
+
+    else:
+        form = SeleccionTallaForm()
+
+    return render(request, 'productos/producto-detalle.html', {
+        'producto': producto,
+        'form': form,
+        'carrito_cantidad': carrito_cantidad
+    })
 
 def detalle_pedido(request):
     return render(request, 'detalle_pedido.html')
@@ -92,21 +147,37 @@ def productos(request):
         'productos': productos
     })
 
+from .models import Producto, TallaProducto  # 👈 IMPORTANTE
+
 def producto_nuevo(request):
     if request.method == "POST":
         nombre = request.POST.get("nombre")
         precio = request.POST.get("precio")
         descripcion = request.POST.get("descripcion")
         imagen = request.FILES.get("imagen")
-        cantidad = request.POST.get("cantidad")
 
-        Producto.objects.create(
+        # 🔥 NUEVAS CANTIDADES POR TALLA
+        stock_s = int(request.POST.get("stock_s", 0))
+        stock_m = int(request.POST.get("stock_m", 0))
+        stock_l = int(request.POST.get("stock_l", 0))
+
+        # 🔥 CREAR PRODUCTO
+        producto = Producto.objects.create(
             nombre=nombre,
             precio=precio,
             descripcion=descripcion,
             imagen=imagen,
-            cantidad=cantidad,
         )
+
+        # 🔥 CREAR TALLAS
+        if stock_s > 0:
+            TallaProducto.objects.create(producto=producto, talla='S', stock=stock_s)
+
+        if stock_m > 0:
+            TallaProducto.objects.create(producto=producto, talla='M', stock=stock_m)
+
+        if stock_l > 0:
+            TallaProducto.objects.create(producto=producto, talla='L', stock=stock_l)
 
         return redirect('productos')
 
@@ -125,9 +196,7 @@ def agregar_producto(request):
         return redirect('inventario')
 
 def inventario(request):
-    
     productos = Producto.objects.all()
-    
     return render(request, 'inventario.html', {'productos': productos})
 
 def registrar_movimiento(request):
@@ -170,7 +239,10 @@ def usuario(request):
 
     usuario = Usuario.objects.get(id=usuario_id)
 
-    return render(request, "usuario.html", {"usuario": usuario})
+    return render(request, "usuario.html", {
+        "usuario": usuario,
+        "productos": productos   
+    })
 
 def actualizar_usuario(request):
     usuario_id = request.session.get('usuario_id')
@@ -221,28 +293,45 @@ def repartidor(request):
 
 
 def carrito(request):
-
     carrito = request.session.get('carrito', {})
 
     if request.method == 'POST':
 
+        # ELIMINAR
         if 'eliminar' in request.POST:
-            slug = request.POST.get('eliminar')
-            carrito.pop(slug, None)
+            key = request.POST.get('eliminar')
+            carrito.pop(key, None)
 
-        if 'vaciar' in request.POST:
-            carrito = {}
+        # VACIAR
+        elif 'vaciar' in request.POST:
+            carrito.clear()
+
+        # AUMENTAR / DISMINUIR
+        elif 'accion' in request.POST:
+            accion = request.POST.get('accion')
+
+            if accion.startswith('aumentar_'):
+                key = accion.replace('aumentar_', '')
+                if key in carrito:
+                    carrito[key]['cantidad'] += 1
+
+            elif accion.startswith('disminuir_'):
+                key = accion.replace('disminuir_', '')
+                if key in carrito:
+                    carrito[key]['cantidad'] -= 1
+
+                    # si llega a 0 lo eliminamos
+                    if carrito[key]['cantidad'] <= 0:
+                        carrito.pop(key)
 
         request.session['carrito'] = carrito
-        return redirect('carrito')
 
-    cantidad = sum(item['cantidad'] for item in carrito.values())
+    # calcular total
     total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
 
     return render(request, 'productos/carrito.html', {
         'productos': carrito,
-        'total': total,
-        'cantidad': cantidad
+        'total': total
     })
 
 def registro_cliente(request):
@@ -384,13 +473,14 @@ def factura(request):
 
     cliente = Usuario.objects.get(id=usuario_id)
 
-    total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
+    total = sum(float(item['precio']) * item['cantidad'] for item in carrito.values())
 
     return render(request, 'productos/factura.html', {
         'cliente': cliente,
         'productos': carrito,
         'total': total
     })
+
 
 def formulario_compra(request):
 
@@ -410,6 +500,25 @@ def formulario_compra(request):
         form = CompraForm(request.POST)
 
         if form.is_valid():
+
+            for key, item in carrito.items():
+
+                # 🔥 separar ID y talla
+                producto_id = key.split('_')[0]
+                talla = item['talla']
+
+                producto = Producto.objects.get(id=int(producto_id))
+                talla_obj = producto.tallas.get(talla=talla)
+
+                if talla_obj.stock >= item['cantidad']:
+                    talla_obj.stock -= item['cantidad']
+                    talla_obj.save()
+                else:
+                    return HttpResponse("Stock insuficiente")
+
+            # 🔥 limpiar carrito
+            request.session['carrito'] = {}
+
             return redirect('factura')
 
     else:
@@ -455,58 +564,30 @@ def barrios_bogota(request):
 
     return Response(data)
 
-def producto_detalle(request, slug):
 
+
+def agregar_al_carrito(request, id):
     carrito = request.session.get('carrito', {})
-    producto = Producto.objects.get(slug=slug)
 
-    # asegurar que sea diccionario
-    if isinstance(carrito, list):
-        carrito = {}
-
-    producto = PRODUCTOS.get(slug)
-    if not producto:
-        return redirect('catalogo')
-
-    from .forms import SeleccionTallaForm
+    producto = get_object_or_404(Producto, id=id)
 
     if request.method == 'POST':
-        form = SeleccionTallaForm(request.POST)
+        talla = request.POST.get('talla')
 
-        if form.is_valid():
-            talla = form.cleaned_data['talla']
+        # clave única por producto + talla
+        key = f"{id}_{talla}"
 
-            if slug in carrito:
-                carrito[slug]['cantidad'] += 1
-            else:
-                carrito[slug] = {
-                 'nombre': producto['nombre'],
-                 'precio': producto['precio'],
-                 'imagen': producto['imagen'],   
-                 'talla': talla,
-                 'cantidad': 1
-}
+        if key in carrito:
+            carrito[key]['cantidad'] += 1
+        else:
+            carrito[key] = {
+                'nombre': producto.nombre,
+                'precio': float(producto.precio),
+                'imagen': producto.imagen.url if producto.imagen else '',
+                'talla': talla,
+                'cantidad': 1
+            }
 
-            request.session['carrito'] = carrito
-            return redirect('carrito')
-
-    else:
-        form = SeleccionTallaForm()
-
-    context = {
-        'form': form,
-        'producto': producto,
-        'carrito_cantidad': sum(item['cantidad'] for item in carrito.values())
-    }
-
-    return render(request, 'productos/producto-detalle.html', context)
-
-def agregar_al_carrito(request, producto_id):
-    carrito = request.session.get('carrito', [])
-
-    producto = PRODUCTOS.get(producto_id)
-    if producto:
-        carrito.append(producto)  
         request.session['carrito'] = carrito
 
     return redirect('carrito')

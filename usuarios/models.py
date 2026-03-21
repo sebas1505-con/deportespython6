@@ -65,6 +65,9 @@ class Producto(models.Model):
     imagen = models.ImageField(upload_to='productos/')
     cantidad = models.IntegerField(default=0)
     slug = models.SlugField(unique=True) 
+    @property
+    def stock_total(self):
+        return sum(t.stock for t in self.tallas.all())
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -167,3 +170,11 @@ class Reporte(models.Model):
 
     def __str__(self):
         return f"Reporte {self.id} - {self.fecha_inicio} a {self.fecha_fin}"
+    
+class TallaProducto(models.Model):
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='tallas')
+    talla = models.CharField(max_length=5)
+    stock = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.producto.nombre} - {self.talla}"    

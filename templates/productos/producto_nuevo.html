@@ -13,79 +13,71 @@
 <div class="container">
 
 <header class="header">
+    <h1>Registrar Nuevo Producto</h1>
 
-<h1> Registrar Nuevo Producto</h1>
-
-<a href="{% url 'panel_admin' %}" class="btn-volver">
-⬅ Volver al Panel
-</a>
-
+    <a href="{% url 'panel_admin' %}" class="btn-volver">
+        ⬅ Volver al Panel
+    </a>
 </header>
 
 <div class="form-card">
 
 <form method="POST" action="{% url 'producto_nuevo' %}" enctype="multipart/form-data">
-
 {% csrf_token %}
 
 <div class="campo">
-
-<label>Nombre del Producto</label> <input type="text" name="nombre" placeholder="Ej: Guayos Nike" required>
-
+    <label>Nombre del Producto</label>
+    <input type="text" name="nombre" placeholder="Ej: Guayos Nike" required>
 </div>
 
 <div class="campo">
-
-<label>Precio</label> <input type="number" name="precio" placeholder="Ej: 120000" required>
-
+    <label>Precio</label>
+    <input type="number" name="precio" placeholder="Ej: 120000" required>
 </div>
 
 <div class="campo">
-
-<label>Cantidad</label> <input type="number" name="cantidad" placeholder="Cantidad disponible" required>
-
+    <label>Stock Talla S</label>
+    <input type="number" name="stock_s" min="0" value="0">
 </div>
 
 <div class="campo">
-
-<label>Descripción</label>
-
-<textarea name="descripcion" placeholder="Descripción del producto"></textarea>
-
+    <label>Stock Talla M</label>
+    <input type="number" name="stock_m" min="0" value="0">
 </div>
 
 <div class="campo">
-
-<label>Categoría</label>
-
-<select name="categoria">
-
-<option value="">Seleccionar</option>
-<option value="hombre">Hombre</option>
-<option value="mujer">Mujer</option>
-<option value="mixto">Mixto</option>
-
-</select>
-
+    <label>Stock Talla L</label>
+    <input type="number" name="stock_l" min="0" value="0">
 </div>
 
 <div class="campo">
+    <label>Descripción</label>
+    <textarea name="descripcion" placeholder="Descripción del producto"></textarea>
+</div>
 
+<div class="campo">
+    <label>Categoría</label>
+    <select name="categoria">
+        <option value="">Seleccionar</option>
+        <option value="hombre">Hombre</option>
+        <option value="mujer">Mujer</option>
+        <option value="mixto">Mixto</option>
+    </select>
+</div>
+
+<div class="campo">
     <label>Imagen</label>
     <input type="file" name="imagen" accept="image/*">
-
 </div>
 
 <button type="submit" class="btn-guardar">
-Guardar Producto
+    Guardar Producto
 </button>
 
 </form>
 
-</div>
-
-</div>
+</div> <!-- form-card -->
+</div> <!-- container -->
 
 </body>
-
 </html>
