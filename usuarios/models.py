@@ -63,8 +63,7 @@ class Producto(models.Model):
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField()
     imagen = models.ImageField(upload_to='productos/')
-    cantidad = models.IntegerField(default=0)
-    slug = models.SlugField(unique=True) 
+
     @property
     def stock_total(self):
         return sum(t.stock for t in self.tallas.all())
@@ -76,6 +75,9 @@ class Producto(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+
+
 
 class Inventario(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
@@ -113,16 +115,23 @@ class DetalleVentaProductos(models.Model):
     
 class Movimiento(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    talla = models.CharField(max_length=5)
     cantidad = models.IntegerField()
     fecha = models.DateTimeField(auto_now_add=True)
-    
+
     def save(self, *args, **kwargs):
-        self.producto.stock += self.cantidad
-        self.producto.save()
+        from .models import TallaProducto
+
+        talla_producto, creado = TallaProducto.objects.get_or_create(
+            producto=self.producto,
+            talla=self.talla,
+            defaults={'stock': 0}
+        )
+
+        talla_producto.stock += self.cantidad
+        talla_producto.save()
+
         super().save(*args, **kwargs)
-    
-    def __str__(self):
-        return f"{self.producto.nombre} + {self.cantidad}"
     
 class Envio(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE)

@@ -1,6 +1,6 @@
-from django.shortcuts import render, redirect,get_object_or_404
+from django.shortcuts import render, redirect,get_object_or_404, redirect
 from django.contrib import messages
-from .models import Usuario, Cliente, Repartidor, Producto, TallaProducto
+from .models import Usuario, Cliente, Repartidor, Producto, TallaProducto, Venta
 from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm, MovimientoForm
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
@@ -12,6 +12,9 @@ from .barrios import BARRIOS_BOGOTA
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.conf import settings
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
 import os
 import uuid
 
@@ -199,19 +202,32 @@ def inventario(request):
     productos = Producto.objects.all()
     return render(request, 'inventario.html', {'productos': productos})
 
-def registrar_movimiento(request):
-    if request.method == 'POST':
-        form = MovimientoForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('panel_admin')
-    else:
-        form = MovimientoForm()
+from .models import Producto, Movimiento
 
-    return render(request, 'movimientos.html', {'form': form})
+def registrar_movimiento(request):
+    productos = Producto.objects.all()
+
+    if request.method == "POST":
+        producto_id = request.POST.get("producto")
+        talla = request.POST.get("talla")
+        cantidad = int(request.POST.get("cantidad"))
+
+        producto = Producto.objects.get(id=producto_id)
+
+        Movimiento.objects.create(
+            producto=producto,
+            talla=talla,
+            cantidad=cantidad
+        )
+
+        return redirect('movimientos')
+
+    return render(request, 'movimientos.html', {
+        'productos': productos
+    })
     
 def producto_editar(request, id):
-    producto = Producto.objects.get(id=id)
+    producto = get_object_or_404(Producto, id=id)
 
     if request.method == "POST":
         producto.nombre = request.POST.get("nombre")
@@ -668,6 +684,79 @@ def nueva_contrasena(request, token):
             return redirect('login')
 
     return render(request, 'usuarios/nueva_contrasena.html')
+
+
+def generar_factura(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="factura.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    elementos = []
+    estilos = getSampleStyleSheet()
+
+    # LOGO
+    ruta_logo = os.path.join(settings.BASE_DIR, 'static/images/logo.png')
+    if os.path.exists(ruta_logo):
+        elementos.append(Image(ruta_logo, width=120, height=60))
+
+    elementos.append(Spacer(1, 10))
+
+    # TÍTULO
+    elementos.append(Paragraph("Factura - Deportes 360", estilos['Title']))
+
+    elementos.append(Spacer(1, 20))
+
+    # CLIENTE
+    elementos.append(Paragraph("Cliente: Luis", estilos['Normal']))
+    elementos.append(Paragraph("Fecha: 22/03/2026", estilos['Normal']))
+
+    elementos.append(Spacer(1, 20))
+
+    # TABLA
+    datos = [
+        ["Producto", "Talla", "Cantidad", "Precio"],
+        ["Camiseta", "M", "2", "$120.000"],
+    ]
+
+    tabla = Table(datos)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.black),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+    ]))
+
+    elementos.append(tabla)
+
+    elementos.append(Spacer(1, 20))
+
+    # TOTAL
+    elementos.append(Paragraph("Total: $120.000", estilos['Heading2']))
+
+    doc.build(elementos)
+
+    return response
+
+def panel_repartidor(request):
+    ventas_pendientes = Venta.objects.all()
+
+    print("VENTAS:", ventas_pendientes)
+
+    return render(request, 'usuario/repartidor.html', {
+        'ventas_pendientes': ventas_pendientes,
+        'Nombre': request.user.username
+    })
+
+
+
+def tomar_pedido(request, id):
+    if request.method == "POST":
+        venta = Venta.objects.get(id=id)
+        venta.estado = "En camino"
+        venta.save()
+
+        messages.success(request, "Pedido tomado correctamente")
+
+    return redirect('repartidor')    
 
 def restablecer_password(request):
 

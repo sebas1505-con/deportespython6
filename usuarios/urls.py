@@ -30,6 +30,7 @@ urlpatterns = [
     path('actualizar/', views.actualizar_usuario, name='actualizar_usuario'),
     path('perfil/', views.perfil_usuario, name='perfil'),
     path('factura/', views.factura, name='factura'),
+    path('factura/pdf/', views.generar_factura, name='factura_pdf'),
     path('generar-pdf/', views.generar_pdf, name='generar_pdf'),
     path('reportes-ventas/', views.reportesVentas, name='reportesVentas'),
     path('producto-nuevo/', views.producto_nuevo, name='producto_nuevo'),
@@ -45,6 +46,7 @@ urlpatterns = [
     path('api/barrios-bogota/', views.barrios_bogota, name='api_barrios'),
     path("producto/<int:id>/", views.detalle_producto, name="detalle_producto"),
     path('agregar-carrito/<int:id>/', views.agregar_al_carrito, name='agregar_carrito'),
+    path('tomar_pedido/<int:id>/', views.tomar_pedido, name='tomar_pedido'),
 
 ]
 

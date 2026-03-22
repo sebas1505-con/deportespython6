@@ -54,11 +54,12 @@
                     {% for venta in ventas_pendientes %}
                     <tr>
                         <td>{{ venta.id }}</td>
-                        <td>{{ venta.cliente.nombre }}</td>
-                        <td>{{ venta.cliente.direccion }}</td>
-                        <td>{{ venta.cliente.telefono }}</td>
+                        <td>{{ venta.cliente.usuario.username }}</td>
+                        <td>{{ venta.direccionEnvio }}</td>
+                        <td>{{ venta.telefonoContacto }}</td>
+                        <p>Total ventas: {{ ventas_pendientes|length }}</p>
                         <td>
-                            <form method="post" action="#">
+                            <form method="post" action="{% url 'tomar_pedido' venta.id %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn">Tomar Pedido</button>
                             </form>

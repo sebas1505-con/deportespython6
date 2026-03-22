@@ -16,16 +16,27 @@
 <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
 
+    <!-- NOMBRE -->
+    <label>Nombre del producto</label>
     <input type="text" name="nombre" value="{{ producto.nombre }}">
 
-    <input type="number" name="precio" value="{{ producto.precio }}">
+    <!-- PRECIO -->
+    <label>Precio</label>
+    <input type="text" name="precio" value="{{ producto.precio }}">
 
+    <!-- DESCRIPCIÓN -->
+    <label>Descripción</label>
     <textarea name="descripcion">{{ producto.descripcion }}</textarea>
 
-    <input type="number" name="stock" value="{{ producto.stock }}">
+    <!-- STOCK -->
+    <label>Cantidad / Stock</label>
+    <input type="number" name="stock" value="{{ producto.stock_total }}">
 
-    <img src="{{ producto.imagen.url }}" width="100">
+    <!-- IMAGEN -->
+    <label>Imagen actual</label>
+    <img src="{{ producto.imagen.url }}" width="120">
 
+    <label>Cambiar imagen</label>
     <input type="file" name="imagen">
 
     <button type="submit">Actualizar</button>
