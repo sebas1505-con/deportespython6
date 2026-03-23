@@ -12,6 +12,8 @@
 </head>
 <body>
 
+
+    
 <header class="header">
     <div class="container menu">
         <a href="{% url 'usuario' %}" class="logo">DEPORTES 360</a>
@@ -46,15 +48,33 @@
 
             <p><strong>Precio:</strong> ${{ producto.precio }}</p>
 
-            <p><strong>Stock:</strong> {{ producto.stock }}</p>
+            <p><strong>Stock total:</strong> {{ stock_total }}</p>
 
-            <form method="post">
-                {% csrf_token %}
+<form method="post" action="{% url 'agregar_carrito' producto.id %}">
+    {% csrf_token %}
 
-                <div style="margin-top: 20px;">
-                    {{ form.talla.label_tag }}
-                    {{ form.talla }}
-                </div>
+    <div style="margin-top: 20px;">
+        <h3>Tallas disponibles</h3>
+
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+
+            {% for t in tallas %}
+                
+                {% if t.stock > 0 %}
+                    <label style="border:1px solid #000; padding:10px; cursor:pointer;">
+                        <input type="radio" name="talla" value="{{ t.talla }}" required>
+                        {{ t.talla }} ({{ t.stock }})
+                    </label>
+                {% else %}
+                    <span style="border:1px solid #ccc; padding:10px; color:#999;">
+                        {{ t.talla }} (Agotado)
+                    </span>
+                {% endif %}
+
+            {% endfor %}
+
+        </div>
+    </div>
 
                 <div style="margin-top: 20px;">
                     <a href="{% url 'usuario' %}" class="btn-1">Volver</a>

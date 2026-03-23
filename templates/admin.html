@@ -185,6 +185,10 @@
 
     <h2>Gestión de Productos</h2>
 
+    <div class="form-card">
+
+    <form method="POST">
+
     <table class="tabla-productos">
 
         <thead>
@@ -193,6 +197,8 @@
                 <th>Nombre</th>
                 <th>Precio</th>
                 <th>Cantidad</th>
+                <th>Descripción</th>
+                <th>Categoría</th>
                 <th>Acción</th>
             </tr>
         </thead>
@@ -207,10 +213,10 @@
                <td class="producto-nombre">
                    {{ p.nombre }}
                </td>
-
-                <td>{{ p.precio }}</td>
-
+                <td>${{ p.precio }}</td>
                 <td>{{ p.cantidad }}</td>
+                <td>{{ p.descripcion }}</td>
+                <td>{{ p.categoria }}</td>
 
                 <td>
 

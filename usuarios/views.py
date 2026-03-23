@@ -1,8 +1,6 @@
-from django.shortcuts import render, redirect,get_object_or_404
-from django.contrib import messages
-from .models import Usuario, Cliente, Repartidor, Producto, Sugerencia
+from django.shortcuts import render, redirect,get_object_or_404, redirect
+from .models import Usuario, Cliente, Repartidor, Producto, TallaProducto, Venta, Sugerencia
 from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm, MovimientoForm
-from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
 from reportlab.pdfgen import canvas 
@@ -11,17 +9,12 @@ from .barrios import BARRIOS_BOGOTA
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django.conf import settings
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet
+from django.contrib import messages
 import os
 import uuid
-
-def index(request):
-    usuario_id = request.session.get('usuario_id')
-    usuario = None
-    if usuario_id:
-        usuario = Usuario.objects.get(id=usuario_id)
-    return render(request, 'index.html', {
-        'usuario': usuario
-    })
 
 def quienes(request):
     return render(request, 'quienes.html')
@@ -44,10 +37,6 @@ def pedidos(request):
 def reportes_admin(request):
     return render(request, 'productos/reportes_admin.html')
 
-def catalogo(request):
-    productos = Producto.objects.all()
-    return render(request, 'catalogo.html')
-
 def detalle_pedido(request):
     return render(request, 'detalle_pedido.html')
 
@@ -63,20 +52,6 @@ def crear_admin(request):
 def reportesVentas(request):
     return render(request, "productos/reportes_ventas.html")
 
-def sugerencias(request):
-    if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        texto = request.POST.get("texto")
-
-        if texto: 
-            Sugerencia.objects.create(nombre=nombre, texto=texto)
-            messages.success(request, "¡Gracias por tu sugerencia!")
-            return redirect("sugerencias")  
-        else:
-            messages.error(request, "Debes escribir una sugerencia.")
-
-    return render(request, "sugerencias.html")
-
 def panel_sugerencias(request):
     sugerencias = Sugerencia.objects.all().order_by('-fecha')
     return render(request, "panel_sugerencias.html", {"sugerencias": sugerencias})
@@ -85,10 +60,47 @@ def logout_view(request):
     request.session.flush()
     return redirect('login')
 
+def index(request):
+    usuario_id = request.session.get('usuario_id')
+    usuario = None
+    if usuario_id:
+        usuario = Usuario.objects.get(id=usuario_id)
+    return render(request, 'index.html', {
+        'usuario': usuario
+    })
+
+def catalogo(request):
+    productos = Producto.objects.all()
+    return render(request, 'catalogo.html', {
+        'productos': productos
+    })
+
 def admin(request):
+    usuario_id = request.session.get('usuario_id')
+    rol = request.session.get('rol')
     usuarios = Usuario.objects.all()
-    return render(request, 'admin.html', {
-        'usuarios': usuarios
+    productos = Producto.objects.all()
+
+    if not usuario_id or rol != 'ADMIN':
+        return redirect('sinacceso')
+    
+    usuario = Usuario.objects.get(id=usuario_id)
+    
+    return render(request, 'admin.html', {'usuarios': usuarios, 'productos': productos})
+
+def usuario(request):
+    usuario_id = request.session.get('usuario_id')
+    rol = request.session.get('rol')
+    productos = Producto.objects.all()
+
+    if not usuario_id or rol != "CLIENTE":
+        return redirect("sinacceso")
+
+    usuario = Usuario.objects.get(id=usuario_id)
+
+    return render(request, "usuario.html", {
+        "usuario": usuario,
+        "productos": productos   
     })
 
 def eliminar_usuario(request, id):
@@ -107,21 +119,119 @@ def productos(request):
         'productos': productos
     })
 
+
+def detalle_producto(request, id):
+    producto = get_object_or_404(Producto, id=id)
+
+    tallas = TallaProducto.objects.filter(producto=producto)
+
+    # 🔥 calcular total
+    stock_total = sum(t.stock for t in tallas)
+
+    return render(request, 'productos/producto-detalle.html', {
+        'producto': producto,
+        'tallas': tallas,
+        'stock_total': stock_total
+    })
+
+def producto_detalle(request, id):
+    producto = get_object_or_404(Producto, id=id)
+
+    carrito = request.session.get('carrito', {})
+    carrito_cantidad = sum(item['cantidad'] for item in carrito.values()) if carrito else 0
+
+    from .forms import SeleccionTallaForm
+
+    if request.method == 'POST':
+        form = SeleccionTallaForm(request.POST)
+
+        if form.is_valid():
+            talla = form.cleaned_data['talla']
+
+            if str(producto.id) in carrito:
+                carrito[str(producto.id)]['cantidad'] += 1
+            else:
+                carrito[str(producto.id)] = {
+                    'nombre': producto.nombre,
+                    'precio': float(producto.precio),
+                    'imagen': producto.imagen.url,
+                    'talla': talla,
+                    'cantidad': 1
+                }
+
+            request.session['carrito'] = carrito
+            return redirect('carrito')
+
+    else:
+        form = SeleccionTallaForm()
+
+    return render(request, 'productos/producto-detalle.html', {
+        'producto': producto,
+        'form': form,
+        'carrito_cantidad': carrito_cantidad
+    })
+
+def sugerencias(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        texto = request.POST.get("texto")
+
+        if texto: 
+            Sugerencia.objects.create(nombre=nombre, texto=texto)
+            messages.success(request, "¡Gracias por tu sugerencia!")
+            return redirect("sugerencias")  
+        else:
+            messages.error(request, "Debes escribir una sugerencia.")
+
+    return render(request, "sugerencias.html")
+
+def panel_repartidor(request):
+    ventas_pendientes = Venta.objects.all()
+
+    print("VENTAS:", ventas_pendientes)
+
+    return render(request, 'usuario/repartidor.html', {
+        'ventas_pendientes': ventas_pendientes,
+        'Nombre': request.user.username
+    })
+
+def tomar_pedido(request, id):
+    if request.method == "POST":
+        venta = Venta.objects.get(id=id)
+        venta.estado = "En camino"
+        venta.save()
+
+        messages.success(request, "Pedido tomado correctamente")
+
+    return redirect('repartidor')    
+
 def producto_nuevo(request):
     if request.method == "POST":
         nombre = request.POST.get("nombre")
         precio = request.POST.get("precio")
         descripcion = request.POST.get("descripcion")
         imagen = request.FILES.get("imagen")
-        stock = request.POST.get("stock")
 
-        Producto.objects.create(
+        stock_s = int(request.POST.get("stock_s", 0))
+        stock_m = int(request.POST.get("stock_m", 0))
+        stock_l = int(request.POST.get("stock_l", 0))
+
+        producto = Producto.objects.create(
             nombre=nombre,
             precio=precio,
             descripcion=descripcion,
             imagen=imagen,
-            stock=stock
+            stock=stock,
         )
+
+        if stock_s > 0:
+            TallaProducto.objects.create(producto=producto, talla='S', stock=stock_s)
+
+        if stock_m > 0:
+            TallaProducto.objects.create(producto=producto, talla='M', stock=stock_m)
+
+        if stock_l > 0:
+            TallaProducto.objects.create(producto=producto, talla='L', stock=stock_l)
 
         return redirect('productos')
 
@@ -140,24 +250,33 @@ def agregar_producto(request):
         return redirect('inventario')
 
 def inventario(request):
-    
     productos = Producto.objects.all()
-    
     return render(request, 'inventario.html', {'productos': productos})
 
 def registrar_movimiento(request):
-    if request.method == 'POST':
-        form = MovimientoForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('panel_admin')
-    else:
-        form = MovimientoForm()
+    productos = Producto.objects.all()
 
-    return render(request, 'movimientos.html', {'form': form})
+    if request.method == "POST":
+        producto_id = request.POST.get("producto")
+        talla = request.POST.get("talla")
+        cantidad = int(request.POST.get("cantidad"))
+
+        producto = Producto.objects.get(id=producto_id)
+
+        Movimiento.objects.create(
+            producto=producto,
+            talla=talla,
+            cantidad=cantidad
+        )
+
+        return redirect('movimientos')
+
+    return render(request, 'movimientos.html', {
+        'productos': productos
+    })
     
 def producto_editar(request, id):
-    producto = Producto.objects.get(id=id)
+    producto = get_object_or_404(Producto, id=id)
 
     if request.method == "POST":
         producto.nombre = request.POST.get("nombre")
@@ -174,18 +293,6 @@ def producto_editar(request, id):
     return render(request, 'productos/producto_editar.html', {
         'producto': producto
     })
-
-def usuario(request):
-    usuario_id = request.session.get('usuario_id')
-    rol = request.session.get('rol')
-    productos = Producto.objects.all()
-
-    if not usuario_id or rol != "CLIENTE":
-        return redirect("sinacceso")
-
-    usuario = Usuario.objects.get(id=usuario_id)
-
-    return render(request, "usuario.html", {"usuario": usuario})
 
 def actualizar_usuario(request):
     usuario_id = request.session.get('usuario_id')
@@ -236,28 +343,44 @@ def repartidor(request):
 
 
 def carrito(request):
-
     carrito = request.session.get('carrito', {})
 
     if request.method == 'POST':
 
+        # ELIMINAR
         if 'eliminar' in request.POST:
-            slug = request.POST.get('eliminar')
-            carrito.pop(slug, None)
+            key = request.POST.get('eliminar')
+            carrito.pop(key, None)
 
-        if 'vaciar' in request.POST:
-            carrito = {}
+        # VACIAR
+        elif 'vaciar' in request.POST:
+            carrito.clear()
+
+        # AUMENTAR / DISMINUIR
+        elif 'accion' in request.POST:
+            accion = request.POST.get('accion')
+
+            if accion.startswith('aumentar_'):
+                key = accion.replace('aumentar_', '')
+                if key in carrito:
+                    carrito[key]['cantidad'] += 1
+
+            elif accion.startswith('disminuir_'):
+                key = accion.replace('disminuir_', '')
+                if key in carrito:
+                    carrito[key]['cantidad'] -= 1
+
+                    if carrito[key]['cantidad'] <= 0:
+                        carrito.pop(key)
 
         request.session['carrito'] = carrito
-        return redirect('carrito')
 
-    cantidad = sum(item['cantidad'] for item in carrito.values())
+    # calcular total
     total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
 
     return render(request, 'productos/carrito.html', {
         'productos': carrito,
-        'total': total,
-        'cantidad': cantidad
+        'total': total
     })
 
 def registro_cliente(request):
@@ -388,13 +511,14 @@ def factura(request):
 
     cliente = Usuario.objects.get(id=usuario_id)
 
-    total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
+    total = sum(float(item['precio']) * item['cantidad'] for item in carrito.values())
 
     return render(request, 'productos/factura.html', {
         'cliente': cliente,
         'productos': carrito,
         'total': total
     })
+
 
 def formulario_compra(request):
 
@@ -414,6 +538,23 @@ def formulario_compra(request):
         form = CompraForm(request.POST)
 
         if form.is_valid():
+
+            for key, item in carrito.items():
+
+                producto_id = key.split('_')[0]
+                talla = item['talla']
+
+                producto = Producto.objects.get(id=int(producto_id))
+                talla_obj = producto.tallas.get(talla=talla)
+
+                if talla_obj.stock >= item['cantidad']:
+                    talla_obj.stock -= item['cantidad']
+                    talla_obj.save()
+                else:
+                    return HttpResponse("Stock insuficiente")
+                
+            request.session['carrito'] = {}
+
             return redirect('factura')
 
     else:
@@ -459,58 +600,28 @@ def barrios_bogota(request):
 
     return Response(data)
 
-def producto_detalle(request, slug):
-
+def agregar_al_carrito(request, id):
     carrito = request.session.get('carrito', {})
-    producto = Producto.objects.get(slug=slug)
 
-    # asegurar que sea diccionario
-    if isinstance(carrito, list):
-        carrito = {}
-
-    producto = PRODUCTOS.get(slug)
-    if not producto:
-        return redirect('catalogo')
-
-    from .forms import SeleccionTallaForm
+    producto = get_object_or_404(Producto, id=id)
 
     if request.method == 'POST':
-        form = SeleccionTallaForm(request.POST)
+        talla = request.POST.get('talla')
 
-        if form.is_valid():
-            talla = form.cleaned_data['talla']
+        # clave única por producto + talla
+        key = f"{id}_{talla}"
 
-            if slug in carrito:
-                carrito[slug]['cantidad'] += 1
-            else:
-                carrito[slug] = {
-                 'nombre': producto['nombre'],
-                 'precio': producto['precio'],
-                 'imagen': producto['imagen'],   
-                 'talla': talla,
-                 'cantidad': 1
-}
+        if key in carrito:
+            carrito[key]['cantidad'] += 1
+        else:
+            carrito[key] = {
+                'nombre': producto.nombre,
+                'precio': float(producto.precio),
+                'imagen': producto.imagen.url if producto.imagen else '',
+                'talla': talla,
+                'cantidad': 1
+            }
 
-            request.session['carrito'] = carrito
-            return redirect('carrito')
-
-    else:
-        form = SeleccionTallaForm()
-
-    context = {
-        'form': form,
-        'producto': producto,
-        'carrito_cantidad': sum(item['cantidad'] for item in carrito.values())
-    }
-
-    return render(request, 'productos/producto-detalle.html', context)
-
-def agregar_al_carrito(request, producto_id):
-    carrito = request.session.get('carrito', [])
-
-    producto = PRODUCTOS.get(producto_id)
-    if producto:
-        carrito.append(producto)  
         request.session['carrito'] = carrito
 
     return redirect('carrito')
@@ -589,12 +700,52 @@ def nueva_contrasena(request, token):
 
     return render(request, 'usuarios/nueva_contrasena.html')
 
+
+def generar_factura(request):
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="factura.pdf"'
+
+    doc = SimpleDocTemplate(response)
+    elementos = []
+    estilos = getSampleStyleSheet()
+
+    ruta_logo = os.path.join(settings.BASE_DIR, 'static/images/logo.png')
+    if os.path.exists(ruta_logo):
+        elementos.append(Image(ruta_logo, width=120, height=60))
+
+    elementos.append(Spacer(1, 10))
+    elementos.append(Paragraph("Factura - Deportes 360", estilos['Title']))
+    elementos.append(Spacer(1, 20))
+
+    elementos.append(Paragraph("Cliente: Luis", estilos['Normal']))
+    elementos.append(Paragraph("Fecha: 22/03/2026", estilos['Normal']))
+    elementos.append(Spacer(1, 20))
+
+    datos = [
+        ["Producto", "Talla", "Cantidad", "Precio"],
+        ["Camiseta", "M", "2", "$120.000"],
+    ]
+
+    tabla = Table(datos)
+    tabla.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,0), colors.black),
+        ('TEXTCOLOR', (0,0), (-1,0), colors.white),
+        ('GRID', (0,0), (-1,-1), 1, colors.black),
+    ]))
+
+    elementos.append(tabla)
+    elementos.append(Spacer(1, 20))
+    elementos.append(Paragraph("Total: $120.000", estilos['Heading2']))
+    doc.build(elementos)
+
+    return response
+
 def restablecer_password(request):
 
     if request.method == 'POST':
 
         email = request.POST.get('email')
-        print("📧 EMAIL:", email)
+        print(" EMAIL:", email)
 
         if not email:
             messages.error(request, "Debes ingresar un correo.")
@@ -700,12 +851,10 @@ def restablecer_password(request):
             correo.content_subtype = "html"
             correo.send(fail_silently=False)
 
-            print("✅ CORREO ENVIADO")
-
         else:
             print("❌ NO EXISTE USUARIO")
 
-        messages.success(request, "Si el correo existe, se enviará un enlace.")
+        messages.success(request, "el correo se envio exitosamente.")
         return redirect('restablecer')
 
     return render(request, 'restablecer.html')

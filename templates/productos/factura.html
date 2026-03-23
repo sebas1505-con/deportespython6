@@ -48,18 +48,22 @@
     </table>
 
     <div class="total">
-
-        <h2>Total: ${{ total }}</h2>
-
+        <h2>Total: ${{ total.total }}</h2>
     </div>
+
 
     <div class="botones">
 
-        <a href="{% url 'catalogo' %}" class="btn">Seguir comprando</a>
+    <a href="{% url 'catalogo' %}" class="btn">Seguir comprando</a>
 
-        <a href="{% url 'usuario' %}" class="btn">Volver al inicio</a>
+    <a href="{% url 'usuario' %}" class="btn">Volver al inicio</a>
 
-    </div>
+    <a href="{% url 'factura_pdf' %}" target="_blank" class="btn">
+    Imprimir Factura
+    </a>
+    
+
+</div>
 
 </div>
 

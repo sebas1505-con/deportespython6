@@ -1,5 +1,7 @@
 from django.urls import path
 from . import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -28,10 +30,10 @@ urlpatterns = [
     path('actualizar/', views.actualizar_usuario, name='actualizar_usuario'),
     path('perfil/', views.perfil_usuario, name='perfil'),
     path('factura/', views.factura, name='factura'),
+    path('factura/pdf/', views.generar_factura, name='factura_pdf'),
     path('generar-pdf/', views.generar_pdf, name='generar_pdf'),
     path('reportes-ventas/', views.reportesVentas, name='reportesVentas'),
     path('producto-nuevo/', views.producto_nuevo, name='producto_nuevo'),
-    path('producto/<slug:slug>/', views.producto_detalle, name='producto_detalle'),
     path('producto-editar/<int:id>/', views.producto_editar, name='producto_editar'),
     path('producto-eliminar/<int:id>/', views.producto_eliminar, name='producto_eliminar'),
     path('eliminar-usuario/<int:id>/', views.eliminar_usuario, name='eliminar_usuario'),
@@ -43,5 +45,11 @@ urlpatterns = [
     path('agregar_producto/', views.agregar_producto, name='agregar_producto'),
     path('api/barrios-bogota/', views.barrios_bogota, name='api_barrios'),
     path("panel-sugerencias/", views.panel_sugerencias, name="panel_sugerencias"),
+    path("producto/<int:id>/", views.detalle_producto, name="detalle_producto"),
+    path('agregar-carrito/<int:id>/', views.agregar_al_carrito, name='agregar_carrito'),
+    path('tomar_pedido/<int:id>/', views.tomar_pedido, name='tomar_pedido'),
 
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

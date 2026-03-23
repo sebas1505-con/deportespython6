@@ -65,13 +65,36 @@ h1 {
 }
 
 .item-carrito {
-  display: flex;
-  justify-content: space-between;
-  background: #fff;
-  border-radius: 12px;
-  padding: 15px;
-  border: 1px solid #ddd;
-  align-items: center;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-radius: 10px;
+}
+
+.item-left {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.item-info h4 {
+    margin: 0;
+}
+
+.item-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.item-actions button {
+    padding: 8px 12px;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
 }
 
 .item-carrito img {

@@ -1,7 +1,8 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
+    <meta charset="UTF-8">
     <title>Movimientos</title>
     <link rel="stylesheet" href="{% static 'css/movimiento.css' %}">
 </head>
@@ -11,7 +12,30 @@
 
 <form method="post">
     {% csrf_token %}
-    {{ form.as_p }}
+
+    <!-- PRODUCTO -->
+    <label for="producto">Producto</label>
+    <select name="producto" id="producto" required>
+        <option value="">Seleccione un producto</option>
+        {% for p in productos %}
+            <option value="{{ p.id }}">{{ p.nombre }}</option>
+        {% endfor %}
+    </select>
+
+    <!-- TALLA -->
+    <label for="talla">Talla</label>
+    <select name="talla" id="talla" required>
+        <option value="">Seleccione talla</option>
+        <option value="S">S</option>
+        <option value="M">M</option>
+        <option value="L">L</option>
+        <option value="XL">XL</option>
+    </select>
+
+    <!-- CANTIDAD -->
+    <label for="cantidad">Cantidad</label>
+    <input type="number" name="cantidad" id="cantidad" min="1" required placeholder="Ej: 5">
+
     <button type="submit">Guardar</button>
 </form>
 
