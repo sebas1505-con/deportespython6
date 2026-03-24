@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect,get_object_or_404, redirect
-from .models import Usuario, Cliente, Repartidor, Producto, TallaProducto, Venta, Sugerencia
+from .models import Usuario, Cliente, Repartidor, Producto, TallaProducto, Venta, Sugerencia, Movimiento
 from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm, MovimientoForm
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
@@ -221,7 +221,6 @@ def producto_nuevo(request):
             precio=precio,
             descripcion=descripcion,
             imagen=imagen,
-            stock=stock,
         )
 
         if stock_s > 0:
