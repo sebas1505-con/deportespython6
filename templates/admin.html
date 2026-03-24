@@ -25,7 +25,7 @@
     <li><a href="{% url 'reportesVentas' %}">Reportes</a></li>
     <li><a href="{% url 'inventario' %}">Inventario</a></li>
     <li><a href="{% url 'producto_nuevo' %}">Nuevo Producto</a></li>
-    <li><a href="{% url 'panel_sugerencias' %}">las sugerencias</a></li>
+    <li><a href="{% url 'panel_sugerencias' %}">Sugerencias</a></li>
     <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
    </ul>
 </nav>
@@ -51,18 +51,10 @@
         </div>
 
         <div class="stat-box">
-            <a href="{% url 'movimientos' %}">
+            <a href="{% url 'movimientos' %}" class="stat-link">
                 <h3>Movimientos</h3>
-                <p>Registrar entrada de productos</p>
+            
             </a>
-        </div>
-    </section>
-
-    <!-- GRÁFICA -->
-    <section class="grafico">
-        <h2>Ventas de la Semana</h2>
-        <div class="grafico-contenedor">
-            <canvas id="graficaVentas"></canvas>
         </div>
     </section>
 
