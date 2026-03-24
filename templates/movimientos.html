@@ -13,8 +13,20 @@
 <form method="post">
     {% csrf_token %}
 
-    <!-- PRODUCTO -->
-    <label for="producto">Producto</label>
+    <!-- TIPO DE MOVIMIENTO -->
+    <label for="tipo">Tipo de Movimiento</label>
+    <select name="tipo" id="tipo" required>
+        <option value="">Seleccione tipo</option>
+        <option value="entrada">Entrada</option>
+        <option value="salida">Salida</option>
+    </select>
+
+    <!-- MOTIVO -->
+    <label for="motivo">Motivo</label>
+    <textarea name="motivo" id="motivo" rows="3" placeholder="Ej: Compra de proveedor, devolución, daño, venta..." required></textarea>
+        <!-- PRODUCTO -->
+        <label for="producto">Producto</label>
+        
     <select name="producto" id="producto" required>
         <option value="">Seleccione un producto</option>
         {% for p in productos %}
