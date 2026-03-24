@@ -59,13 +59,15 @@
                     <td>{{ producto.stock_total }}</td>
                     <td>${{ producto.precio }}</td>
 
-                    <td>
-                        <a href="{% url 'producto_editar' producto.id %}">
-                            Editar
-                        </a>
-                        <a href="{% url 'producto_eliminar' producto.id %}">
-                            Eliminar
-                    </td>
+                   <td>
+                       <a href="{% url 'producto_editar' producto.id %}" class="btn-accion btn-editar">
+                         Editar
+                       </a>
+                       <a href="{% url 'producto_eliminar' producto.id %}" class="btn-accion btn-eliminar"
+                         onclick="return confirm('¿Seguro que deseas eliminar este producto?');">
+                         Eliminar
+                       </a>
+                   </td>
                 </tr>
 
                 {% empty %}

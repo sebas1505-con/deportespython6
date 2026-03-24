@@ -2,6 +2,8 @@ from django.urls import path
 from . import views
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import stock_insuficiente
+
 
 urlpatterns = [
     path('', views.index, name='index'),
@@ -48,6 +50,8 @@ urlpatterns = [
     path("producto/<int:id>/", views.detalle_producto, name="detalle_producto"),
     path('agregar-carrito/<int:id>/', views.agregar_al_carrito, name='agregar_carrito'),
     path('tomar_pedido/<int:id>/', views.tomar_pedido, name='tomar_pedido'),
+    path('stock-insuficiente/<int:producto_id>/<str:talla>/<int:stock_disponible>/',
+         stock_insuficiente, name='stock_insuficiente'),
 
 ]
 

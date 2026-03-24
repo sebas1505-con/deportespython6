@@ -83,3 +83,35 @@ tr:hover {
   background-color: #a30000; 
 }
 
+/* Botones de acción en tabla */
+.tabla-section a.btn-accion {
+    display: inline-block;
+    padding: 6px 12px;
+    margin-right: 6px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: bold;
+    text-decoration: none;
+    color: #fff;
+    transition: 0.3s;
+}
+
+/* Botón Editar */
+.tabla-section a.btn-editar {
+    background: linear-gradient(180deg, #4caf50, #388e3c); /* verde */
+}
+
+.tabla-section a.btn-editar:hover {
+    opacity: 0.85;
+    transform: scale(1.05);
+}
+
+/* Botón Eliminar */
+.tabla-section a.btn-eliminar {
+    background: linear-gradient(180deg, #ff4b4b, #e60000); /* rojo */
+}
+
+.tabla-section a.btn-eliminar:hover {
+    opacity: 0.85;
+    transform: scale(1.05);
+}

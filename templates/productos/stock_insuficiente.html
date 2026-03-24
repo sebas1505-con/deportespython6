@@ -1,0 +1,57 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Stock insuficiente</title>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
+    <style>
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .mensaje-stock {
+            background: #fff;
+            padding: 40px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            max-width: 500px;
+        }
+        .mensaje-stock h1 {
+            color: #d40000;
+            margin-bottom: 20px;
+        }
+        .mensaje-stock p {
+            font-size: 16px;
+            margin-bottom: 25px;
+        }
+        .btn-volver {
+            background: #d40000;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+        .btn-volver:hover {
+            background: #b30000;
+        }
+    </style>
+</head>
+<body>
+    <div class="mensaje-stock">
+        <h1>¡Stock insuficiente!</h1>
+        <p>
+            El producto <strong>{{ producto_nombre }}</strong> en talla <strong>{{ talla }}</strong>
+            solo tiene <strong>{{ stock_disponible }}</strong> unidades disponibles.
+        </p>
+        <a href="{% url 'carrito' %}" class="btn-volver">Volver al carrito</a>
+    </div>
+</body>
+</html>

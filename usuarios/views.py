@@ -518,55 +518,58 @@ def factura(request):
         'total': total
     })
 
-
 def formulario_compra(request):
-
     carrito = request.session.get('carrito', {})
 
-    cantidad = sum(item['cantidad'] for item in carrito.values())
-    total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
-
+    cantidad_total = sum(item['cantidad'] for item in carrito.values())
+    total_venta = sum(item['precio'] * item['cantidad'] for item in carrito.values())
     usuario_id = request.session.get('usuario_id')
-
-    if usuario_id:
-        cliente = Usuario.objects.get(id=usuario_id)
-    else:
-        cliente = None
+    cliente = Usuario.objects.get(id=usuario_id) if usuario_id else None
 
     if request.method == 'POST':
         form = CompraForm(request.POST)
-
         if form.is_valid():
-
             for key, item in carrito.items():
-
                 producto_id = key.split('_')[0]
                 talla = item['talla']
 
-                producto = Producto.objects.get(id=int(producto_id))
-                talla_obj = producto.tallas.get(talla=talla)
+                producto = get_object_or_404(Producto, id=int(producto_id))
+                talla_obj = get_object_or_404(TallaProducto, producto=producto, talla=talla)
 
+                # Verificar stock
                 if talla_obj.stock >= item['cantidad']:
                     talla_obj.stock -= item['cantidad']
                     talla_obj.save()
                 else:
-                    return HttpResponse("Stock insuficiente")
-                
-            request.session['carrito'] = {}
+                    return redirect(
+                        'stock_insuficiente',
+                        producto_id=producto.id,
+                        talla=talla,
+                        stock_disponible=talla_obj.stock
+                    )
 
+            request.session['carrito'] = {}
             return redirect('factura')
 
     else:
         form = CompraForm(initial={
-            'cant_producto': cantidad,
-            'total_venta': total,
+            'cant_producto': cantidad_total,
+            'total_venta': total_venta,
         })
 
     return render(request, 'productos/formulario_compra.html', {
         'form': form,
         'cliente': cliente,
         'productos': carrito,
-        'total': total
+        'total': total_venta
+    })
+
+def stock_insuficiente(request, producto_id, talla, stock_disponible):
+    producto = Producto.objects.get(id=producto_id)
+    return render(request, 'productos/stock_insuficiente.html', {
+        'producto_nombre': producto.nombre,
+        'talla': talla,
+        'stock_disponible': stock_disponible
     })
 
 def cargar_productos():
