@@ -185,16 +185,6 @@ def sugerencias(request):
 
     return render(request, "sugerencias.html")
 
-def panel_repartidor(request):
-    ventas_pendientes = Venta.objects.all()
-
-    print("VENTAS:", ventas_pendientes)
-
-    return render(request, 'usuario/repartidor.html', {
-        'ventas_pendientes': ventas_pendientes,
-        'Nombre': request.user.username
-    })
-
 def tomar_pedido(request, id):
     if request.method == "POST":
         venta = Venta.objects.get(id=id)
@@ -339,15 +329,22 @@ def repartidor(request):
 
     ventas_pendientes = Pedido.objects.filter(estado='Disponible', repartidor=None).select_related('venta__cliente__usuario')
     
+    pedidos_activos = Pedido.objects.filter(
+        repartidor=repartidor_obj, estado='En camino'
+    ).select_related('venta__cliente__usuario')
+    
     mis_pedidos = Pedido.objects.filter(
         repartidor=repartidor_obj, estado='Entregado'
     ).select_related('venta__cliente__usuario')
+
 
     return render(request, 'repartidor.html', {
         'Nombre': usuario.first_name,
         'ventas_pendientes': ventas_pendientes,
         'mis_pedidos': mis_pedidos,
         'repartidor': repartidor_obj,
+        'pedidos_activos': pedidos_activos,
+
     })
 
 def carrito(request):
@@ -637,16 +634,23 @@ def mis_pedidos(request):
     except Repartidor.DoesNotExist:
         return redirect('repartidor')
 
-    pedidos = Pedido.objects.filter(repartidor=repartidor).select_related('venta__cliente__usuario').order_by('-fecha_pedido')
-
     ventas_pendientes = Pedido.objects.filter(
         estado='Disponible', repartidor=None
     ).select_related('venta__cliente__usuario')
+    
+    pedidos_activos = Pedido.objects.filter(
+        repartidor=repartidor, estado='En camino'
+    ).select_related('venta__cliente__usuario')
+    
+    mis_pedidos_qs = Pedido.objects.filter(
+        repartidor=repartidor, estado='Entregado'
+    ).select_related('venta__cliente__usuario').order_by('-fecha_pedido')
 
     return render(request, 'repartidor.html', {
         'Nombre': repartidor.usuario.first_name,
-        'mis_pedidos': pedidos,
         'ventas_pendientes': ventas_pendientes,
+        'pedidos_activos': pedidos_activos,
+        'mis_pedidos': mis_pedidos_qs,
         'repartidor': repartidor,
     })
 
@@ -666,7 +670,7 @@ def entregar_pedido(request, pedido_id):
     pedido.venta.estado = 'Entregado'
     pedido.venta.save()
 
-    return redirect('mis_pedidos')
+    return redirect('repartidor')
 
 def cargar_productos():
     datos = [
