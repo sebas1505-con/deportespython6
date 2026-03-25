@@ -17,7 +17,10 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('sugerencias/', views.sugerencias, name='sugerencias'),
     path('productos/', views.productos, name='productos'),
-    path('pedidos/', views.pedidos, name='pedidos'),
+    path('pedidos/disponibles/', views.pedidos_disponibles, name='pedidos_disponibles'),
+    path('pedidos/tomar/<int:pedido_id>/', views.tomar_pedido, name='tomar_pedido'),
+    path('pedidos/mis-pedidos/', views.mis_pedidos, name='mis_pedidos'),
+    path('pedidos/entregar/<int:pedido_id>/', views.entregar_pedido, name='entregar_pedido'),
     path('inventario/', views.inventario, name='inventario'),
     path('crear-admin/', views.crear_admin, name='crear_admin'),
     path('catalogo/', views.catalogo, name='catalogo'),
@@ -47,7 +50,6 @@ urlpatterns = [
     path("panel-sugerencias/", views.panel_sugerencias, name="panel_sugerencias"),
     path("producto/<int:id>/", views.detalle_producto, name="detalle_producto"),
     path('agregar-carrito/<int:id>/', views.agregar_al_carrito, name='agregar_carrito'),
-    path('tomar_pedido/<int:id>/', views.tomar_pedido, name='tomar_pedido'),
 
 ]
 

@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect,get_object_or_404, redirect
-from .models import Usuario, Cliente, Repartidor, Producto, TallaProducto, Venta, Sugerencia, Movimiento
+from .models import Usuario, Cliente, Repartidor, Producto, TallaProducto, Venta, Sugerencia, Movimiento, Pedido
 from .forms import AdminForm, RepartidorForm, SeleccionTallaForm, RegistroClienteForm, CompraForm, ReportesForm, MovimientoForm
 from django.contrib.auth.hashers import make_password, check_password
 from django.http import HttpResponse
@@ -329,17 +329,26 @@ def repartidor(request):
 
     if not usuario_id or rol != 'REPARTIDOR':
         return redirect('sinacceso')
-
-    # Simulación de pedidos pendientes
-    ventas_pendientes = []
-
+    
+    try:
+        repartidor_obj = Repartidor.objects.get(usuario__id=usuario_id)
+    except Repartidor.DoesNotExist:
+        return redirect('sinacceso')
+    
     usuario = Usuario.objects.get(id=usuario_id)
 
-    return render(request, 'repartidor.html', {
-        'nombre': usuario.first_name,
-        'ventas_pendientes': ventas_pendientes
-    })
+    ventas_pendientes = Pedido.objects.filter(estado='Disponible', repartidor=None).select_related('venta__cliente__usuario')
+    
+    mis_pedidos = Pedido.objects.filter(
+        repartidor=repartidor_obj, estado='Entregado'
+    ).select_related('venta__cliente__usuario')
 
+    return render(request, 'repartidor.html', {
+        'Nombre': usuario.first_name,
+        'ventas_pendientes': ventas_pendientes,
+        'mis_pedidos': mis_pedidos,
+        'repartidor': repartidor_obj,
+    })
 
 def carrito(request):
     carrito = request.session.get('carrito', {})
@@ -522,21 +531,35 @@ def factura(request):
 def formulario_compra(request):
 
     carrito = request.session.get('carrito', {})
-
     cantidad = sum(item['cantidad'] for item in carrito.values())
     total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
 
     usuario_id = request.session.get('usuario_id')
 
     if usuario_id:
-        cliente = Usuario.objects.get(id=usuario_id)
-    else:
-        cliente = None
+        try:
+            cliente = Cliente.objects.get(usuario__id=usuario_id)
+        except Cliente.DoesNotExist:
+            return redirect('carrito')
 
     if request.method == 'POST':
         form = CompraForm(request.POST)
 
         if form.is_valid():
+            
+            venta = Venta.objects.create(
+                cliente=cliente,
+                cantProducto=cantidad,
+                metodoEnvio=form.cleaned_data['metodo_envio'],
+                totalVenta=total,
+                metodo_de_pago=form.cleaned_data['metodo_pago'],
+                direccionEnvio=form.cleaned_data['direccion_envio'],
+                telefonoContacto=form.cleaned_data['telefono_contacto'],
+                observaciones=form.cleaned_data.get('observaciones', ''),
+                estado='Pendiente'
+            )
+            
+            Pedido.objects.create(venta=venta)
 
             for key, item in carrito.items():
 
@@ -550,8 +573,10 @@ def formulario_compra(request):
                     talla_obj.stock -= item['cantidad']
                     talla_obj.save()
                 else:
+                    venta.delete()
                     return HttpResponse("Stock insuficiente")
                 
+            request.session['venta_id'] = venta.id
             request.session['carrito'] = {}
 
             return redirect('factura')
@@ -568,6 +593,80 @@ def formulario_compra(request):
         'productos': carrito,
         'total': total
     })
+    
+## pediddos en general
+
+def pedidos_disponibles(request):
+    usuario_id = request.session.get('usuario_id')
+
+    try:
+        repartidor = Repartidor.objects.get(usuario__id=usuario_id)
+    except Repartidor.DoesNotExist:
+        return redirect('login')
+
+    # Pedidos sin repartidor asignado
+    pedidos = Pedido.objects.filter(estado='Disponible', repartidor=None).select_related('venta__cliente')
+
+    return render(request, 'pedidos/pedidos_disponibles.html', {
+        'pedidos': pedidos,
+        'repartidor': repartidor
+    })
+
+
+def tomar_pedido(request, pedido_id):
+    usuario_id = request.session.get('usuario_id')
+
+    try:
+        repartidor = Repartidor.objects.get(usuario__id=usuario_id)
+    except Repartidor.DoesNotExist:
+        return redirect('login')
+
+    pedido = get_object_or_404(Pedido, id=pedido_id, estado='Disponible', repartidor=None)
+    pedido.repartidor = repartidor
+    pedido.estado = 'En camino'
+    pedido.save()
+
+    return redirect('mis_pedidos')
+
+
+def mis_pedidos(request):
+    usuario_id = request.session.get('usuario_id')
+
+    try:
+        repartidor = Repartidor.objects.get(usuario__id=usuario_id)
+    except Repartidor.DoesNotExist:
+        return redirect('repartidor')
+
+    pedidos = Pedido.objects.filter(repartidor=repartidor).select_related('venta__cliente__usuario').order_by('-fecha_pedido')
+
+    ventas_pendientes = Pedido.objects.filter(
+        estado='Disponible', repartidor=None
+    ).select_related('venta__cliente__usuario')
+
+    return render(request, 'repartidor.html', {
+        'Nombre': repartidor.usuario.first_name,
+        'mis_pedidos': pedidos,
+        'ventas_pendientes': ventas_pendientes,
+        'repartidor': repartidor,
+    })
+
+def entregar_pedido(request, pedido_id):
+    usuario_id = request.session.get('usuario_id')
+
+    try:
+        repartidor = Repartidor.objects.get(usuario__id=usuario_id)
+    except Repartidor.DoesNotExist:
+        return redirect('login')
+
+    pedido = get_object_or_404(Pedido, id=pedido_id, repartidor=repartidor)
+    pedido.estado = 'Entregado'
+    pedido.save()
+
+    # Actualizar también el estado de la venta
+    pedido.venta.estado = 'Entregado'
+    pedido.venta.save()
+
+    return redirect('mis_pedidos')
 
 def cargar_productos():
     datos = [

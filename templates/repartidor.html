@@ -18,8 +18,8 @@
     <div class="card">
         <nav>
             <a href="{% url 'repartidor' %}" class="btn">Inicio</a>
-            <a href="#" class="btn">Pedidos Pendientes</a>
-            <a href="#" class="btn">Historial de Entregas</a>
+            <a href="{% url 'pedidos_disponibles' %}" class="btn">Pedidos Pendientes</a>
+            <a href="{% url 'mis_pedidos' %}" class="btn">Historial de Entregas</a>
             <a href="{% url 'logout' %}" class="btn">Cerrar Sesión</a>
         </nav>
     </div>
@@ -51,21 +51,23 @@
             <tbody>
 
                 {% if ventas_pendientes %}
-                    {% for venta in ventas_pendientes %}
+                    {% for pedido in ventas_pendientes %}
                     <tr>
-                        <td>{{ venta.id }}</td>
-                        <td>{{ venta.cliente.usuario.username }}</td>
-                        <td>{{ venta.direccionEnvio }}</td>
-                        <td>{{ venta.telefonoContacto }}</td>
-                        <p>Total ventas: {{ ventas_pendientes|length }}</p>
+                        <td>{{ pedido.id }}</td>
+                        <td>{{ pedido.venta.cliente.usuario.username }}</td>
+                        <td>{{ pedido.venta.direccionEnvio }}</td>
+                        <td>{{ pedido.venta.telefonoContacto }}</td>
                         <td>
-                            <form method="post" action="{% url 'tomar_pedido' venta.id %}">
+                            <form method="post" action="{% url 'tomar_pedido' pedido.id %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn">Tomar Pedido</button>
                             </form>
                         </td>
                     </tr>
                     {% endfor %}
+                    <tr>
+                        <td colspan="5">Total pedidos: {{ ventas_pendientes|length }}</td>
+                    </tr>
                 {% else %}
                     <tr>
                         <td colspan="5" style="text-align:center;">
@@ -98,8 +100,11 @@
     <div class="card">
         <h2>Historial de Entregas</h2>
         <ul>
-            <li>Pedido #020 – Entregado el 15/06/2025</li>
-            <li>Pedido #019 – Entregado el 14/06/2025</li>
+            {% for pedido in mis_pedidos %}
+                <li>Pedido #{{ pedido.id }} – {{ pedido.venta.cliente.usuario.username }} – {{ pedido.fecha_pedido|date:"d/m/Y" }}</li>
+            {% empty %}
+                <li>No hay entregas realizadas aún.</li>
+            {% endfor %}
         </ul>
     </div>
 
