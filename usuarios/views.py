@@ -6,9 +6,10 @@ from django.http import HttpResponse
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import uuid
-from .models import Usuario, Cliente, Repartidor, Sugerencia
+from .models import Usuario, Cliente, Repartidor, Sugerencia, Administrador
 from .forms import RegistroClienteForm, RepartidorForm
 from .barrios import BARRIOS_BOGOTA
+from inventario.models import Producto
 
 
 # ── Páginas generales ─────────────────────────────────────────────────────────
@@ -119,6 +120,7 @@ def crear_admin(request):
         tipo_documento = request.POST.get("tipo_documento")
         cedula      = request.POST.get("cedula")
 
+        # Validaciones
         if contrasena != confirmar:
             return render(request, "crear_admin.html", {"error": "Las contraseñas no coinciden"})
         if codigo not in ["ADM-123", "ADM-456"]:
@@ -128,7 +130,7 @@ def crear_admin(request):
         if Usuario.objects.filter(cedula=cedula).exists():
             return render(request, "crear_admin.html", {"error": "La cédula ya está registrada"})
 
-        Usuario.objects.create(
+        usuario = Usuario.objects.create(
             username=usuario_val,
             email=correo,
             telefono=telefono,
@@ -143,6 +145,11 @@ def crear_admin(request):
             is_staff=True,
             is_superuser=True
         )
+        Administrador.objects.create(
+            codigo=codigo,
+            usuario=usuario
+        )
+
         return redirect("login")
     return render(request, "crear_admin.html")
 
@@ -155,10 +162,22 @@ def usuario(request):
     if not usuario_id or rol != "CLIENTE":
         return redirect("sinacceso")
     usuario = Usuario.objects.get(id=usuario_id)
-    # Importa Producto aquí para no crear dependencia circular en el módulo
-    from inventario.models import Producto
-    productos = Producto.objects.all()
-    return render(request, "usuario.html", {"usuario": usuario, "productos": productos})
+    categoria = request.GET.get("categoria")
+
+    if categoria == "HOMBRE":
+        productos = Producto.objects.filter(categoria__in=["HOMBRE", "MIXTO"])
+    elif categoria == "MUJER":
+        productos = Producto.objects.filter(categoria__in=["MUJER", "MIXTO"])
+    elif categoria == "MIXTO":
+        productos = Producto.objects.filter(categoria="MIXTO")
+    else:
+        productos = Producto.objects.all()
+
+    return render(request, "usuario.html", {
+        "usuario": usuario,
+        "productos": productos
+    })
+
 
 def admin(request):
     usuario_id = request.session.get('usuario_id')

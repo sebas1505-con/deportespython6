@@ -3,13 +3,19 @@ from django.utils.text import slugify
 from django.core.exceptions import ValidationError
 from datetime import date
 
-
 class Producto(models.Model):
+    CATEGORIAS = [
+        ("HOMBRE", "Hombre"),
+        ("MUJER", "Mujer"),
+        ("MIXTO", "Mixto"),
+    ]
+
     nombre = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField()
     imagen = models.ImageField(upload_to='productos/')
+    categoria = models.CharField(max_length=10, choices=CATEGORIAS, default="MIXTO")
 
     @property
     def stock_total(self):
@@ -89,12 +95,13 @@ class Venta(models.Model):
 class DetalleVentaProductos(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    talla = models.CharField(max_length=5)   # obligatorio
     cantidad = models.IntegerField()
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)  # obligatorio
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
-    descuento = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    descuento = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     fecha_inicio_descuento = models.DateField(null=True, blank=True)
     fecha_fin_descuento = models.DateField(null=True, blank=True)
-
 
 class Envio(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE)

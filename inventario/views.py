@@ -1,18 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
+from .models import Producto, TallaProducto, Venta, Movimiento, Reporte, DetalleVentaProductos
+from .forms import CompraForm, ReportesForm, MovimientoForm
+from usuarios.models import Usuario, Cliente
 from django.http import HttpResponse
 from django.contrib import messages
 from django.conf import settings
 from reportlab.pdfgen import canvas
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+from django.utils import timezone
 import os
 
-from .models import Producto, TallaProducto, Venta, Movimiento, Reporte
-from .forms import CompraForm, SeleccionTallaForm, ReportesForm, MovimientoForm
-from usuarios.models import Usuario
 
 def catalogo(request):
     productos = Producto.objects.all()
@@ -22,6 +23,10 @@ def catalogo(request):
 def productos(request):
     productos = Producto.objects.all()
     return render(request, 'productos/productos.html', {'productos': productos})
+
+def reportesVentas(request):
+    # Aquí puedes mostrar un template con los reportes de ventas
+    return render(request, "productos/reportes_ventas.html")
 
 
 def detalle_producto(request, id):
@@ -134,37 +139,68 @@ def agregar_al_carrito(request, id):
         request.session['carrito'] = carrito
     return redirect('carrito')
 
-
 def formulario_compra(request):
     carrito = request.session.get('carrito', {})
     cantidad_total = sum(item['cantidad'] for item in carrito.values())
     total_venta = sum(item['precio'] * item['cantidad'] for item in carrito.values())
     usuario_id = request.session.get('usuario_id')
-    cliente = Usuario.objects.get(id=usuario_id) if usuario_id else None
+    usuario = Usuario.objects.get(id=usuario_id) if usuario_id else None
+    cliente = Cliente.objects.get(usuario=usuario) if usuario else None
 
     if request.method == 'POST':
         form = CompraForm(request.POST)
         if form.is_valid():
+            venta = Venta.objects.create(
+                cliente=cliente,
+                cantProducto=cantidad_total,
+                fecha_venta=timezone.now(),
+                totalVenta=total_venta,
+                metodoEnvio=form.cleaned_data['metodo_envio'],
+                metodo_de_pago=form.cleaned_data['metodo_pago'],
+                direccionEnvio=form.cleaned_data['direccion_envio'],
+                telefonoContacto=form.cleaned_data['telefono_contacto'],
+                observaciones=form.cleaned_data.get('observaciones', '')
+            )
+
             for key, item in carrito.items():
                 producto_id = key.split('_')[0]
                 talla = item['talla']
                 producto = get_object_or_404(Producto, id=int(producto_id))
                 talla_obj = get_object_or_404(TallaProducto, producto=producto, talla=talla)
+
                 if talla_obj.stock >= item['cantidad']:
                     talla_obj.stock -= item['cantidad']
                     talla_obj.save()
+
+                    DetalleVentaProductos.objects.create(
+                        venta=venta,
+                        producto=producto,
+                        talla=talla,
+                        cantidad=item['cantidad'],
+                        precio_unitario=item['precio'],
+                        subtotal=item['cantidad'] * item['precio']
+                    )
                 else:
-                    return redirect('stock_insuficiente',
-                                    producto_id=producto.id,
-                                    talla=talla,
-                                    stock_disponible=talla_obj.stock)
+                    return redirect(
+                        'stock_insuficiente',
+                        producto_id=producto.id,
+                        talla=talla,
+                        stock_disponible=talla_obj.stock
+                    )
+
             request.session['carrito'] = {}
-            return redirect('factura')
+            return redirect('factura', venta_id=venta.id)
     else:
-        form = CompraForm(initial={'cant_producto': cantidad_total, 'total_venta': total_venta})
+        form = CompraForm(initial={
+            'cant_producto': cantidad_total,
+            'total_venta': total_venta
+        })
 
     return render(request, 'productos/formulario_compra.html', {
-        'form': form, 'cliente': cliente, 'productos': carrito, 'total': total_venta
+        'form': form,
+        'cliente': cliente,
+        'productos': carrito,
+        'total': total_venta
     })
 
 
@@ -177,13 +213,15 @@ def stock_insuficiente(request, producto_id, talla, stock_disponible):
     })
 
 
-def factura(request):
-    carrito = request.session.get('carrito', {})
-    usuario_id = request.session.get('usuario_id')
-    cliente = Usuario.objects.get(id=usuario_id)
-    total = sum(float(item['precio']) * item['cantidad'] for item in carrito.values())
+def factura(request, venta_id):
+    venta = get_object_or_404(Venta, id=venta_id)
+    detalles = DetalleVentaProductos.objects.filter(venta=venta)
+
     return render(request, 'productos/factura.html', {
-        'cliente': cliente, 'productos': carrito, 'total': total
+        'venta': venta,
+        'detalles': detalles,
+        'cliente': venta.cliente,
+        'total': venta.totalVenta
     })
 
 
@@ -210,23 +248,35 @@ def generar_pdf(request):
     messages.error(request, "Fechas inválidas.")
     return render(request, 'reportes.html', {'form': form})
 
+def generar_factura(request, venta_id):
+    venta = get_object_or_404(Venta, id=venta_id)
+    detalles = DetalleVentaProductos.objects.filter(venta=venta)
+    cliente = venta.cliente
 
-def generar_factura(request):
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="factura.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="factura_{venta.id}.pdf"'
     doc = SimpleDocTemplate(response)
     elementos = []
     estilos = getSampleStyleSheet()
+
     ruta_logo = os.path.join(settings.BASE_DIR, 'static/images/logo.png')
     if os.path.exists(ruta_logo):
         elementos.append(Image(ruta_logo, width=120, height=60))
+
     elementos.append(Spacer(1, 10))
     elementos.append(Paragraph("Factura - Deportes 360", estilos['Title']))
     elementos.append(Spacer(1, 20))
-    elementos.append(Paragraph("Cliente: Luis", estilos['Normal']))
-    elementos.append(Paragraph("Fecha: 22/03/2026", estilos['Normal']))
+
+    elementos.append(Paragraph(f"Cliente: {cliente.usuario.first_name}", estilos['Normal']))
+    elementos.append(Paragraph(f"Dirección: {cliente.direccion}", estilos['Normal']))
+    elementos.append(Paragraph(f"Teléfono: {venta.telefonoContacto}", estilos['Normal']))
+
     elementos.append(Spacer(1, 20))
-    datos = [["Producto", "Talla", "Cantidad", "Precio"], ["Camiseta", "M", "2", "$120.000"]]
+
+    datos = [["Producto", "Talla", "Cantidad", "Precio Unitario", "Subtotal"]]
+    for d in detalles:
+        datos.append([d.producto.nombre, d.talla, str(d.cantidad), f"${d.precio_unitario}", f"${d.subtotal}"])
+
     tabla = Table(datos)
     tabla.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.black),
@@ -235,10 +285,8 @@ def generar_factura(request):
     ]))
     elementos.append(tabla)
     elementos.append(Spacer(1, 20))
-    elementos.append(Paragraph("Total: $120.000", estilos['Heading2']))
+
+    elementos.append(Paragraph(f"Total: ${venta.totalVenta}", estilos['Heading2']))
+
     doc.build(elementos)
     return response
-
-
-def reportesVentas(request):
-    return render(request, "productos/reportes_ventas.html")

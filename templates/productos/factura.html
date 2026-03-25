@@ -1,71 +1,57 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-
-<meta charset="UTF-8">
-<title>Factura - Deportes 360</title>
-
-<link rel="stylesheet" href="{% static 'css/factura.css' %}">
-
+    <meta charset="UTF-8">
+    <title>Factura - Deportes 360</title>
+    <link rel="stylesheet" href="{% static 'css/factura.css' %}">
 </head>
-
 <body>
-
 <div class="factura-container">
 
     <h1>Factura de Compra</h1>
 
-    <div class="datos-cliente">
+<div class="datos-cliente">
+    <h3>Datos del Cliente</h3>
+    <p><strong>Nombre:</strong> {{ cliente.usuario.first_name }} {{ cliente.usuario.last_name }}</p>
+    <p><strong>Email:</strong> {{ cliente.usuario.email }}</p>
+    <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
+</div>
 
-        <h3>Datos del Cliente</h3>
+<table class="tabla-productos">
+    <tr>
+        <th>Producto</th>
+        <th>Talla</th>
+        <th>Cantidad</th>
+        <th>Precio Unitario</th>
+        <th>Subtotal</th>
+    </tr>
+    {% for d in detalles %}
+    <tr>
+        <td>{{ d.producto.nombre }}</td>
+        <td>{{ d.talla }}</td>
+        <td>{{ d.cantidad }}</td>
+        <td>${{ d.precio_unitario }}</td>
+        <td>${{ d.subtotal }}</td>
+    </tr>
+    {% empty %}
+    <tr>
+        <td colspan="5">No hay productos en esta venta</td>
+    </tr>
+    {% endfor %}
+</table>
 
-        <p><strong>Nombre:</strong> {{ cliente.first_name }}</p>
-        <p><strong>Email:</strong> {{ cliente.email }}</p>
-        <p><strong>Dirección:</strong> {{ cliente.cliente.direccion }}</p>
-    </div>
-
-    <table class="tabla-productos">
-
-        <tr>
-            <th>Producto</th>
-            <th>Talla</th>
-            <th>Cantidad</th>
-            <th>Precio</th>
-        </tr>
-
-        {% for p in productos %}
-
-        <tr>
-            <td>{{ p.nombre }}</td>
-            <td>{{ p.talla }}</td>
-            <td>{{ p.cantidad }}</td>
-            <td>${{ p.precio }}</td>
-        </tr>
-
-        {% endfor %}
-
-    </table>
 
     <div class="total">
-        <h2>Total: ${{ total.total }}</h2>
+        <h2>Total: ${{ total }}</h2>
     </div>
 
-
     <div class="botones">
-
-    <a href="{% url 'catalogo' %}" class="btn">Seguir comprando</a>
-
-    <a href="{% url 'usuario' %}" class="btn">Volver al inicio</a>
-
-    <a href="{% url 'factura_pdf' %}" target="_blank" class="btn">
-    Imprimir Factura
-    </a>
-    
+        <a href="{% url 'catalogo' %}" class="btn">Seguir comprando</a>
+        <a href="{% url 'usuario' %}" class="btn">Volver al inicio</a>
+        <a href="{% url 'factura_pdf' venta.id %}" target="_blank" class="btn">Imprimir Factura</a>
+    </div>
 
 </div>
-
-</div>
-
 </body>
 </html>
