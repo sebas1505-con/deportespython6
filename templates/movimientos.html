@@ -3,41 +3,108 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Movimientos</title>
-    <link rel="stylesheet" href="{% static 'css/movimiento.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movimientos - Deportes 360</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 </head>
 <body>
 
-<h2>Registrar Movimiento</h2>
+<header class="header">
+    <h1>Panel de Administrador - Deportes 360</h1>
+</header>
 
-<form method="post">
-    {% csrf_token %}
+<nav class="sidebar">
+    <br><br>
+    <ul>
+        <li><a href="{% url 'panel_admin' %}">Inicio</a></li>
+        <li><a href="{% url 'productos' %}">Productos</a></li>
+        <li><a href="{% url 'reportesVentas' %}">Reportes</a></li>
+        <li><a href="{% url 'movimientos' %}" class="active">Movimientos</a></li>
+        <li><a href="{% url 'producto_nuevo' %}">Nuevo Producto</a></li>
+        <li><a href="{% url 'panel_sugerencias' %}">Sugerencias</a></li>
+        <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+    </ul>
+</nav>
 
-    <!-- PRODUCTO -->
-    <label for="producto">Producto</label>
-    <select name="producto" id="producto" required>
-        <option value="">Seleccione un producto</option>
-        {% for p in productos %}
-            <option value="{{ p.id }}">{{ p.nombre }}</option>
-        {% endfor %}
-    </select>
+<main class="dashboard">
+    <br><br>
 
-    <!-- TALLA -->
-    <label for="talla">Talla</label>
-    <select name="talla" id="talla" required>
-        <option value="">Seleccione talla</option>
-        <option value="S">S</option>
-        <option value="M">M</option>
-        <option value="L">L</option>
-        <option value="XL">XL</option>
-    </select>
+    <section class="pedidos">
+        <h2>Registrar Movimiento</h2>
 
-    <!-- CANTIDAD -->
-    <label for="cantidad">Cantidad</label>
-    <input type="number" name="cantidad" id="cantidad" min="1" required placeholder="Ej: 5">
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    <p style="color:#c62828; font-weight:bold; background:#ffebee;
+                                padding:10px 16px; border-radius:6px; margin-bottom:16px;">
+                        {{ message }}
+                    </p>
+                {% else %}
+                    <p style="color:#2e7d32; font-weight:bold; background:#e8f5e9;
+                                padding:10px 16px; border-radius:6px; margin-bottom:16px;">
+                        {{ message }}
+                    </p>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
 
-    <button type="submit">Guardar</button>
-</form>
+        <form method="post" style="max-width: 500px;">
+            {% csrf_token %}
+
+            <div style="margin-bottom: 16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Producto</label>
+                <select name="producto" required
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+                    <option value="">Seleccione un producto</option>
+                    {% for p in productos %}
+                        <option value="{{ p.id }}">{{ p.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Talla</label>
+                <select name="talla" required
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+                    <option value="">Seleccione talla</option>
+                    <option value="S">S</option>
+                    <option value="M">M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Tipo de Movimiento</label>
+                <select name="tipo_movimiento" required
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+                    <option value="">Seleccione tipo</option>
+                    <option value="entrada"> Entrada</option>
+                    <option value="salida"> Salida</option>
+                </select>
+            </div>
+
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Proveedor <span style="font-weight:normal; color:#999;">(opcional)</span></label>
+                <input type="text" name="proveedor" placeholder="Ej: Nike, Adidas..."
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+
+            <div style="margin-bottom: 16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Cantidad</label>
+                <input type="number" name="cantidad" min="1" required placeholder="Ej: 5"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+
+            <button type="submit" class="btn-eliminar"
+                style="background:#e53935; color:white; padding:12px 30px; border:none;
+                       border-radius:6px; font-size:16px; font-weight:bold; cursor:pointer; width:100%;">
+                Guardar
+            </button>
+
+        </form>
+    </section>
 
 </body>
 </html>

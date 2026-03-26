@@ -1,103 +1,94 @@
 {% load static %}
-
 <!DOCTYPE html>
-
 <html lang="es">
-
 <head>
-
-<meta charset="UTF-8">
-<title>Reporte de Ventas</title>
-
-<link rel="stylesheet" href="{% static 'css/reportes.css' %}">
-
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte de Ventas - Deportes 360</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 </head>
 
 <body>
 
-<div class="dashboard">
-
-<header class="topbar">
-
-<h1>Reporte de Ventas</h1>
-
-<a href="{% url 'panel_admin' %}" class="btn-volver">
-⬅ Volver al Panel
-</a>
-
+<header class="header">
+    <h1>Panel de Administrador - Deportes 360</h1>
 </header>
 
-<section class="filtros">
+<nav class="sidebar">
+    <br><br>
+    <ul>
+        <li><a href="{% url 'panel_admin' %}">Inicio</a></li>
+        <li><a href="{% url 'productos' %}">Productos</a></li>
+        <li><a href="{% url 'reportesVentas' %}" class="active">Reportes</a></li>
+        <li><a href="{% url 'movimientos' %}">Movimientos</a></li>
+        <li><a href="{% url 'producto_nuevo' %}">Nuevo Producto</a></li>
+        <li><a href="{% url 'panel_sugerencias' %}">Sugerencias</a></li>
+        <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+    </ul>
+</nav>
 
-<h3>Generar Reporte</h3>
+<main class="dashboard">
 
-<form method="GET" action="{% url 'generar_pdf' %}">
-{{ form.non_field_errors }}
-<div class="campo">
-<label>Fecha Inicio</label> <input type="date" name="fecha_inicio" required>
-{{ form.fecha_inicio }}
-</div>
-<div class="campo">
-<label>Fecha Fin</label> <input type="date" name="fecha_fin" required>
-{{ form.fecha_fin }}
-</div>
-<button type="submit" class="btn-reporte">
-📄 Generar Reporte
-</button>
+    <!-- FILTRO REPORTE -->
+    <section class="pedidos" style="margin-bottom: 20px;">
+        <h2>Generar Reporte</h2>
+        <form method="GET" action="{% url 'generar_pdf' %}" style="display:flex; gap:16px; align-items:flex-end; flex-wrap:wrap;">
+            <div>
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Fecha Inicio</label>
+                <input type="date" name="fecha_inicio" required
+                    style="padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+            <div>
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Fecha Fin</label>
+                <input type="date" name="fecha_fin" required
+                    style="padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+            <div>
+                <button type="submit"
+                    style="background:#e53935; color:white; padding:11px 24px; border:none;
+                           border-radius:6px; font-size:15px; font-weight:bold; cursor:pointer;">
+                     Generar Reporte
+                </button>
+            </div>
+        </form>
+    </section>
 
-</form>
+    <!-- VENTAS REGISTRADAS -->
+    <section class="pedidos">
+        <h2>Ventas Registradas</h2>
+        <table class="tabla-pedidos">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Metodo de Pago</th>
+                    <th>Dirección</th>
+                    <th>Cantidad</th>
+                    <th>Total</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for venta in ventas %}
+                <tr>
+                    <td>{{ venta.id }}</td>
+                    <td>{{ venta.cliente.usuario.username }}</td>
+                    <td>{{ venta.metodo_de_pago }}</td>
+                    <td>{{ venta.direccionEnvio }}</td>
+                    <td>{{ venta.cantProducto }}</td>
+                    <td>${{ venta.totalVenta }}</td>
+                    <td>{{ venta.fecha_venta|date:"d/m/Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" style="text-align:center;">No hay ventas registradas</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
 
-</section>
-
-<section class="tabla-container">
-
-<h3>Ventas Registradas</h3>
-
-<table>
-
-<thead>
-
-<tr>
-<th>ID</th>
-<th>Cliente</th>
-<th>Producto</th>
-<th>Cantidad</th>
-<th>Total</th>
-<th>Fecha</th>
-</tr>
-
-</thead>
-
-<tbody>
-
-{% for venta in ventas %}
-
-<tr>
-
-<td>{{ venta.id }}</td>
-<td>{{ venta.cliente }}</td>
-<td>{{ venta.producto }}</td>
-<td>{{ venta.cantidad }}</td>
-<td>${{ venta.total }}</td>
-<td>{{ venta.fecha }}</td>
-
-</tr>
-
-{% empty %}
-
-<tr>
-<td colspan="6">No hay ventas registradas</td>
-</tr>
-
-{% endfor %}
-
-</tbody>
-
-</table>
-
-</section>
-
-</div>
-
+</main>
 </body>
 </html>

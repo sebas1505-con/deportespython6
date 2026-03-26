@@ -21,7 +21,6 @@ urlpatterns = [
     path('pedidos/tomar/<int:pedido_id>/', views.tomar_pedido, name='tomar_pedido'),
     path('pedidos/mis-pedidos/', views.mis_pedidos, name='mis_pedidos'),
     path('pedidos/entregar/<int:pedido_id>/', views.entregar_pedido, name='entregar_pedido'),
-    path('inventario/', views.inventario, name='inventario'),
     path('crear-admin/', views.crear_admin, name='crear_admin'),
     path('catalogo/', views.catalogo, name='catalogo'),
     path('panel-admin/', views.admin, name='panel_admin'),

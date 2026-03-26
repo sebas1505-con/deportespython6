@@ -22,11 +22,20 @@
 
     <!-- PRECIO -->
     <label>Precio</label>
-    <input type="text" name="precio" value="{{ producto.precio }}">
+    <input type="number" step="0.01" name="precio" value="{{ producto.precio }}">
 
     <!-- DESCRIPCIÓN -->
     <label>Descripción</label>
     <textarea name="descripcion">{{ producto.descripcion }}</textarea>
+
+    <!-- CATEGORÍA -->
+    <label>Categoría</label>
+    <select name="categoria">
+    <option value="">Seleccionar</option>
+    <option value="hombre" {% if producto.categoria == 'hombre' %}selected{% endif %}>Hombre</option>
+    <option value="mujer" {% if producto.categoria == 'mujer' %}selected{% endif %}>Mujer</option>
+    <option value="mixto" {% if producto.categoria == 'mixto' %}selected{% endif %}>Mixto</option>
+    </select>
 
     <!-- STOCK -->
     <label>Cantidad / Stock</label>

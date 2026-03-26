@@ -57,11 +57,18 @@ class Administrador(models.Model):
 
 
 class Producto(models.Model):
+    CATEGORIAS = [
+        ('hombre', 'Hombre'),
+        ('mujer', 'Mujer'),
+        ('mixto', 'Mixto'),
+    ]
+    
     nombre = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField()
     imagen = models.ImageField(upload_to='productos/')
+    categoria = models.CharField(max_length=20, choices=CATEGORIAS, blank=True, null=True)
 
     @property
     def stock_total(self):
@@ -75,16 +82,7 @@ class Producto(models.Model):
     def __str__(self):
         return self.nombre
     
-class Inventario(models.Model):
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    stock = models.IntegerField()
-    costo_unitario = models.DecimalField(max_digits=10, decimal_places=2)
-    estado_producto = models.TextField()
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return f"{self.producto.nombre} - Stock: {self.stock}"
-
+    
 class Venta(models.Model):
     cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE)
     cantProducto = models.IntegerField()
@@ -110,9 +108,16 @@ class DetalleVentaProductos(models.Model):
     fecha_fin_descuento = models.DateField(null=True, blank=True)
     
 class Movimiento(models.Model):
+    TIPO_CHOICES = [
+        ('entrada', 'Entrada'),
+        ('salida', 'Salida'),
+    ]
+    
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     talla = models.CharField(max_length=5)
     cantidad = models.IntegerField()
+    tipo_movimiento = models.CharField(max_length=10, choices=TIPO_CHOICES)
+    proveedor = models.CharField(max_length=100, null=True, blank=True)
     fecha = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -123,10 +128,16 @@ class Movimiento(models.Model):
             talla=self.talla,
             defaults={'stock': 0}
         )
-
-        talla_producto.stock += self.cantidad
+        
+        if self.tipo_movimiento == 'entrada':
+            talla_producto.stock += self.cantidad
+        elif self.tipo_movimiento == 'salida':
+            if self.cantidad > talla_producto.stock:
+                raise ValidationError(f"No hay suficiente stock, solo hay {talla_producto.stock} unidades disponibles de talla {self.talla}.")
+            
+            talla_producto.stock -= self.cantidad
+            
         talla_producto.save()
-
         super().save(*args, **kwargs)
 
 class Asignacion(models.Model):

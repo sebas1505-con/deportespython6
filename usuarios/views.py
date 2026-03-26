@@ -13,6 +13,7 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Tabl
 from reportlab.lib import colors
 from reportlab.lib.styles import getSampleStyleSheet
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 import os
 import uuid
 
@@ -50,12 +51,19 @@ def crear_admin(request):
     return render(request, 'crear_admin.html')
 
 def reportesVentas(request):
-    return render(request, "productos/reportes_ventas.html")
+    ventas = Venta.objects.all().select_related('cliente__usuario').order_by('-fecha_venta')
+    
+    return render(request, "productos/reportes_ventas.html", {
+        'ventas': ventas
+    })
 
 def panel_sugerencias(request):
     sugerencias = Sugerencia.objects.all().order_by('-fecha')
-    return render(request, "panel_sugerencias.html", {"sugerencias": sugerencias})
-
+    
+    return render(request, "panel_sugerencias.html", {
+        'sugerencias': sugerencias
+    })
+    
 def logout_view(request):
     request.session.flush()
     return redirect('login')
@@ -78,15 +86,20 @@ def catalogo(request):
 def admin(request):
     usuario_id = request.session.get('usuario_id')
     rol = request.session.get('rol')
-    usuarios = Usuario.objects.all()
-    productos = Producto.objects.all()
-
+    
     if not usuario_id or rol != 'ADMIN':
         return redirect('sinacceso')
     
-    usuario = Usuario.objects.get(id=usuario_id)
+    usuarios = Usuario.objects.all()
+    productos = Producto.objects.all()
     
-    return render(request, 'admin.html', {'usuarios': usuarios, 'productos': productos})
+    ultimos_pedidos = Pedido.objects.all().select_related('venta__cliente__usuario').order_by('-fecha_pedido')[:10]
+    
+    return render(request, 'admin.html', {
+        'usuarios': usuarios,
+        'productos': productos,
+        'ultimos_pedidos': ultimos_pedidos
+    })
 
 def usuario(request):
     usuario_id = request.session.get('usuario_id')
@@ -111,7 +124,7 @@ def eliminar_usuario(request, id):
 def producto_eliminar(request, id):
     producto = get_object_or_404(Producto, id=id)
     producto.delete()
-    return redirect('inventario')
+    return redirect('panel_admin')
 
 def productos(request):
     productos = Producto.objects.all()
@@ -185,31 +198,24 @@ def sugerencias(request):
 
     return render(request, "sugerencias.html")
 
-def tomar_pedido(request, id):
-    if request.method == "POST":
-        venta = Venta.objects.get(id=id)
-        venta.estado = "En camino"
-        venta.save()
-
-        messages.success(request, "Pedido tomado correctamente")
-
-    return redirect('repartidor')    
-
 def producto_nuevo(request):
     if request.method == "POST":
         nombre = request.POST.get("nombre")
         precio = request.POST.get("precio")
         descripcion = request.POST.get("descripcion")
+        categoria = request.POST.get("categoria")
         imagen = request.FILES.get("imagen")
 
         stock_s = int(request.POST.get("stock_s", 0))
         stock_m = int(request.POST.get("stock_m", 0))
         stock_l = int(request.POST.get("stock_l", 0))
+        stock_xl = int(request.POST.get("stock_xl", 0))
 
         producto = Producto.objects.create(
             nombre=nombre,
             precio=precio,
             descripcion=descripcion,
+            categoria=categoria,
             imagen=imagen,
         )
 
@@ -221,7 +227,11 @@ def producto_nuevo(request):
 
         if stock_l > 0:
             TallaProducto.objects.create(producto=producto, talla='L', stock=stock_l)
+        
+        if stock_xl > 0:
+            TallaProducto.objects.create(producto=producto, talla='XL', stock=stock_xl)
 
+        messages.success(request, "Producto creado correctamente")
         return redirect('productos')
 
     return render(request, 'productos/producto_nuevo.html')
@@ -236,11 +246,8 @@ def agregar_producto(request):
     
         Producto.objects.create(nombre=nombre, stock=cantidad, precio=precio)
         
-        return redirect('inventario')
+        return redirect('panel_admin')
 
-def inventario(request):
-    productos = Producto.objects.all()
-    return render(request, 'inventario.html', {'productos': productos})
 
 def registrar_movimiento(request):
     productos = Producto.objects.all()
@@ -249,15 +256,23 @@ def registrar_movimiento(request):
         producto_id = request.POST.get("producto")
         talla = request.POST.get("talla")
         cantidad = int(request.POST.get("cantidad"))
+        tipo_movimiento = request.POST.get("tipo_movimiento")
+        proveedor = request.POST.get("proveedor", "")
 
         producto = Producto.objects.get(id=producto_id)
-
-        Movimiento.objects.create(
-            producto=producto,
-            talla=talla,
-            cantidad=cantidad
-        )
-
+        
+        try:
+            Movimiento.objects.create(
+                producto=producto,
+                talla=talla,
+                cantidad=cantidad,
+                tipo_movimiento=tipo_movimiento,
+                proveedor=proveedor
+            )
+            messages.success(request, "Movimiento registrado correctamente")
+        except ValidationError as e:
+            messages.error(request, f" Error: {e.message}")
+            
         return redirect('movimientos')
 
     return render(request, 'movimientos.html', {
@@ -271,12 +286,13 @@ def producto_editar(request, id):
         producto.nombre = request.POST.get("nombre")
         producto.precio = request.POST.get("precio")
         producto.descripcion = request.POST.get("descripcion")
-        producto.stock = request.POST.get("stock")
+        producto.categoria = request.POST.get("categoria")
 
         if request.FILES.get("imagen"):
             producto.imagen = request.FILES.get("imagen")
 
         producto.save()
+
         return redirect('productos')
 
     return render(request, 'productos/producto_editar.html', {
@@ -734,7 +750,9 @@ def generar_pdf(request):
         fecha_inicio = form.cleaned_data['fecha_inicio']
         fecha_fin = form.cleaned_data['fecha_fin']
 
-        ventas = Venta.objects.filter(fecha__range=[fecha_inicio, fecha_fin])
+        ventas = Venta.objects.filter(
+            fecha_venta__date__range=[fecha_inicio, fecha_fin]
+            ).select_related('cliente__usuario')
 
         response = HttpResponse(content_type='application/pdf')
         response['Content-Disposition'] = 'attachment; filename="reporte.pdf"'
@@ -744,7 +762,7 @@ def generar_pdf(request):
 
         y = 750
         for venta in ventas:
-            texto = f"ID: {venta.id} | Cliente: {venta.cliente} | Total: ${venta.total} | Fecha: {venta.fecha}"
+            texto = f"ID: {venta.id} | Cliente: {venta.cliente.usuario.username} | Total: ${venta.totalVenta} | Fecha: {venta.fecha_venta.strftime('%d/%m/%Y')}"
             p.drawString(50, y, texto)
             y -= 20
             if y < 50:  
@@ -754,9 +772,8 @@ def generar_pdf(request):
         p.showPage()
         p.save()
         return response
-    else:
-        messages.error(request, "Fechas inválidas. Por favor corrige e intenta de nuevo.")
-        return render(request, 'reportes.html', {'form': form})
+        
+    return redirect('reportesVentas')
     
 def prueba_correo(request):
     correo = EmailMessage(

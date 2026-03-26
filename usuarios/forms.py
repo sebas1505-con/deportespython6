@@ -155,22 +155,14 @@ class SeleccionTallaForm(forms.Form):
     ]
     talla = forms.ChoiceField(label="Selecciona tu talla", choices=TALLAS, required=False)
     
-class ReportesForm(forms.ModelForm):
-    class Meta:
-        model = Reporte
-        fields = ['fecha_inicio', 'fecha_fin']
+class ReportesForm(forms.Form):
+    fecha_inicio = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
+    fecha_fin = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
 
     def clean(self):
         cleaned_data = super().clean()
         fecha_inicio = cleaned_data.get("fecha_inicio")
         fecha_fin = cleaned_data.get("fecha_fin")
-        hoy = date.today()
-
-        if fecha_inicio and fecha_inicio > hoy:
-            raise ValidationError("La fecha de inicio no puede ser posterior a la fecha actual")
-
-        if fecha_fin and fecha_fin > hoy:
-            raise ValidationError("La fecha de fin no puede ser posterior a la fecha actual")
 
         if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
             raise ValidationError("La fecha de inicio no puede ser posterior a la fecha de fin")

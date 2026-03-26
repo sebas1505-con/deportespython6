@@ -55,7 +55,7 @@
 
     <!-- PEDIDOS DISPONIBLES -->
     <div class="card">
-        <h2>🟡 Pedidos Disponibles</h2>
+        <h2> Pedidos Disponibles</h2>
 
         {% if messages %}
             {% for message in messages %}
@@ -105,7 +105,7 @@
 
     <!-- PEDIDOS ACTIVOS EN CAMINO -->
     <div class="card">
-        <h2>🚚 Mis Pedidos Activos</h2>
+        <h2> Mis Pedidos Activos</h2>
 
         {% if pedidos_activos %}
             {% for pedido in pedidos_activos %}
@@ -132,13 +132,13 @@
                 </div>
                 <div>
                     <span>Estado</span>
-                    <strong><span class="badge badge-camino">🚚 En camino</span></strong>
+                    <strong><span class="badge badge-camino"> En camino</span></strong>
                 </div>
                 <div style="align-self: center;">
                     <form method="post" action="{% url 'entregar_pedido' pedido.id %}">
                         {% csrf_token %}
                         <button type="submit" class="btn" style="background:#4caf50; color:white;">
-                            ✅ Marcar Entregado
+                             Marcar Entregado
                         </button>
                     </form>
                 </div>
@@ -162,7 +162,7 @@
 
     <!-- HISTORIAL DE ENTREGAS -->
     <div class="card">
-        <h2>📦 Historial de Entregas</h2>
+        <h2> Historial de Entregas</h2>
         <table class="table">
             <thead>
                 <tr>
@@ -183,7 +183,7 @@
                         <td>{{ pedido.venta.direccionEnvio }}</td>
                         <td>${{ pedido.venta.totalVenta }}</td>
                         <td>{{ pedido.fecha_pedido|date:"d/m/Y" }}</td>
-                        <td><span class="badge badge-entregado">✅ Entregado</span></td>
+                        <td><span class="badge badge-entregado"> Entregado</span></td>
                     </tr>
                     {% endfor %}
                 {% else %}
