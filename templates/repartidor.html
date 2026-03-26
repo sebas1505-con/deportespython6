@@ -5,6 +5,29 @@
     <title>Panel Repartidor</title>
     <link rel="stylesheet" href="{% static 'css/repartidor.css' %}">
     <link rel="icon" type="image/png" href="{% static 'images/repar.png' %}">
+    <style>
+        .badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .badge-camino { background: #fff8e1; color: #f57f17; }
+        .badge-entregado { background: #e8f5e9; color: #2e7d32; }
+
+        .info-pedido {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 10px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 12px;
+        }
+        .info-pedido span { font-size: 13px; color: #555; }
+        .info-pedido strong { display: block; font-size: 15px; color: #0d1a26; }
+    </style>
 </head>
 
 <body>
@@ -15,22 +38,24 @@
 
 <div class="container">
 
+    <!-- NAV -->
     <div class="card">
         <nav>
             <a href="{% url 'repartidor' %}" class="btn">Inicio</a>
-            <a href="#" class="btn">Pedidos Pendientes</a>
-            <a href="#" class="btn">Historial de Entregas</a>
+            <a href="{% url 'mis_pedidos' %}" class="btn">Mis Pedidos</a>
             <a href="{% url 'logout' %}" class="btn">Cerrar Sesión</a>
         </nav>
     </div>
 
+    <!-- BIENVENIDA -->
     <div class="card">
         <h2>Bienvenido, {{ Nombre }}</h2>
         <p>Gestiona tus entregas de manera rápida y eficiente.</p>
     </div>
 
+    <!-- PEDIDOS DISPONIBLES -->
     <div class="card">
-        <h2>Pedidos Pendientes</h2>
+        <h2> Pedidos Disponibles</h2>
 
         {% if messages %}
             {% for message in messages %}
@@ -41,66 +66,133 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>ID Pedido</th>
+                    <th>ID</th>
                     <th>Cliente</th>
                     <th>Dirección</th>
                     <th>Teléfono</th>
+                    <th>Total</th>
                     <th>Acción</th>
                 </tr>
             </thead>
             <tbody>
-
                 {% if ventas_pendientes %}
-                    {% for venta in ventas_pendientes %}
+                    {% for pedido in ventas_pendientes %}
                     <tr>
-                        <td>{{ venta.id }}</td>
-                        <td>{{ venta.cliente.usuario.username }}</td>
-                        <td>{{ venta.direccionEnvio }}</td>
-                        <td>{{ venta.telefonoContacto }}</td>
-                        <p>Total ventas: {{ ventas_pendientes|length }}</p>
+                        <td>#{{ pedido.id }}</td>
+                        <td>{{ pedido.venta.cliente.usuario.username }}</td>
+                        <td>{{ pedido.venta.direccionEnvio }}</td>
+                        <td>{{ pedido.venta.telefonoContacto }}</td>
+                        <td>${{ pedido.venta.totalVenta }}</td>
                         <td>
-                            <form method="post" action="{% url 'tomar_pedido' venta.id %}">
+                            <form method="post" action="{% url 'tomar_pedido' pedido.id %}">
                                 {% csrf_token %}
-                                <button type="submit" class="btn">Tomar Pedido</button>
+                                <button type="submit" class="btn">Tomar</button>
                             </form>
                         </td>
                     </tr>
                     {% endfor %}
+                    <tr>
+                        <td colspan="6">Total disponibles: {{ ventas_pendientes|length }}</td>
+                    </tr>
                 {% else %}
                     <tr>
-                        <td colspan="5" style="text-align:center;">
-                            No hay pedidos pendientes.
-                        </td>
+                        <td colspan="6" style="text-align:center;">No hay pedidos disponibles.</td>
                     </tr>
                 {% endif %}
-
             </tbody>
         </table>
     </div>
 
-    <section style="margin-top: 40px;">
-        <h2 style="color: #e53935; text-align: center;">Ubicación de la Tienda</h2>
+    <!-- PEDIDOS ACTIVOS EN CAMINO -->
+    <div class="card">
+        <h2> Mis Pedidos Activos</h2>
 
-        <div style="display: flex; justify-content: center;">
-        <iframe
-          src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.7523800795246!2d-74.08175488523878!3d4.609710143730961!2m3!1f0!2f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3f99f7c9461e8d%3A0x52bb7c2eb6cbd540!2sPlaza%20de%20Bol%C3%ADvar%2C%20Bogot%C3%A1!5e0!3m2!1ses-419!2sco!4v1718735761536!5m2!1ses-419!2sco"
-          width="600"
-          height="300"
-          style="border:0;"
-          allowfullscreen=""
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
+        {% if pedidos_activos %}
+            {% for pedido in pedidos_activos %}
+            <div class="info-pedido">
+                <div>
+                    <span>ID Pedido</span>
+                    <strong>#{{ pedido.id }}</strong>
+                </div>
+                <div>
+                    <span>Cliente</span>
+                    <strong>{{ pedido.venta.cliente.usuario.username }}</strong>
+                </div>
+                <div>
+                    <span>Dirección</span>
+                    <strong>{{ pedido.venta.direccionEnvio }}</strong>
+                </div>
+                <div>
+                    <span>Teléfono</span>
+                    <strong>{{ pedido.venta.telefonoContacto }}</strong>
+                </div>
+                <div>
+                    <span>Total</span>
+                    <strong>${{ pedido.venta.totalVenta }}</strong>
+                </div>
+                <div>
+                    <span>Estado</span>
+                    <strong><span class="badge badge-camino"> En camino</span></strong>
+                </div>
+                <div style="align-self: center;">
+                    <form method="post" action="{% url 'entregar_pedido' pedido.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn" style="background:#4caf50; color:white;">
+                             Marcar Entregado
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p style="color:#999;">No tienes pedidos en camino actualmente.</p>
+        {% endif %}
+    </div>
 
+    <!-- MAPA -->
+    <section class="mapa">
+        <h2>Ubicación de la Tienda</h2>
+        <div class="mapa-contenedor">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.7523800795246!2d-74.08175488523878!3d4.609710143730961!2m3!1f0!2f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e3f99f7c9461e8d%3A0x52bb7c2eb6cbd540!2sPlaza%20de%20Bol%C3%ADvar%2C%20Bogot%C3%A1!5e0!3m2!1ses-419!2sco!4v1718735761536!5m2!1ses-419!2sco"
+              loading="lazy">
+            </iframe>
         </div>
     </section>
 
+    <!-- HISTORIAL DE ENTREGAS -->
     <div class="card">
-        <h2>Historial de Entregas</h2>
-        <ul>
-            <li>Pedido #020 – Entregado el 15/06/2025</li>
-            <li>Pedido #019 – Entregado el 14/06/2025</li>
-        </ul>
+        <h2> Historial de Entregas</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Cliente</th>
+                    <th>Dirección</th>
+                    <th>Total</th>
+                    <th>Fecha</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if mis_pedidos %}
+                    {% for pedido in mis_pedidos %}
+                    <tr>
+                        <td>#{{ pedido.id }}</td>
+                        <td>{{ pedido.venta.cliente.usuario.username }}</td>
+                        <td>{{ pedido.venta.direccionEnvio }}</td>
+                        <td>${{ pedido.venta.totalVenta }}</td>
+                        <td>{{ pedido.fecha_pedido|date:"d/m/Y" }}</td>
+                        <td><span class="badge badge-entregado"> Entregado</span></td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" style="text-align:center;">No hay entregas realizadas aún.</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
     </div>
 
 </div>

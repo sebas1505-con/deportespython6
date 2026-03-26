@@ -3,35 +3,60 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel de Sugerencias</title>
-    <link rel="stylesheet" href="{% static 'css/panel_sugerencias.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sugerencias - Deportes 360</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 </head>
+
 <body>
-    <h1>Panel de Sugerencias</h1>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Nombre</th>
-                <th>Texto</th>
-                <th>Fecha</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for s in sugerencias %}
-            <tr>
-                <td>{{ s.nombre|default:"Anónimo" }}</td>
-                <td>{{ s.texto }}</td>
-                <td>{{ s.fecha|date:"d/m/Y H:i" }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="3">No hay sugerencias registradas.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<header class="header">
+    <h1>Panel de Administrador - Deportes 360</h1>
+</header>
 
-    <a href="{% url 'panel_admin' %}">Volver al Panel</a>
+<nav class="sidebar">
+    <br><br>
+    <ul>
+        <li><a href="{% url 'panel_admin' %}">Inicio</a></li>
+        <li><a href="{% url 'productos' %}">Productos</a></li>
+        <li><a href="{% url 'reportesVentas' %}">Reportes</a></li>
+        <li><a href="{% url 'movimientos' %}">Movimientos</a></li>
+        <li><a href="{% url 'producto_nuevo' %}">Nuevo Producto</a></li>
+        <li><a href="{% url 'panel_sugerencias' %}" class="active">Sugerencias</a></li>
+        <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+    </ul>
+</nav>
+
+<main class="dashboard">
+
+    <section class="pedidos">
+        <h2>Panel de Sugerencias</h2>
+
+        <table class="tabla-pedidos">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Texto</th>
+                    <th>Fecha</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in sugerencias %}
+                <tr>
+                    <td>{{ s.nombre|default:"Anónimo" }}</td>
+                    <td>{{ s.texto }}</td>
+                    <td>{{ s.fecha|date:"d/m/Y H:i" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="3" style="text-align:center;">No hay sugerencias registradas.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
+
+</main>
 </body>
 </html>

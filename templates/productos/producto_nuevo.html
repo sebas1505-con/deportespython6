@@ -1,55 +1,72 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Registrar Producto</title>
-<link rel="stylesheet" href="{% static 'css/producto_nuevo.css' %}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuevo Producto - Deportes 360</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 </head>
 
 <body>
 
-<div class="container">
-
 <header class="header">
-    <h1>Registrar Nuevo Producto</h1>
-
-    <a href="{% url 'panel_admin' %}" class="btn-volver">
-        ⬅ Volver al Panel
-    </a>
+    <h1>Panel de Administrador - Deportes 360</h1>
 </header>
 
-<div class="form-card">
+<nav class="sidebar">
+    <br><br>
+    <ul>
+        <li><a href="{% url 'panel_admin' %}">Inicio</a></li>
+        <li><a href="{% url 'productos' %}">Productos</a></li>
+        <li><a href="{% url 'reportesVentas' %}">Reportes</a></li>
+        <li><a href="{% url 'movimientos' %}">Movimientos</a></li>
+        <li><a href="{% url 'producto_nuevo' %}" class="active">Nuevo Producto</a></li>
+        <li><a href="{% url 'panel_sugerencias' %}">Sugerencias</a></li>
+        <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+    </ul>
+</nav>
 
-<form method="POST" action="{% url 'producto_nuevo' %}" enctype="multipart/form-data">
-{% csrf_token %}
+<main class="dashboard">
+    <br><br>
 
-<div class="campo">
-    <label>Nombre del Producto</label>
-    <input type="text" name="nombre" placeholder="Ej: Guayos Nike" required>
-</div>
+    <section class="pedidos">
+        <h2>Registrar Nuevo Producto</h2>
 
-<div class="campo">
-    <label>Precio</label>
-    <input type="number" name="precio" placeholder="Ej: 120000" required>
-</div>
+        {% if messages %}
+            {% for message in messages %}
+                {% if message.tags == 'error' %}
+                    <p style="color:#c62828; font-weight:bold; background:#ffebee;
+                               padding:10px 16px; border-radius:6px; margin-bottom:16px;">
+                        {{ message }}
+                    </p>
+                {% else %}
+                    <p style="color:#2e7d32; font-weight:bold; background:#e8f5e9;
+                               padding:10px 16px; border-radius:6px; margin-bottom:16px;">
+                        {{ message }}
+                    </p>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
 
-<div class="campo">
-    <label>Stock Talla S</label>
-    <input type="number" name="stock_s" min="0" value="0">
-</div>
+        <form method="POST" action="{% url 'producto_nuevo' %}" enctype="multipart/form-data"
+              style="max-width:500px;">
+            {% csrf_token %}
 
-<div class="campo">
-    <label>Stock Talla M</label>
-    <input type="number" name="stock_m" min="0" value="0">
-</div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Nombre del Producto</label>
+                <input type="text" name="nombre" placeholder="Ej: Guayos Nike" required
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
 
-<div class="campo">
-    <label>Stock Talla L</label>
-    <input type="number" name="stock_l" min="0" value="0">
-</div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Precio</label>
+                <input type="number" name="precio" placeholder="Ej: 120000" required
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
 
+<<<<<<< HEAD
 <div class="campo">
     <label>Stock Talla XL</label>
     <input type="number" name="stock_l" min="0" value="0">
@@ -59,30 +76,64 @@
     <label>Descripción</label>
     <textarea name="descripcion" placeholder="Descripción del producto"></textarea>
 </div>
+=======
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Stock Talla S</label>
+                <input type="number" name="stock_s" min="0" value="0"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+>>>>>>> db314d50cd58dd5270c04317f8f98067ca62c3f0
 
-<div class="campo">
-    <label>Categoría</label>
-    <select name="categoria">
-        <option value="">Seleccionar</option>
-        <option value="hombre">Hombre</option>
-        <option value="mujer">Mujer</option>
-        <option value="mixto">Mixto</option>
-    </select>
-</div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Stock Talla M</label>
+                <input type="number" name="stock_m" min="0" value="0"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
 
-<div class="campo">
-    <label>Imagen</label>
-    <input type="file" name="imagen" accept="image/*">
-</div>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Stock Talla L</label>
+                <input type="number" name="stock_l" min="0" value="0"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
 
-<button type="submit" class="btn-guardar">
-    Guardar Producto
-</button>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Stock Talla XL</label>
+                <input type="number" name="stock_xl" min="0" value="0"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
 
-</form>
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Descripción</label>
+                <textarea name="descripcion" placeholder="Descripción del producto" rows="3"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;"></textarea>
+            </div>
 
-</div> <!-- form-card -->
-</div> <!-- container -->
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Categoría</label>
+                <select name="categoria"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+                    <option value="">Seleccionar</option>
+                    <option value="hombre">Hombre</option>
+                    <option value="mujer">Mujer</option>
+                    <option value="mixto">Mixto</option>
+                </select>
+            </div>
 
+            <div style="margin-bottom:16px;">
+                <label style="display:block; font-weight:bold; margin-bottom:6px;">Imagen</label>
+                <input type="file" name="imagen" accept="image/*"
+                    style="width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; font-size:15px;">
+            </div>
+
+            <button type="submit"
+                style="background:#e53935; color:white; padding:12px 30px; border:none;
+                       border-radius:6px; font-size:16px; font-weight:bold; cursor:pointer; width:100%;">
+                Guardar Producto
+            </button>
+
+        </form>
+    </section>
+
+</main>
 </body>
 </html>

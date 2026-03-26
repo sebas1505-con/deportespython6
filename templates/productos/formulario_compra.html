@@ -32,9 +32,9 @@
 
 <div class="info-cliente">
 {% if cliente %}
-    <p><strong>Nombre:</strong> {{ cliente.first_name }}</p>
-    <p><strong>Email:</strong> {{ cliente.email }}</p>
-    <p><strong>Dirección:</strong> {{ cliente.cliente.direccion }}</p>
+    <p><strong>Nombre:</strong> {{ cliente.usuario.first_name }}</p>
+    <p><strong>Email:</strong> {{ cliente.usuario.email }}</p>
+    <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
 {% else %}
     <p>No hay cliente logueado</p>
 {% endif %}

@@ -17,6 +17,14 @@ urlpatterns = [
     path('repartidor/', views.repartidor, name='repartidor'),
     path('logout/', views.logout_view, name='logout'),
     path('sugerencias/', views.sugerencias, name='sugerencias'),
+<<<<<<< HEAD
+=======
+    path('productos/', views.productos, name='productos'),
+    path('pedidos/disponibles/', views.pedidos_disponibles, name='pedidos_disponibles'),
+    path('pedidos/tomar/<int:pedido_id>/', views.tomar_pedido, name='tomar_pedido'),
+    path('pedidos/mis-pedidos/', views.mis_pedidos, name='mis_pedidos'),
+    path('pedidos/entregar/<int:pedido_id>/', views.entregar_pedido, name='entregar_pedido'),
+>>>>>>> db314d50cd58dd5270c04317f8f98067ca62c3f0
     path('crear-admin/', views.crear_admin, name='crear_admin'),
     path('panel-admin/', views.admin, name='panel_admin'),
     path('contactousu/', views.contactousu, name='contactousu'),
@@ -30,7 +38,12 @@ urlpatterns = [
     path("prueba-correo/", views.prueba_correo),
     path('api/barrios-bogota/', views.barrios_bogota, name='api_barrios'),
     path("panel-sugerencias/", views.panel_sugerencias, name="panel_sugerencias"),
+<<<<<<< HEAD
     path('tomar_pedido/<int:id>/', views.tomar_pedido, name='tomar_pedido'),
+=======
+    path("producto/<int:id>/", views.detalle_producto, name="detalle_producto"),
+    path('agregar-carrito/<int:id>/', views.agregar_al_carrito, name='agregar_carrito'),
+>>>>>>> db314d50cd58dd5270c04317f8f98067ca62c3f0
 
 ]
 
