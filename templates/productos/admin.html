@@ -50,33 +50,33 @@
             </thead>
             <tbody>
                 {% if ultimos_pedidos %}
-                    {% for pedido in ultimos_pedidos %}
-                    <tr>
-                        <td>{{ pedido.id }}</td>
-                        <td>{{ pedido.venta.cliente.usuario.username }}</td>
-                        <td>{{ pedido.venta.direccionEnvio }}</td>
-                        <td>{{ pedido.venta.telefonoContacto }}</td>
-                        <td>{{ pedido.fecha_pedido|date:"d/m/Y"}}</td>
-                        <td>$ {{ pedido.venta.totalVenta }}</td>
-                        <td>
-                            {% if pedido.estado == 'Disponible' %}
-                                <span Style="background:#e3f2fd; color:#1565c0; padding:4px 10px; border-radius:20px; font-size:13px; font-weight:bold;"> Disponible</span>
-                            {% elif pedido.estado == 'En camino' %}
-                                <span Style="background:#fff8e1; color:#f57f17; padding:4px 10px; border-radius:20px; font-size:13px; font-weight:bold;"> En camino</span>
-                            {% elif pedido.estado == 'Entregado' %}
-                                <span Style="background:#e8f5e9; color:#2e7d32; padding:4px 10px; border-radius:20px; font-size:13px; font-weight:bold;"> Completado</span>
-                            {% endif %}
-                        </td>
-                    </tr>
-                    {% endfor %}
+                {% for pedido in ultimos_pedidos %}
+                <tr>
+                    <td>{{ pedido.id }}</td>
+                    <td>{{ pedido.usuario.username }}</td>
+                    <td>{{ pedido.usuario.direccion|default:"-" }}</td>
+                    <td>{{ pedido.usuario.telefono|default:"-" }}</td>
+                    <td>{{ pedido.fecha_pedido|date:"d/m/Y" }}</td>
+                    <td>$ {{ pedido.total }}</td>
+                    <td>
+                        {% if pedido.estado == 'Disponible' %}
+                            <span style="background:#e3f2fd; color:#1565c0; padding:4px 10px; border-radius:20px; font-size:13px; font-weight:bold;">Disponible</span>
+                        {% elif pedido.estado == 'En camino' %}
+                            <span style="background:#fff8e1; color:#f57f17; padding:4px 10px; border-radius:20px; font-size:13px; font-weight:bold;">En camino</span>
+                        {% elif pedido.estado == 'Entregado' %}
+                            <span style="background:#e8f5e9; color:#2e7d32; padding:4px 10px; border-radius:20px; font-size:13px; font-weight:bold;">Completado</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
                 {% else %}
-                    <tr>
-                        <td colspan="7" style="text-align:center;">No hay pedidos recientes</td>
-                    </tr>
-                {% endif %}
-                </tbody>
-            </table>
-        </section>
+                <tr>
+                    <td colspan="7" style="text-align:center;">No hay pedidos recientes</td>
+                </tr>
+            {% endif %}
+            </tbody>
+        </table>
+    </section>
 
 <section class="usuarios">
 
@@ -139,14 +139,9 @@
 </section>
 
 <section class="productos">
-
     <h2>Gestión de Productos</h2>
 
-    <div class="form-card">
-
     <table class="tabla-productos">
-<<<<<<< HEAD:templates/productos/admin.html
-
         <thead>
             <tr>
                 <th>ID</th>
@@ -154,85 +149,36 @@
                 <th>Precio</th>
                 <th>Cantidad</th>
                 <th>Descripción</th>
+                <th>Categoría</th>
                 <th>Acción</th>
             </tr>
         </thead>
-
         <tbody>
-
-            {% for p in productos %}
+            {% for producto in productos %}
             <tr>
-
-                <td>#{{ p.id }}</td>
-
-               <td class="producto-nombre">
-                   {{ p.nombre }}
-               </td>
-                <td>${{ p.precio }}</td>
-                <td>{{ p.stock_total }}</td>
-                <td>{{ p.descripcion }}</td>
-
+                <td>#{{ producto.id }}</td>
+                <td>{{ producto.nombre }}</td>
+                <td>${{ producto.precio }}</td>
+                <td>{{ producto.stock_total }}</td>
+                <td>{{ producto.descripcion }}</td>
+                <td>{{ producto.categoria }}</td>
                 <td>
-
-                    <form method="post" action="{% url 'producto_eliminar' p.id %}">
-                        {% csrf_token %}
-
-                        <button class="btn-eliminar"
-                         onclick="return confirm('¿Seguro que deseas eliminar este producto?');">
-
-                         Eliminar
-
-                        </button>
-
-                    </form>
-
+                    <a href="{% url 'producto_editar' producto.id %}"
+                       style="color:#1565c0; font-weight:bold; margin-right:10px;">Editar</a>
+                    <a href="{% url 'producto_eliminar' producto.id %}"
+                       style="color:#e53935; font-weight:bold;"
+                       onclick="return confirm('¿Seguro que deseas eliminar este producto?');">Eliminar</a>
                 </td>
-
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="7" style="text-align:center;">No hay productos en inventario.</td>
             </tr>
             {% endfor %}
-
         </tbody>
-
     </table>
-
 </section>
-=======
-    <thead>
-        <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Precio</th>
-            <th>Cantidad</th>
-            <th>Descripción</th>
-            <th>Categoría</th>
-            <th>Acción</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for producto in productos %}
-        <tr>
-            <td>#{{ producto.id }}</td>
-            <td>{{ producto.nombre }}</td>
-            <td>${{ producto.precio }}</td>
-            <td>{{ producto.stock_total }}</td>
-            <td>{{ producto.descripcion }}</td>
-            <td>{{ producto.categoria }}</td>
-            <td>
-                <a href="{% url 'producto_editar' producto.id %}"
-                   style="color:#1565c0; font-weight:bold; margin-right:10px;">Editar</a>
-                <a href="{% url 'producto_eliminar' producto.id %}"
-                   style="color:#e53935; font-weight:bold;"
-                   onclick="return confirm('¿Seguro que deseas eliminar este producto?');">Eliminar</a>
-            </td>
-        </tr>
-        {% empty %}
-        <tr>
-            <td colspan="7" style="text-align:center;">No hay productos en inventario.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
->>>>>>> db314d50cd58dd5270c04317f8f98067ca62c3f0:templates/admin.html
+
 
 </main>
 </body>

@@ -35,15 +35,17 @@
         {% for producto in productos %}
 
         <div class="Prodcts-1">
-
             <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"/>
 
             <h4>{{ producto.nombre }}</h4>
+                <p>Precio: ${{ producto.precio }}</p>
+                <p>Stock disponible: {{ producto.stock_total }}</p>
+                <p>Categoría: {{ producto.get_categoria_display }}</p>
+                <p>{{ producto.descripcion }}</p>
 
-            <p>${{ producto.precio }}</p>
-
+                <a href="{% url 'producto_editar' producto.id %}" class="btn">Editar</a>
+                <a href="{% url 'producto_eliminar' producto.id %}" class="btn btn-danger">Eliminar</a>
         </div>
-
         {% empty %}
             <p>No hay productos registrados</p>
         {% endfor %}

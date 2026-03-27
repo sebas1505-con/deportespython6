@@ -1,10 +1,9 @@
 from django.urls import path
 from . import views
-from .views import stock_insuficiente
 
 urlpatterns = [
     path('catalogo/', views.catalogo, name='catalogo'),
-    path('pedidos/', views.pedidos, name='pedidos'),
+    path('catalogo/<str:categoria>/', views.catalogo_categoria, name='catalogo_categoria'),
     path('productos/', views.productos, name='productos'),
     path('producto/<int:id>/', views.detalle_producto, name='detalle_producto'),
     path('inventario/', views.inventario, name='inventario'),
@@ -19,6 +18,10 @@ urlpatterns = [
     path('factura_pdf/<int:venta_id>/', views.generar_factura, name='factura_pdf'),
     path('generar-pdf/', views.generar_pdf, name='generar_pdf'),
     path('reportes-ventas/', views.reportesVentas, name='reportesVentas'),
-    path('stock-insuficiente/<int:producto_id>/<str:talla>/<int:stock_disponible>/',
-         views.stock_insuficiente, name='stock_insuficiente'),
+    path('mis-compras/', views.mis_compras, name='mis_compras'),
+    path(
+        'stock-insuficiente/<int:producto_id>/<str:talla>/<int:stock_disponible>/',
+        views.stock_insuficiente,
+        name='stock_insuficiente'
+    ),
 ]

@@ -44,11 +44,11 @@ class Inventario(models.Model):
     stock = models.IntegerField()
     costo_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     estado_producto = models.TextField()
+
     usuario = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE)
 
-    def __str__(self):
-        return f"{self.producto.nombre} - Stock: {self.stock}"
-
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
 
 class Movimiento(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
@@ -77,7 +77,7 @@ class Proveedor(models.Model):
 
 
 class Venta(models.Model):
-    cliente = models.ForeignKey('usuarios.Cliente', on_delete=models.CASCADE)
+    cliente = models.ForeignKey('usuarios.Cliente', on_delete=models.CASCADE, related_name='inventario_ventas')
     cantProducto = models.IntegerField()
     metodoEnvio = models.CharField(max_length=50)
     totalVenta = models.DecimalField(max_digits=10, decimal_places=2)
@@ -95,13 +95,14 @@ class Venta(models.Model):
 class DetalleVentaProductos(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    talla = models.CharField(max_length=5)   # obligatorio
+    talla = models.CharField(max_length=5)
     cantidad = models.IntegerField()
-    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)  # obligatorio
+    precio_unitario = models.DecimalField(max_digits=10, decimal_places=2)
     subtotal = models.DecimalField(max_digits=10, decimal_places=2)
     descuento = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     fecha_inicio_descuento = models.DateField(null=True, blank=True)
     fecha_fin_descuento = models.DateField(null=True, blank=True)
+
 
 class Envio(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
@@ -115,12 +116,13 @@ class Envio(models.Model):
 
 
 class Asignacion(models.Model):
-    venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
-    repartidor = models.ForeignKey('usuarios.Repartidor', on_delete=models.CASCADE)
+    venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='inventario_asignaciones')
+    repartidor = models.ForeignKey(
+        'usuarios.Repartidor',
+        on_delete=models.CASCADE,
+        related_name="inventario_asignaciones"
+    )
     estado = models.CharField(max_length=20, default="pendiente")
-
-    def __str__(self):
-        return f"Asignación {self.id} - {self.estado}"
 
 
 class Reporte(models.Model):
@@ -140,3 +142,17 @@ class Reporte(models.Model):
 
     def __str__(self):
         return f"Reporte {self.id} - {self.fecha_inicio} a {self.fecha_fin}"
+
+
+class Pedido(models.Model):
+    venta = models.ForeignKey(Venta, on_delete=models.CASCADE, null=True, blank=True, related_name="pedidos")
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+    total = models.DecimalField(max_digits=10, decimal_places=2)
+    estado = models.CharField(max_length=50)
+    fecha_pedido = models.DateTimeField(auto_now_add=True)
+    usuario = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE)
+    repartidor = models.ForeignKey('usuarios.Repartidor', on_delete=models.CASCADE, null=True, blank=True)
+
+    def __str__(self):
+        return f"Pedido {self.id} - {self.producto}"

@@ -1,8 +1,31 @@
 from django import forms
 from django.core.exceptions import ValidationError
+from .models import Producto, Movimiento
+from django import forms
+from django.core.exceptions import ValidationError
 from datetime import date
-from .models import Reporte, Movimiento, Producto
+from .models import Reporte
 
+class MovimientoForm(forms.ModelForm):
+    class Meta:
+        model = Movimiento
+        fields = ['producto', 'cantidad']
+
+    def clean_cantidad(self):
+        cantidad = self.cleaned_data['cantidad']
+        if cantidad <= 0:
+            raise ValidationError("La cantidad debe ser mayor a cero")
+        return cantidad
+
+class SeleccionTallaForm(forms.Form):
+    TALLAS = [
+        ('', '-- Selecciona una talla --'),
+        ('S', 'S - pequeña'),
+        ('M', 'M - Mediana'),
+        ('L', 'L - Larga'),
+        ('XL', 'XL - Extra Larga'),
+    ]
+    talla = forms.ChoiceField(label="Selecciona tu talla", choices=TALLAS, required=False)
 
 class CompraForm(forms.Form):
     cant_producto = forms.IntegerField(
@@ -30,18 +53,6 @@ class CompraForm(forms.Form):
         required=False
     )
 
-
-class SeleccionTallaForm(forms.Form):
-    TALLAS = [
-        ('', '-- Selecciona una talla --'),
-        ('S', 'S - pequeña'),
-        ('M', 'M - Mediana'),
-        ('L', 'L - Larga'),
-        ('XL', 'XL - Extra Larga'),
-    ]
-    talla = forms.ChoiceField(label="Selecciona tu talla", choices=TALLAS, required=False)
-
-
 class ReportesForm(forms.ModelForm):
     class Meta:
         model = Reporte
@@ -59,15 +70,3 @@ class ReportesForm(forms.ModelForm):
         if fecha_inicio and fecha_fin and fecha_inicio > fecha_fin:
             raise ValidationError("La fecha de inicio no puede ser posterior a la fecha de fin")
         return cleaned_data
-
-
-class MovimientoForm(forms.ModelForm):
-    class Meta:
-        model = Movimiento
-        fields = ['producto', 'cantidad']
-
-    def clean_cantidad(self):
-        cantidad = self.cleaned_data['cantidad']
-        if cantidad <= 0:
-            raise ValidationError("La cantidad debe ser mayor a cero")
-        return cantidad

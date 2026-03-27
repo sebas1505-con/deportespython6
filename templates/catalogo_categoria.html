@@ -1,0 +1,41 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Catálogo - {{ categoria }}</title>
+    <link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
+</head>
+<body>
+  <header class="header">
+    <div class="container menu">
+
+         <h1>Catálogo - {{ categoria }}</h1>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="{% url 'usuario' %}">Inicio</a></li>
+                <li><a href="{% url 'carrito' %}">Carrito</a></li>
+                <li><a href="{% url 'catalogo' %}">Catalogo</a></li>
+            </ul>
+        </nav>
+
+    </div>
+</header>
+
+    <main class="Prodcts container">
+        <div class="Prodcts-content">
+            {% for producto in productos %}
+            <div class="Prodcts-1">
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+                <h4>{{ producto.nombre }}</h4>
+                <p>${{ producto.precio }}</p>
+                <a href="{% url 'detalle_producto' producto.id %}" class="btn-1">Más Información</a>
+            </div>
+            {% empty %}
+            <p>No hay productos en esta categoría.</p>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

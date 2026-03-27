@@ -1,7 +1,7 @@
 from django.db import models
 from django.core.exceptions import ValidationError
 from datetime import date
-
+from inventario.models import Pedido
 
 class Usuario(models.Model):
     ROLES = [
@@ -52,9 +52,6 @@ class Administrador(models.Model):
     def __str__(self):
         return f"Admin: {self.usuario.username}"
 
-
-<<<<<<< HEAD
-=======
 class Producto(models.Model):
     CATEGORIAS = [
         ('hombre', 'Hombre'),
@@ -139,13 +136,15 @@ class Movimiento(models.Model):
         talla_producto.save()
         super().save(*args, **kwargs)
 
-class Asignacion(models.Model):
-    venta = models.ForeignKey(Venta, on_delete=models.CASCADE)
-    repartidor = models.ForeignKey(Repartidor, on_delete=models.CASCADE)
-    estado = models.CharField(max_length=20, default="pendiente")
 
-    def __str__(self):
-        return f"Asignación {self.id} - {self.estado}"
+class Asignacion(models.Model):
+    venta = models.ForeignKey('inventario.Venta', on_delete=models.CASCADE)
+    repartidor = models.ForeignKey(
+        'Repartidor',
+        on_delete=models.CASCADE,
+        related_name="usuarios_asignaciones"  
+    )
+    estado = models.CharField(max_length=20, default="pendiente")
    
 class Proveedor(models.Model):
     fecha_registro = models.DateField(null=True, blank=True)
@@ -176,16 +175,16 @@ class Reporte(models.Model):
     def __str__(self):
         return f"Reporte {self.id} - {self.fecha_inicio} a {self.fecha_fin}"
     
->>>>>>> db314d50cd58dd5270c04317f8f98067ca62c3f0
+
 class Sugerencia(models.Model):
     nombre = models.CharField(max_length=100, blank=True, null=True)
     texto = models.TextField()
     fecha = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-<<<<<<< HEAD
+
         return f"Sugerencia de {self.nombre or 'Anónimo'} - {self.fecha.strftime('%Y-%m-%d')}"
-=======
+
         return f"Sugerencia de {self.nombre or 'Anónimo'} - {self.fecha.strftime('%Y-%m-%d')}"
 
 class TallaProducto(models.Model):
@@ -196,13 +195,3 @@ class TallaProducto(models.Model):
     def __str__(self):
         return f"{self.producto.nombre} - {self.talla}"  
     
-class Pedido(models.Model):
-    venta = models.OneToOneField(Venta, on_delete=models.CASCADE)
-    repartidor = models.ForeignKey(Repartidor, on_delete=models.SET_NULL, null=True, blank=True)
-    fecha_pedido = models.DateTimeField(auto_now_add=True)
-    estado = models.CharField(max_length=20, default='Disponible')  # Disponible, En camino, Entregado
-
-    def __str__(self):
-        return f"Pedido #{self.id} - Venta {self.venta.id} - {self.estado}"  
-
->>>>>>> db314d50cd58dd5270c04317f8f98067ca62c3f0

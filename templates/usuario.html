@@ -30,15 +30,15 @@
 
             <nav class="navbar">
               <ul>
-                <li><a href="{% url 'perfil' %}">Mi Perfil</a></li>
+                <li><a href="{% url 'perfil' %}">Actualizar Perfil</a></li>
+                <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
                 <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
-                <li><a href="{% url 'carrito' %}">Carrito</a></li>
                 <li><a href="{% url 'sugerencias' %}">Sugerencias</a></li>
                 <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                <li><a href="{% url 'carrito' %}">🛒</a></li>
               </ul>
             </nav>
         </div>
-    </div>
 </header>
 
 
@@ -69,17 +69,17 @@
 
 <section class="hero-category">
     <div class="category-item">
-        <a href="?categoria=HOMBRE" class="category-btn">HOMBRE</a>
+        <a href="{% url 'catalogo_categoria' 'HOMBRE' %}" class="category-btn">HOMBRE</a>
     </div>
-
     <div class="category-item">
-        <a href="?categoria=MUJER" class="category-btn">MUJER</a>
+        <a href="{% url 'catalogo_categoria' 'MUJER' %}" class="category-btn">MUJER</a>
     </div>
-
     <div class="category-item">
-        <a href="?categoria=MIXTO" class="category-btn">MIXTO</a>
+        <a href="{% url 'catalogo_categoria' 'MIXTO' %}" class="category-btn">MIXTO</a>
     </div>
 </section>
+
+
 
 <section class="services">
     <div class="container">
@@ -133,11 +133,12 @@
 
         <ul>
             <li><a href="{% url 'usuario' %}">Inicio</a></li>
-            <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+            <li><a href="{% url 'contactousu' %}">Contacto</a></li>
             <li><a href="#">Ayuda con tallas</a></li>
         </ul>
     </div>
 </footer>
 
 </body>
+
 </html>
