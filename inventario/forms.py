@@ -43,6 +43,7 @@ class CompraForm(forms.Form):
         ('efectivo', 'Efectivo'),
         ('tarjeta', 'Tarjeta'),
         ('transferencia', 'Transferencia'),
+        ('PSE', 'PSE'), 
     ]
     metodo_pago = forms.ChoiceField(label="Método de pago", choices=METODOS_PAGO, required=True)
     direccion_envio = forms.CharField(label="Dirección de envío", max_length=255)

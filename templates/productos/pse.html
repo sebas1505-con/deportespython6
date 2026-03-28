@@ -1,0 +1,376 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pago PSE – Deportes 360</title>
+<link rel="icon" type="image/png" href="{% static 'images/Re.png' %}">
+<link rel="stylesheet"  href="{% static 'css/pse.css' %}?v=2">
+</head>
+<body>
+<div class="app">
+
+  <!-- ══════════════════════════════════════
+       PASO 1 — Datos + selección de banco
+  ══════════════════════════════════════ -->
+  <div class="screen on" id="s1">
+    <div class="topbar">
+      <div class="ticon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20M6 15h4"/></svg>
+      </div>
+      <div><h2>Pago con PSE</h2><p>Débito bancario en línea · Colombia</p></div>
+      <div class="ssl-badge">SSL 256-bit</div>
+    </div>
+
+    <div class="amount-card">
+      <div class="ac-left">
+        <div class="lbl">Total a pagar</div>
+        <div class="val">${{ total|floatformat:0 }}</div>
+        <div class="ref">REF · DEP360-{{ venta_ref|default:"000000" }}</div>
+      </div>
+      <div class="ac-right">
+        Deportes 360<br>
+        {% if cliente %}{{ cliente.usuario.first_name }}{% endif %}
+        <div class="demo-tag">PSE</div>
+      </div>
+    </div>
+
+    <div class="seg">
+      <div class="seg-lbl">tipo de persona</div>
+      <div class="pills">
+        <div class="pill on" onclick="setPill(this)">Natural</div>
+        <div class="pill" onclick="setPill(this)">Jurídica</div>
+      </div>
+    </div>
+
+    <div class="seg">
+      <div class="frow"><label>Número de documento</label><input type="text" id="doc" placeholder="Ej: 1023456789" maxlength="15" oninput="chk()"></div>
+      <div class="frow"><label>Correo electrónico</label>
+        <input type="email" id="em" placeholder="usuario@correo.com"
+          value="{% if cliente %}{{ cliente.usuario.email }}{% endif %}" oninput="chk()">
+      </div>
+    </div>
+
+    <div class="seg">
+      <div class="seg-lbl">selecciona tu banco</div>
+      <input class="search-b" type="text" id="bsearch" placeholder="Buscar banco..." oninput="fB()">
+      <div class="bgrid" id="bgrid"></div>
+      <div class="sel-row" id="sel-row">
+        <div class="sel-row-ico" id="sel-ico"></div>
+        <span id="sel-txt"></span>
+      </div>
+    </div>
+
+    <button class="btn-cta" id="btnIr" disabled onclick="goS2()">Ir al portal del banco</button>
+    <div class="foot-sec">
+      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Transacción cifrada · ACH Colombia S.A. · 
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PASO 2 — Portal del banco
+  ══════════════════════════════════════ -->
+  <div class="screen" id="s2">
+    <div class="topbar">
+      <div class="ticon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div><h2>Portal bancario</h2><p>Ingresa tus credenciales</p></div>
+      <div class="ssl-badge">Cifrado</div>
+    </div>
+    <div class="bank-frame">
+      <div class="bank-header">
+        <div class="bank-h-ico" id="bh-ico"></div>
+        <div><h3 id="bh-name"></h3><p>Plataforma PSE · Pago en línea</p></div>
+      </div>
+      <div class="bank-body">
+        <div class="warn-box">
+          Autorizarás un débito de <strong>${{ total|floatformat:0 }}</strong> a favor de <strong>Deportes 360</strong>.
+        </div>
+        <div class="input-grp">
+          <label>Correo o número de cédula</label>
+          <input type="text" id="b-user" placeholder="Correo o Cedula">
+          <span class="demo-chip">Paso 1</span>
+        </div>
+        <div class="input-grp">
+          <label>Contraseña</label>
+          <input type="password" id="b-pass" placeholder="•••••••••••">
+          <span class="demo-chip">Paso 2</span>
+        </div>
+        <div class="input-grp">
+          <label>Token / Clave dinámica</label>
+          <input type="text" id="b-tok" placeholder="6 dígitos" maxlength="6">
+          <span class="demo-chip">Paso 3</span>
+        </div>
+        <button class="btn-cta" onclick="goS3()">Autorizar débito de ${{ total|floatformat:0 }}</button>
+        <button class="btn-sec" onclick="show('s1')">← Cancelar y volver</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PASO 3 — Procesando
+  ══════════════════════════════════════ -->
+  <div class="screen" id="s3">
+    <div class="load-wrap">
+      <div class="spinner"></div>
+      <h3 id="lh">Verificando credenciales...</h3>
+      <p>No cierres esta ventana</p>
+      <div class="load-steps">
+        <div class="lstep active" id="l0"><div class="ldot"></div>Verificando identidad con el banco</div>
+        <div class="lstep" id="l1"><div class="ldot"></div>Validando fondos disponibles</div>
+        <div class="lstep" id="l2"><div class="ldot"></div>Procesando débito con PSE</div>
+        <div class="lstep" id="l3"><div class="ldot"></div>Confirmando transacción</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════
+       PASO 4 — Resultado
+  ══════════════════════════════════════ -->
+  <div class="screen" id="s4">
+    <div class="topbar">
+      <div class="ticon" id="r-ticon"></div>
+      <div><h2 id="r-th2"></h2><p id="r-tp"></p></div>
+    </div>
+    <div class="result-card">
+      <div class="rbadge" id="rbadge">
+        <svg id="svg-ok" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        <svg id="svg-fail" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5" style="display:none"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </div>
+      <div class="rtitle" id="rtitle"></div>
+      <div class="rsub" id="rsub"></div>
+      <div class="rrows" id="rrows"></div>
+      <div class="ai-box">
+        <div class="ai-lbl">mensaje del sistema</div>
+        <div class="ai-txt" id="ai-txt"><span class="cursor"></span></div>
+      </div>
+    </div>
+    <div class="nota-demo">PSE </div>
+    <button class="btn-sec" onclick="resetFlow()">Volver a intentar</button>
+
+    <!-- ↓ Botón real que envía el form Django cuando el pago es "aprobado" -->
+    <form id="django-form" method="post" action="{% url 'registrar_pse' %}">
+     {% csrf_token %}
+     <input type="hidden" name="cantProducto"   value="{{ cantidad_total }}">
+     <input type="hidden" name="metodoEnvio"    value="domicilio">
+     <input type="hidden" name="totalVenta" value="{{ total|floatformat:2 }}">
+     <input type="hidden" name="metodo_de_pago" value="PSE">
+     <input type="hidden" name="direccionEnvio" id="hid-dir" value="{{ compra.direccion_envio }}">
+     <input type="hidden" name="telefonoContacto" id="hid-tel" value="{{ compra.telefono_contacto }}">
+     <input type="hidden" name="observaciones"   value="Pago Con PSE">
+    </form>
+
+  </div>
+
+</div><!-- /app -->
+
+<script>
+/* ── Bancos colombianos ── */
+const BANKS=[
+  {id:'bancolombia', n:'Bancolombia',          c:'#FDD000',t:'#5a4000',i:'BC'},
+  {id:'bogota',      n:'Banco de Bogotá',       c:'#003087',t:'#fff',  i:'BB'},
+  {id:'davivienda',  n:'Davivienda',            c:'#E31837',t:'#fff',  i:'DV'},
+  {id:'bbva',        n:'BBVA Colombia',         c:'#004481',t:'#fff',  i:'BV'},
+  {id:'occidente',   n:'Bco. Occidente',        c:'#00539F',t:'#fff',  i:'BO'},
+  {id:'popular',     n:'Banco Popular',         c:'#A50034',t:'#fff',  i:'BP'},
+  {id:'avvillas',    n:'AV Villas',             c:'#00B140',t:'#fff',  i:'AV'},
+  {id:'itau',        n:'Itaú Colombia',         c:'#FF6900',t:'#fff',  i:'IT'},
+  {id:'scotiabank',  n:'Scotiabank Colpatria',  c:'#EC111A',t:'#fff',  i:'SC'},
+  {id:'agrario',     n:'Banco Agrario',         c:'#006633',t:'#fff',  i:'BA'},
+  {id:'cajasocial',  n:'Caja Social',           c:'#FFCC00',t:'#5a4000',i:'CS'},
+  {id:'gnb',         n:'GNB Sudameris',         c:'#00408D',t:'#fff',  i:'GN'},
+  {id:'pichincha',   n:'Pichincha',             c:'#EFBE00',t:'#5a4000',i:'PI'},
+  {id:'falabella',   n:'Bco. Falabella',        c:'#59B027',t:'#fff',  i:'BF'},
+  {id:'coopcentral', n:'Coopcentral',           c:'#0057A8',t:'#fff',  i:'CC'},
+  {id:'rappipay',    n:'RappiPay',              c:'#FF441F',t:'#fff',  i:'RP'},
+  {id:'nequi',       n:'Nequi',                 c:'#7B1FA2',t:'#fff',  i:'NQ'},
+  {id:'daviplata',   n:'Daviplata',             c:'#C8102E',t:'#fff',  i:'DP'},
+  {id:'coofinep',    n:'Coofinep',              c:'#00796B',t:'#fff',  i:'CF'},
+  {id:'juriscoop',   n:'Juriscoop',             c:'#0D47A1',t:'#fff',  i:'JU'},
+  {id:'multibank',   n:'Multibank',             c:'#37474F',t:'#fff',  i:'MB'},
+  {id:'citibank',    n:'Citibank Colombia',     c:'#003F87',t:'#fff',  i:'CB'},
+  {id:'bancamia',    n:'Bancamía',              c:'#FF8C00',t:'#fff',  i:'BM'},
+  {id:'mibanco',     n:'Mibanco',               c:'#E91E63',t:'#fff',  i:'MI'},
+];
+
+let selB=null;
+
+function rB(list){
+  document.getElementById('bgrid').innerHTML=list.map(b=>`
+    <div class="bcard${selB&&selB.id===b.id?' sel':''}" onclick="pickB('${b.id}')">
+      <div class="bico" style="background:${b.c};color:${b.t}">${b.i}</div>
+      <div class="bn">${b.n}</div>
+    </div>`).join('');
+}
+rB(BANKS);
+
+function fB(){
+  const q=document.getElementById('bsearch').value.toLowerCase();
+  rB(BANKS.filter(b=>b.n.toLowerCase().includes(q)));
+}
+
+function pickB(id){
+  selB=BANKS.find(b=>b.id===id);
+  fB();
+  const sr=document.getElementById('sel-row');
+  const si=document.getElementById('sel-ico');
+  sr.style.display='flex';
+  si.style.background=selB.c; si.style.color=selB.t; si.textContent=selB.i;
+  document.getElementById('sel-txt').textContent='Banco seleccionado: '+selB.n;
+  chk();
+}
+
+function setPill(el){
+  document.querySelectorAll('.pill').forEach(p=>p.classList.remove('on'));
+  el.classList.add('on');
+}
+
+function chk(){
+  const ok=selB
+    && document.getElementById('doc').value.trim().length>=6
+    && document.getElementById('em').value.includes('@');
+  document.getElementById('btnIr').disabled=!ok;
+}
+
+function show(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+function goS2(){
+  document.getElementById('bh-name').textContent=selB.n;
+  const ico=document.getElementById('bh-ico');
+  ico.textContent=selB.i;
+  ico.style.background=selB.c; ico.style.color=selB.t;
+  ico.style.fontSize='13px'; ico.style.fontWeight='700';
+  show('s2');
+}
+
+function goS3(){
+  show('s3');
+  const steps=[
+    {id:'l0',msg:'Verificando credenciales...'},
+    {id:'l1',msg:'Validando fondos disponibles...'},
+    {id:'l2',msg:'Procesando débito con PSE...'},
+    {id:'l3',msg:'Confirmando transacción...'},
+  ];
+  let i=0;
+  const h=document.getElementById('lh');
+  const iv=setInterval(()=>{
+    if(i<steps.length){
+      if(i>0){const p=document.getElementById(steps[i-1].id);p.classList.remove('active');p.classList.add('done')}
+      document.getElementById(steps[i].id).classList.add('active');
+      h.textContent=steps[i].msg; i++;
+    } else {
+      clearInterval(iv);
+      setTimeout(showResult,500);
+    }
+  },1100);
+}
+
+function showResult(){
+  const aprobado=Math.random()>0.25;  /* 75% aprobado en simulación */
+  const txId='PSE'+Date.now().toString().slice(-8);
+  const now=new Date();
+  const fecha=now.toLocaleDateString('es-CO',{day:'2-digit',month:'short',year:'numeric'});
+  const hora=now.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+  const total='${{ total|floatformat:0 }}';
+
+  const rb=document.getElementById('rbadge');
+  if(aprobado){
+    rb.className='rbadge ok';
+    document.getElementById('svg-ok').style.display='block';
+    document.getElementById('svg-fail').style.display='none';
+    document.getElementById('rtitle').textContent='Pago aprobado';
+    document.getElementById('rsub').textContent='Tu débito fue procesado exitosamente. Recibirás confirmación a tu correo electrónico.';
+    const ti=document.getElementById('r-ticon');
+    ti.style.background='#f0fdf4'; ti.style.border='1px solid #bbf7d0';
+    ti.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+    document.getElementById('r-th2').textContent='Transacción exitosa';
+    document.getElementById('r-tp').textContent='Pedido en procesamiento';
+    document.getElementById('rrows').innerHTML=`
+      <div class="rrow"><span class="k">Banco</span><span class="v">${selB.n}</span></div>
+      <div class="rrow"><span class="k">Valor</span><span class="v">${total}</span></div>
+      <div class="rrow"><span class="k">Referencia</span><span class="v" style="font-family:monospace;font-size:12px">DEP360-{{ venta_ref|default:"000000" }}</span></div>
+      <div class="rrow"><span class="k">N° transacción</span><span class="v" style="font-family:monospace;font-size:12px">${txId}</span></div>
+      <div class="rrow"><span class="k">Fecha y hora</span><span class="v">${fecha} · ${hora}</span></div>
+      <div class="rrow"><span class="k">Estado</span><span class="v ok">Aprobada ✓</span></div>`;
+
+    /* ── Si el pago está "aprobado" en simulación, envía el form Django ── */
+    setTimeout(()=>{
+      document.getElementById('django-form').submit();
+    }, 4000);  /* espera 4s para que el usuario vea el resultado */
+
+  } else {
+    rb.className='rbadge fail';
+    document.getElementById('svg-ok').style.display='none';
+    document.getElementById('svg-fail').style.display='block';
+    document.getElementById('rtitle').textContent='Pago rechazado';
+    document.getElementById('rsub').textContent='Tu banco no autorizó el débito. Verifica tus datos o intenta con otro banco.';
+    const ti=document.getElementById('r-ticon');
+    ti.style.background='#fef2f2'; ti.style.border='1px solid #fecaca';
+    ti.innerHTML='<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
+    document.getElementById('r-th2').textContent='Transacción rechazada';
+    document.getElementById('r-tp').textContent='No se realizó ningún cobro';
+    document.getElementById('rrows').innerHTML=`
+      <div class="rrow"><span class="k">Banco</span><span class="v">${selB.n}</span></div>
+      <div class="rrow"><span class="k">Valor</span><span class="v">${total}</span></div>
+      <div class="rrow"><span class="k">Referencia</span><span class="v" style="font-family:monospace;font-size:12px">DEP360-{{ venta_ref|default:"000000" }}</span></div>
+      <div class="rrow"><span class="k">N° intento</span><span class="v" style="font-family:monospace;font-size:12px">${txId}</span></div>
+      <div class="rrow"><span class="k">Fecha y hora</span><span class="v">${fecha} · ${hora}</span></div>
+      <div class="rrow"><span class="k">Estado</span><span class="v fail">Rechazada ✕</span></div>`;
+  }
+  show('s4');
+  callClaude(aprobado, selB.n, txId, total);
+}
+
+/* ── Mensaje IA del resultado ── */
+async function callClaude(aprobado, banco, txId, total){
+  const el=document.getElementById('ai-txt');
+  el.innerHTML='<span class="cursor"></span>';
+  const prompt=aprobado
+    ?`Pago PSE de ${total} en Deportes 360 APROBADO por ${banco} (tx ${txId}). Escribe exactamente 2 oraciones de confirmación amigable para el cliente colombiano. Menciona que su pedido será alistado. Sin saludos ni firmas.`
+    :`Pago PSE de ${total} en Deportes 360 RECHAZADO por ${banco} (tx ${txId}). Escribe exactamente 2 oraciones de ayuda para el cliente colombiano. Posibles causas y qué hacer. Sin saludos ni firmas.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:130,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    const data=await res.json();
+    const txt=data.content[0].text.trim();
+    el.innerHTML='';
+    let i=0;
+    const iv=setInterval(()=>{
+      if(i<txt.length){el.textContent+=txt[i];i++;}
+      else clearInterval(iv);
+    },16);
+  }catch(e){
+    el.textContent='No se pudo obtener respuesta del sistema.';
+  }
+}
+
+/* ── Reset ── */
+function resetFlow(){
+  selB=null;
+  document.getElementById('doc').value='';
+  document.getElementById('bsearch').value='';
+  document.getElementById('sel-row').style.display='none';
+  document.getElementById('btnIr').disabled=true;
+  document.querySelectorAll('.lstep').forEach((s,idx)=>{
+    s.classList.remove('active','done');
+    if(idx===0)s.classList.add('active');
+  });
+  rB(BANKS);
+  show('s1');
+}
+</script>
+</body>
+</html>

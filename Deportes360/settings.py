@@ -25,7 +25,16 @@ SECRET_KEY = 'django-insecure-hv$y6kuexh^^=b3f%3zn^(f-6r=r0i46&&7u&b5*ufq4$_q$7r
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    '192.168.1.118', 
+    'rosalind-precrucial-steven.ngrok-free.dev',  
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://rosalind-precrucial-steven.ngrok-free.dev',
+]
 
 
 # Application definition
@@ -39,6 +48,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'usuarios',
     'inventario',
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
@@ -142,3 +152,5 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = "juancerquera104@gmail.com"
 EMAIL_HOST_PASSWORD = "xpni nsdy heqa pfia"  
 DEFAULT_FROM_EMAIL = "Soporte Deportes360 <tucorreo@gmail.com>"
+
+

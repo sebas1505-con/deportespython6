@@ -3,97 +3,50 @@
 <html lang="es">
 
 <head>
-<meta charset="UTF-8">
-<title>Finalizar compra - Deportes 360</title>
-<link rel="icon" type="image/png" href="{% static 'images/Re.png' %}">
-<link rel="stylesheet" href="{% static 'css/formulario.css' %}?v=2">
-
+    <meta charset="UTF-8">
+    <title>Finalizar compra - Deportes 360</title>
+    <link rel="icon" type="image/png" href="{% static 'images/Re.png' %}">
+    <link rel="stylesheet" href="{% static 'css/formulario.css' %}?v=2">
 </head>
 
 <body>
-
 <div class="formulario-container">
 
-<a href="{% url 'carrito' %}" class="btn-volver">
-⬅ Volver al carrito
-</a>
+    <a href="{% url 'carrito' %}" class="btn-volver">⬅ Volver al carrito</a>
 
-<h2>🛒 Finalizar compra</h2>
+    <h2>🛒 Finalizar compra</h2>
 
-<form method="post">
+    <form method="post">
+        {% csrf_token %}
 
-{% csrf_token %}
+        <!-- DATOS DEL CLIENTE -->
+        <div class="seccion">
+            <h3>👤 Datos del cliente</h3>
+            <div class="info-cliente">
+                {% if cliente %}
+                    <p><strong>Nombre:</strong> {{ cliente.usuario.first_name }}</p>
+                    <p><strong>Email:</strong> {{ cliente.usuario.email }}</p>
+                    <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
+                {% endif %}
+            </div>
+        </div>
 
-<!-- DATOS DEL CLIENTE -->
+        <!-- DATOS DE LA COMPRA -->
+        <div class="seccion">
+            <h3>📦 Datos de la compra</h3>
 
-<div class="seccion">
+            <div class="campo">{{ form.cant_producto.label_tag }} {{ form.cant_producto }}</div>
+            <div class="campo">{{ form.metodo_envio.label_tag }} {{ form.metodo_envio }}</div>
+            <div class="campo">{{ form.total_venta.label_tag }} {{ form.total_venta }}</div>
+            <div class="campo">{{ form.metodo_pago.label_tag }} {{ form.metodo_pago }}</div>
+            <div class="campo">{{ form.direccion_envio.label_tag }} {{ form.direccion_envio }}</div>
+            <div class="campo">{{ form.telefono_contacto.label_tag }} {{ form.telefono_contacto }}</div>
+            <div class="campo">{{ form.observaciones.label_tag }} {{ form.observaciones }}</div>
+        </div>
 
-<h3>👤 Datos del cliente</h3>
-
-<div class="info-cliente">
-{% if cliente %}
-    <p><strong>Nombre:</strong> {{ cliente.usuario.first_name }}</p>
-    <p><strong>Email:</strong> {{ cliente.usuario.email }}</p>
-    <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
-{% else %}
-    <p>No hay cliente logueado</p>
-{% endif %}
-
-</div>
-
-</div>
-
-
-<!-- DATOS DE LA COMPRA -->
-
-<div class="seccion">
-
-<h3>📦 Datos de la compra</h3>
-
-<div class="campo">
-{{ form.cant_producto.label_tag }}
-{{ form.cant_producto }}
-</div>
-
-<div class="campo">
-{{ form.metodo_envio.label_tag }}
-{{ form.metodo_envio }}
-</div>
-
-<div class="campo">
-{{ form.total_venta.label_tag }}
-{{ form.total_venta }}
-</div>
-
-<div class="campo">
-{{ form.metodo_pago.label_tag }}
-{{ form.metodo_pago }}
-</div>
-
-<div class="campo">
-{{ form.direccion_envio.label_tag }}
-{{ form.direccion_envio }}
-</div>
-
-<div class="campo">
-{{ form.telefono_contacto.label_tag }}
-{{ form.telefono_contacto }}
-</div>
-
-<div class="campo">
-{{ form.observaciones.label_tag }}
-{{ form.observaciones }}
-</div>
+        <button type="submit" class="btn-finalizar">Continuar</button>
+    </form>
 
 </div>
-
-<button type="submit" class="btn-finalizar">
-Confirmar compra
-</button>
-
-</form>
-
-</div>
-
 </body>
 </html>

@@ -13,8 +13,8 @@ from django.conf import settings
 from django.utils import timezone
 from reportlab.lib import colors
 import os
-
-
+from decimal import Decimal
+from rest_framework import viewsets
 
 # ── Catálogo y productos ──────────────────────────────────────────────────────
 
@@ -195,54 +195,72 @@ def formulario_compra(request):
 
     if request.method == 'POST':
         form = CompraForm(request.POST)
+
         if form.is_valid():
+            # ✅ Validar stock
             for key, item in carrito.items():
                 producto_id = key.split('_')[0]
                 talla       = item['talla']
-                producto    = get_object_or_404(Producto, id=int(producto_id))
-                talla_obj   = get_object_or_404(TallaProducto, producto=producto, talla=talla)
-
+                producto  = get_object_or_404(Producto, id=int(producto_id))
+                talla_obj = get_object_or_404(TallaProducto, producto=producto, talla=talla)
                 if talla_obj.stock < item['cantidad']:
-
                     return render(request, 'productos/stock_insuficiente.html', {
                         'producto_nombre': producto.nombre,
                         'talla': talla,
                         'stock_disponible': talla_obj.stock
                     })
-            venta = Venta.objects.create(
+
+            metodo_pago = form.cleaned_data['metodo_pago'] 
+
+            # Guardar datos en sesión
+            request.session['compra'] = {
+                'carrito': carrito,
+                'cantidad_total': cantidad_total,
+                'total_venta': total_venta,
+                'metodo_envio': form.cleaned_data['metodo_envio'],
+                'metodo_pago': metodo_pago,
+                'direccion_envio': form.cleaned_data['direccion_envio'],
+                'telefono_contacto': form.cleaned_data['telefono_contacto'],
+                'observaciones': form.cleaned_data.get('observaciones', ''),
+            }
+
+            # 🔥 Flujo según método de pago
+            if metodo_pago == 'PSE':
+                return redirect('pse')  
+
+            else:
+                # 👉 Aquí sí guardamos la venta en BD
+                venta = Venta.objects.create(
                 cliente=cliente,
                 cantProducto=cantidad_total,
-                fecha_venta=timezone.now(),
-                totalVenta=total_venta,
                 metodoEnvio=form.cleaned_data['metodo_envio'],
-                metodo_de_pago=form.cleaned_data['metodo_pago'],
+                totalVenta=total_venta,
+                metodo_de_pago=metodo_pago,
                 direccionEnvio=form.cleaned_data['direccion_envio'],
                 telefonoContacto=form.cleaned_data['telefono_contacto'],
-                observaciones=form.cleaned_data.get('observaciones', ''),
-                estado='Pendiente'
+                observaciones=form.cleaned_data.get('observaciones', '')
             )
 
-            # Descontar stock y crear detalles
-            for key, item in carrito.items():
-                producto_id = key.split('_')[0]
-                talla       = item['talla']
-                producto    = get_object_or_404(Producto, id=int(producto_id))
-                talla_obj   = get_object_or_404(TallaProducto, producto=producto, talla=talla)
+                # Crear pedidos asociados
+                for key, item in carrito.items():
+                    producto_id = key.split('_')[0]
+                    producto = Producto.objects.get(id=int(producto_id))
+                    Pedido.objects.create(
+                        venta=venta,
+                        producto=producto,
+                        cantidad=item['cantidad'],
+                        total=item['precio'] * item['cantidad'],
+                        estado="Pendiente",
+                        usuario=usuario
+                    )
 
-                talla_obj.stock -= item['cantidad']
-                talla_obj.save()
+                    talla_obj.stock -= item['cantidad']
+                    talla_obj.save()
 
-                DetalleVentaProductos.objects.create(
-                    venta=venta,
-                    producto=producto,
-                    talla=talla,
-                    cantidad=item['cantidad'],
-                    precio_unitario=item['precio'],
-                    subtotal=item['cantidad'] * item['precio']
-                )
+                # limpiar carrito
+                request.session['carrito'] = {}
+                return redirect('factura', venta_id=venta.id)
 
-            request.session['carrito'] = {}
-            return redirect('factura', venta_id=venta.id)
     else:
         form = CompraForm(initial={
             'cant_producto': cantidad_total,
@@ -250,10 +268,87 @@ def formulario_compra(request):
         })
 
     return render(request, 'productos/formulario_compra.html', {
-        'form': form, 'cliente': cliente,
-        'productos': carrito, 'total': total_venta
+        'form': form,
+        'cliente': cliente,
+        'productos': carrito,
+        'total': total_venta
     })
 
+def registrar_pse(request):
+    if request.method == "POST":
+        usuario_id = request.session.get('usuario_id')
+        usuario = Usuario.objects.get(id=usuario_id)
+        cliente = Cliente.objects.get(usuario=usuario)
+
+        # Normalizar el totalVenta
+        total_str = request.POST.get("totalVenta", "0").replace(",", ".")
+        total_decimal = Decimal(total_str)
+
+        venta = Venta.objects.create(
+            cliente=cliente,
+            cantProducto=request.POST.get("cantProducto"),
+            metodoEnvio=request.POST.get("metodoEnvio"),
+            totalVenta=total_decimal,
+            metodo_de_pago=request.POST.get("metodo_de_pago"),
+            direccionEnvio=request.POST.get("direccionEnvio"),
+            telefonoContacto=request.POST.get("telefonoContacto"),
+            observaciones=request.POST.get("observaciones")
+        )
+
+        # Crear detalles desde el carrito
+        carrito = request.session.get("carrito", {})
+        for key, item in carrito.items():
+            producto_id = key.split("_")[0]
+            producto = Producto.objects.get(id=int(producto_id))
+            DetalleVentaProductos.objects.create(
+                venta=venta,
+                producto=producto,
+                talla=item["talla"],
+                cantidad=item["cantidad"],
+                precio_unitario=item["precio"],
+                subtotal=item["precio"] * item["cantidad"]
+            )
+
+        # limpiar carrito
+        request.session["carrito"] = {}
+
+        return redirect("factura", venta_id=venta.id)
+
+
+def pse(request):
+    compra = request.session.get('compra')
+
+    if not compra:
+        return redirect('carrito')
+
+    usuario_id = request.session.get('usuario_id')
+    usuario = Usuario.objects.get(id=usuario_id)
+    cliente = Cliente.objects.get(usuario=usuario)
+
+    return render(request, 'productos/pse.html', {
+        'total': compra['total_venta'],
+        'cantidad_total': compra['cantidad_total'],
+        'cliente': cliente,
+        'compra': compra,
+        'venta_ref': '123456'  # puedes hacerlo dinámico
+    })
+
+def confirmar_compra(request):
+    if request.method == 'POST':
+        compra = request.session.get('compra')
+
+        if not compra:
+            return redirect('carrito')
+
+        # 👉 AQUÍ puedes guardar la venta en BD (luego lo hacemos pro)
+
+        # limpiar carrito
+        request.session['carrito'] = {}
+        request.session['compra'] = {}
+
+        return redirect('carrito')  # o donde quieras
+
+    return redirect('carrito')
 
 def stock_insuficiente(request, producto_id, talla, stock_disponible):
     producto = get_object_or_404(Producto, id=producto_id)

@@ -1,7 +1,10 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 
 urlpatterns = [
+    path('pse/', views.pse, name='pse'),
+    path("registrar_pse/", views.registrar_pse, name="registrar_pse"),
+    path('confirmar_compra', views.confirmar_compra, name='confirmar_compra'),
     path('catalogo/', views.catalogo, name='catalogo'),
     path('catalogo/<str:categoria>/', views.catalogo_categoria, name='catalogo_categoria'),
     path('productos/', views.productos, name='productos'),
@@ -25,3 +28,5 @@ urlpatterns = [
         name='stock_insuficiente'
     ),
 ]
+
+
