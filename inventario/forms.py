@@ -27,6 +27,11 @@ class SeleccionTallaForm(forms.Form):
     ]
     talla = forms.ChoiceField(label="Selecciona tu talla", choices=TALLAS, required=False)
 
+METODOS_PAGO = [
+    ('CONTRA_ENTREGA', 'Contra entrega'),
+    ('PAGO_EN_LINEA', 'Pago en línea (PSE)'),
+]
+
 class CompraForm(forms.Form):
     cant_producto = forms.IntegerField(
         label="Cantidad de productos", initial=1,
@@ -38,13 +43,8 @@ class CompraForm(forms.Form):
         label="Total de la venta", max_digits=10, decimal_places=2,
         widget=forms.NumberInput(attrs={'readonly': 'readonly'})
     )
-    METODOS_PAGO = [
-        ('', 'Seleccionar...'),
-        ('efectivo', 'Efectivo'),
-        ('tarjeta', 'Tarjeta'),
-        ('transferencia', 'Transferencia'),
-        ('PSE', 'PSE'), 
-    ]
+    
+
     metodo_pago = forms.ChoiceField(label="Método de pago", choices=METODOS_PAGO, required=True)
     direccion_envio = forms.CharField(label="Dirección de envío", max_length=255)
     telefono_contacto = forms.CharField(label="Teléfono de contacto", max_length=20)

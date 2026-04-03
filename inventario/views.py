@@ -123,30 +123,42 @@ def registrar_movimiento(request):
 
 def carrito(request):
     carrito = request.session.get('carrito', {})
+
     if request.method == 'POST':
+
         if 'eliminar' in request.POST:
             carrito.pop(request.POST.get('eliminar'), None)
+            request.session['carrito'] = carrito
+
         elif 'vaciar' in request.POST:
             carrito.clear()
+            request.session['carrito'] = carrito
+
         elif 'accion' in request.POST:
             accion = request.POST.get('accion')
+
             if accion.startswith('aumentar_'):
                 key = accion.replace('aumentar_', '')
                 if key in carrito:
                     carrito[key]['cantidad'] += 1
+
             elif accion.startswith('disminuir_'):
                 key = accion.replace('disminuir_', '')
                 if key in carrito:
                     carrito[key]['cantidad'] -= 1
                     if carrito[key]['cantidad'] <= 0:
                         carrito.pop(key)
+
+            request.session['carrito'] = carrito
+
         elif 'finalizar' in request.POST:
-            # Validar stock antes de redirigir
+
             for key, item in carrito.items():
                 producto_id = int(key.split('_')[0])
-                talla       = item['talla']
-                producto    = get_object_or_404(Producto, id=producto_id)
-                talla_obj   = get_object_or_404(TallaProducto, producto=producto, talla=talla)
+                talla = item['talla']
+
+                producto = get_object_or_404(Producto, id=producto_id)
+                talla_obj = get_object_or_404(TallaProducto, producto=producto, talla=talla)
 
                 if item['cantidad'] > talla_obj.stock:
                     return render(request, 'stock_insuficiente.html', {
@@ -154,13 +166,14 @@ def carrito(request):
                         'talla': talla,
                         'stock_disponible': talla_obj.stock
                     })
+
             return redirect('formulario_compra')
-
-        request.session['carrito'] = carrito
-
     total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
-    return render(request, 'productos/carrito.html', {'productos': carrito, 'total': total})
 
+    return render(request, 'productos/carrito.html', {
+        'productos': carrito,
+        'total': total
+    })
 
 def agregar_al_carrito(request, id):
     carrito = request.session.get('carrito', {})
@@ -197,20 +210,7 @@ def formulario_compra(request):
         form = CompraForm(request.POST)
 
         if form.is_valid():
-            # ✅ Validar stock
-            for key, item in carrito.items():
-                producto_id = key.split('_')[0]
-                talla       = item['talla']
-                producto  = get_object_or_404(Producto, id=int(producto_id))
-                talla_obj = get_object_or_404(TallaProducto, producto=producto, talla=talla)
-                if talla_obj.stock < item['cantidad']:
-                    return render(request, 'productos/stock_insuficiente.html', {
-                        'producto_nombre': producto.nombre,
-                        'talla': talla,
-                        'stock_disponible': talla_obj.stock
-                    })
-
-            metodo_pago = form.cleaned_data['metodo_pago'] 
+            metodo_pago = form.cleaned_data['metodo_pago']
 
             # Guardar datos en sesión
             request.session['compra'] = {
@@ -225,23 +225,24 @@ def formulario_compra(request):
             }
 
             # 🔥 Flujo según método de pago
-            if metodo_pago == 'PSE':
-                return redirect('pse')  
+            if metodo_pago == 'PAGO_EN_LINEA':
+                # Redirige al flujo PSE
+                return redirect('pse')
 
-            else:
-                # 👉 Aquí sí guardamos la venta en BD
+            else:  # CONTRA_ENTREGA
+                # Guardar la venta en BD
                 venta = Venta.objects.create(
-                cliente=cliente,
-                cantProducto=cantidad_total,
-                metodoEnvio=form.cleaned_data['metodo_envio'],
-                totalVenta=total_venta,
-                metodo_de_pago=metodo_pago,
-                direccionEnvio=form.cleaned_data['direccion_envio'],
-                telefonoContacto=form.cleaned_data['telefono_contacto'],
-                observaciones=form.cleaned_data.get('observaciones', '')
-            )
+                    cliente=cliente,
+                    cantProducto=cantidad_total,
+                    metodoEnvio=form.cleaned_data['metodo_envio'],
+                    totalVenta=total_venta,
+                    metodo_de_pago='CONTRA_ENTREGA',
+                    direccionEnvio=form.cleaned_data['direccion_envio'],
+                    telefonoContacto=form.cleaned_data['telefono_contacto'],
+                    observaciones=form.cleaned_data.get('observaciones', '')
+                )
 
-                # Crear pedidos asociados
+                # Crear pedidos y actualizar stock
                 for key, item in carrito.items():
                     producto_id = key.split('_')[0]
                     producto = Producto.objects.get(id=int(producto_id))
@@ -254,17 +255,20 @@ def formulario_compra(request):
                         usuario=usuario
                     )
 
+                    talla = item['talla']
+                    talla_obj = TallaProducto.objects.get(producto=producto, talla=talla)
                     talla_obj.stock -= item['cantidad']
                     talla_obj.save()
 
-                # limpiar carrito
+                # Limpiar carrito
                 request.session['carrito'] = {}
                 return redirect('factura', venta_id=venta.id)
 
     else:
         form = CompraForm(initial={
             'cant_producto': cantidad_total,
-            'total_venta': total_venta
+            'total_venta': total_venta,
+            'metodo_pago': 'CONTRA_ENTREGA'
         })
 
     return render(request, 'productos/formulario_compra.html', {
