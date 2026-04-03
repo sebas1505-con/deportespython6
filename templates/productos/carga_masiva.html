@@ -1,0 +1,14 @@
+<h2>Carga masiva de productos</h2>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <input type="file" name="archivo" accept=".xlsx,.xls" required>
+
+    <button type="submit">Subir Excel</button>
+
+</form>
+
+{% for message in messages %}
+<p>{{ message }}</p>
+{% endfor %}

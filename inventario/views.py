@@ -13,6 +13,7 @@ from django.conf import settings
 from django.utils import timezone
 from reportlab.lib import colors
 import os
+import pandas as pd
 from decimal import Decimal
 from rest_framework import viewsets
 
@@ -42,7 +43,39 @@ def mis_compras(request):
         compras = []
 
     return render(request, 'mis_compras.html', {'compras': compras})
-     
+
+def carga_masiva_productos(request):
+    if request.method == 'POST':
+        archivo = request.FILES.get('archivo')
+
+        if not archivo:
+            messages.error(request, "Debe subir un archivo.")
+            return redirect('carga_masiva')
+
+        # validar que sea excel
+        if not archivo.name.endswith(('.xlsx', '.xls')):
+            messages.error(request, "Solo se permiten archivos Excel (.xlsx, .xls)")
+            return redirect('carga_masiva')
+
+        try:
+            df = pd.read_excel(archivo)
+
+            for _, fila in df.iterrows():
+                Producto.objects.create(
+                    nombre=fila['nombre'],
+                    precio=fila['precio'],
+                    stock=fila['stock'],
+                    descripcion=fila['descripcion']
+                )
+
+            messages.success(request, "Productos cargados correctamente")
+
+        except Exception as e:
+            messages.error(request, f"Error al procesar el archivo: {e}")
+
+        return redirect('carga_masiva')
+
+    return redirect('panel_admin')
 
 def productos(request):
     productos = Producto.objects.all()
@@ -161,7 +194,7 @@ def carrito(request):
                 talla_obj = get_object_or_404(TallaProducto, producto=producto, talla=talla)
 
                 if item['cantidad'] > talla_obj.stock:
-                    return render(request, 'stock_insuficiente.html', {
+                    return render(request, 'productos/stock_insuficiente.html', {
                         'producto_nombre': producto.nombre,
                         'talla': talla,
                         'stock_disponible': talla_obj.stock

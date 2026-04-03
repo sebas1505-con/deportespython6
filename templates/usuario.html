@@ -30,12 +30,12 @@
 
             <nav class="navbar">
               <ul>
-                <li><a href="{% url 'perfil' %}">Actualizar Perfil</a></li>
+                <li><a href="{% url 'perfil' %}">Perfil</a></li>
                 <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
                 <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
                 <li><a href="{% url 'sugerencias' %}">Sugerencias</a></li>
+                <li><a href="{% url 'carrito' %}">Carrito</a></li>
                 <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
-                <li><a href="{% url 'carrito' %}">🛒</a></li>
               </ul>
             </nav>
         </div>
@@ -134,7 +134,7 @@
         <ul>
             <li><a href="{% url 'usuario' %}">Inicio</a></li>
             <li><a href="{% url 'contactousu' %}">Contacto</a></li>
-            <li><a href="#">Ayuda con tallas</a></li>
+        
         </ul>
     </div>
 </footer>

@@ -3,15 +3,17 @@ from django.contrib.auth.hashers import make_password, check_password
 from django.core.mail import EmailMessage
 from django.contrib import messages
 from django.http import HttpResponse
+from django.db.models import Sum, F
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
+import json
 import uuid
+import pandas as pd
 from .models import Usuario, Cliente, Repartidor, Sugerencia, Administrador, Pedido
 from .forms import RegistroClienteForm, RepartidorForm
 from .barrios import BARRIOS_BOGOTA
 from email.mime.image import MIMEImage
-from inventario.models import Pedido
-
+from inventario.models import Producto, Pedido, Movimiento, Sugerencia, Venta
 # ── Páginas generales ─────────────────────────────────────────────────────────
 
 def index(request):
@@ -173,23 +175,82 @@ def usuario(request):
     return render(request, "usuario.html", {"usuario": usuario, "productos": productos})
 
 def admin(request):
+
     usuario_id = request.session.get('usuario_id')
     rol = request.session.get('rol')
     if not usuario_id or rol != 'ADMIN':
         return redirect('sinacceso')
 
-    from inventario.models import Producto, Pedido
-    usuarios  = Usuario.objects.all()
-    productos = Producto.objects.all()
-    ultimos_pedidos = Pedido.objects.all()\
-        .select_related('usuario', 'producto')\
-        .order_by('-fecha_pedido')[:10]
+    # ==============================
+    # Carga masiva de Excel
+    # ==============================
+    if request.method == "POST" and request.FILES.get("archivo_excel"):
+        archivo = request.FILES["archivo_excel"]
 
-    return render(request, 'productos/admin.html', {
+        if not archivo.name.endswith(('.xlsx', '.xls')):
+            messages.error(request, "Solo se permiten archivos Excel")
+            return redirect('panel_admin')
+
+        try:
+            df = pd.read_excel(archivo)
+            for _, fila in df.iterrows():
+                Producto.objects.create(
+                    nombre=fila['nombre'],
+                    precio=fila['precio'],
+                    stock_total=fila['stock_total'],
+                    descripcion=fila['descripcion'],
+                    categoria=fila['categoria']
+                )
+            messages.success(request, "Productos cargados correctamente")
+        except Exception as e:
+            messages.error(request, f"Error al procesar el Excel: {e}")
+
+        return redirect('panel_admin')
+
+    # ==============================
+    # Datos del panel
+    # ==============================
+    usuarios = Usuario.objects.all()
+    productos = Producto.objects.all()
+    ventas = Venta.objects.all()
+    ultimos_pedidos = Pedido.objects.all().select_related('usuario', 'producto').order_by('-fecha_pedido')[:10]
+    movimientos = Movimiento.objects.all().order_by('-fecha')
+    sugerencias = Sugerencia.objects.all().order_by('-id')
+
+    # ==============================
+    # Datos para gráficos
+    # ==============================
+    # Ventas por fecha
+    fechas_ventas = [v.fecha_venta.strftime("%d/%m/%Y") for v in ventas]
+    totales_ventas = [float(v.totalVenta) for v in ventas]
+
+    # Ventas por producto
+    productos_ventas = Producto.objects.annotate(
+        total_vendido=Sum(F('detalleventaproductos__venta__totalVenta'))
+    )
+    nombres_productos = [p.nombre for p in productos_ventas]
+    totales_productos = [float(p.total_vendido or 0) for p in productos_ventas]
+
+    # ==============================
+    # Contexto
+    # ==============================
+    context = {
         'usuarios': usuarios,
         'productos': productos,
-        'ultimos_pedidos': ultimos_pedidos
-    })
+        'ventas': ventas,
+        'ultimos_pedidos': ultimos_pedidos,
+        'movimientos': movimientos,
+        'sugerencias': sugerencias,
+        'fechas_ventas': json.dumps(fechas_ventas),
+        'totales_ventas': json.dumps(totales_ventas),
+        'nombres_productos': json.dumps(nombres_productos),
+        'totales_productos': json.dumps(totales_productos)
+    }
+
+    # ==============================
+    # Renderizar template
+    # ==============================
+    return render(request, 'productos/admin.html', context)
 
 def repartidor(request):
     usuario_id = request.session.get('usuario_id')

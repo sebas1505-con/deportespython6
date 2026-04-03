@@ -114,6 +114,12 @@ class Envio(models.Model):
     def __str__(self):
         return f"Envio {self.id} - {self.estado}"
 
+class Sugerencia(models.Model):
+
+    nombre = models.CharField(max_length=100)
+    correo = models.EmailField()
+    mensaje = models.TextField()
+    fecha = models.DateTimeField(auto_now_add=True)
 
 class Asignacion(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='inventario_asignaciones')

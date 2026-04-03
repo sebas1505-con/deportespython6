@@ -27,6 +27,7 @@ urlpatterns = [
         views.stock_insuficiente,
         name='stock_insuficiente'
     ),
+    path('carga-masiva/', views.carga_masiva_productos, name='carga_masiva'),
 ]
 
 
