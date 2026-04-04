@@ -92,18 +92,41 @@ h1, h2 {
   background-color: #f1f1f1;
 }
 
-@media screen and (max-width: 768px) {
+@media (max-width: 768px) {
   .container {
     padding: 10px;
+    margin: 15px auto;
   }
-
   .btn {
     width: 100%;
     margin-bottom: 10px;
+    text-align: center;
   }
+  .table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+  .mapa iframe {
+    width: 100%;
+    height: 250px;
+  }
+  .mapa-contenedor {
+    padding: 0 10px;
+  }
+  .header h1 {
+    font-size: 20px;
+  }
+}
 
-  .table th, .table td {
-    padding: 10px 8px;
+@media (max-width: 480px) {
+  .table th,
+  .table td {
+    padding: 8px 6px;
+    font-size: 13px;
+  }
+  h2 {
+    font-size: 18px;
   }
 }
 

@@ -21,13 +21,10 @@ margin:0;
 .formulario-container{
 
 background:white;
-
 padding:40px;
-
 border-radius:14px;
-
-width:520px;
-
+width: 90%;
+max-width: 520px;
 box-shadow:0 10px 30px rgba(0,0,0,0.1);
 
 }
@@ -215,4 +212,34 @@ color:#555;
 
 color:#e53935;
 
+}
+
+@media (max-width: 600px) {
+  body {
+    padding: 15px;
+    align-items: flex-start;
+  }
+  .formulario-container {
+    width: 100%;
+    padding: 20px;
+  }
+  .campo {
+    grid-template-columns: 1fr;
+  }
+  h2 {
+    font-size: 20px;
+  }
+  .btn-finalizar {
+    font-size: 15px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .seccion h3 {
+    font-size: 16px;
+  }
+  .info-cliente {
+    font-size: 13px;
+  }
 }

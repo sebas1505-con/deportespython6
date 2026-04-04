@@ -167,3 +167,31 @@ border-radius:10px;
 text-align:center;
 
 }
+
+@media (max-width: 768px) {
+  .menu {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+  .navbar ul {
+    flex-direction: column;
+    gap: 10px;
+  }
+  .pedidos h2 {
+    margin-top: 30px;
+    font-size: 24px;
+  }
+  .pedido-card {
+    padding: 15px;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo {
+    height: 35px;
+  }
+  .btn-detalle {
+    width: 100%;
+  }
+}

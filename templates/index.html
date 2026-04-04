@@ -15,6 +15,10 @@
     <div class="container">
         <div class="menu">
             <img class="logo" src="{% static 'images/logo-deporte.png' %}" alt="Logo Deportes 360">
+            <input type="checkbox" id="menu" />
+                <label for="menu" style="display:none; cursor:pointer;">
+                 ☰
+            </label>
             <nav class="navbar">
                 <ul>
                     <li><a href="{% url 'quienes' %}">Quiénes Somos</a></li>

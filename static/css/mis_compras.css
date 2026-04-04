@@ -111,3 +111,31 @@ body {
     color: #777;
     margin-top: 40px;
 }
+
+@media (max-width: 768px) {
+  .compras-lista {
+    grid-template-columns: 1fr;
+  }
+  .titulo-compras {
+    font-size: 24px;
+  }
+}
+
+@media (max-width: 480px) {
+  .compra-header {
+    flex-direction: column;
+    gap: 5px;
+  }
+  .detalle-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .detalle-item img {
+    width: 100%;
+    height: auto;
+  }
+  .btn-ver {
+    display: block;
+    text-align: center;
+  }
+}
