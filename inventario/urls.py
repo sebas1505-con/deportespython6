@@ -18,15 +18,18 @@ urlpatterns = [
     path('agregar-carrito/<int:id>/', views.agregar_al_carrito, name='agregar_carrito'),
     path('formulario_compra/', views.formulario_compra, name='formulario_compra'),
     path('factura/<int:venta_id>/', views.factura, name='factura'),
+    path('factura1/<int:venta_id>/', views.factura1, name='factura1'),
     path('factura_pdf/<int:venta_id>/', views.generar_factura, name='factura_pdf'),
     path('generar-pdf/', views.generar_pdf, name='generar_pdf'),
     path('reportes-ventas/', views.reportesVentas, name='reportesVentas'),
     path('mis-compras/', views.mis_compras, name='mis_compras'),
+    path('validar-pago/', views.validar_pse, name='validar_pse'),
     path(
         'stock-insuficiente/<int:producto_id>/<str:talla>/<int:stock_disponible>/',
         views.stock_insuficiente,
         name='stock_insuficiente'
     ),
+    path('carga-masiva/', views.carga_masiva_productos, name='carga_masiva'),
 ]
 
 

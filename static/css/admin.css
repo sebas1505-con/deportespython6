@@ -42,11 +42,21 @@ body {
   width: 210px;
   height: 100vh;
   position: fixed;
-  top: 75px; /* Altura del header */
+  top: 120px;
   left: 0;
   padding-top: 20px;
   box-shadow: 4px 0 12px rgba(0,0,0,0.25);
-  overflow-y: auto; /* Para que se pueda scrollear si hay muchos items */
+  overflow-y: auto;
+}
+
+.dashboard {
+  margin-left: 230px;
+  padding: 25px;
+  padding-top: 150px;
+}
+
+section{
+scroll-margin-top:150px;
 }
 
 .sidebar ul {
@@ -78,10 +88,9 @@ body {
    DASHBOARD
 ------------------------*/
 .dashboard {
-  margin-left: 230px; /* espacio para el sidebar */
+  margin-left: 230px;
   padding: 25px;
-  padding-top: 120px; /* espacio para el header fijo */
-  min-height: 100vh; /* Que ocupe toda la altura visible */
+  padding-top: 150px;
 }
 
 /* -----------------------
@@ -539,4 +548,12 @@ transition:.25s;
 transform:scale(1.08);
 box-shadow:0 3px 8px rgba(0,0,0,0.2);
 
+}
+
+section{
+scroll-margin-top:150px;
+}
+
+html{
+scroll-behavior:smooth;
 }

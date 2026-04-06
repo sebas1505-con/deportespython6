@@ -9,11 +9,10 @@
 <link rel="stylesheet"  href="{% static 'css/pse.css' %}?v=2">
 </head>
 <body>
-  <a href="{% url 'carrito' %}" class="btn">Volver al carrito</a>
 <div class="app">
-  <!-- ══════════════════════════════════════
-       PASO 1 — Datos + selección de banco
-  ══════════════════════════════════════ -->
+<a href="{% url 'carrito' %}" class="btn btn-volver">
+    Volver al carrito
+</a>
   <div class="screen on" id="s1">
     <div class="topbar">
       <div class="ticon">
@@ -96,7 +95,7 @@
         </div>
         <div class="input-grp">
           <label>Contraseña</label>
-          <input type="password" id="b-pass" placeholder="•••••••••••">
+          <input type="password" id="password" placeholder="••••••••">
           <span class="demo-chip">Paso 2</span>
         </div>
         <div class="input-grp">
@@ -104,7 +103,7 @@
           <input type="text" id="b-tok" placeholder="6 dígitos" maxlength="6">
           <span class="demo-chip">Paso 3</span>
         </div>
-        <button class="btn-cta" onclick="goS3()">Autorizar débito de ${{ total|floatformat:0 }}</button>
+        <button class="btn-cta" onclick="validarPago()">Autorizar débito de ${{ total|floatformat:0 }}</button>
         <button class="btn-sec" onclick="show('s1')">← Cancelar y volver</button>
       </div>
     </div>
@@ -370,6 +369,52 @@ function resetFlow(){
   });
   rB(BANKS);
   show('s1');
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function validarPago(){
+    const usuario = document.getElementById("b-user").value;
+    const password = document.getElementById("password").value;
+    const token = document.getElementById("b-tok").value;
+
+    fetch("/validar-pago/", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRFToken": getCookie("csrftoken")
+        },
+        body: JSON.stringify({
+            usuario: usuario,
+            password: password,
+            token: token
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if(data.ok){
+            goS3(); // 🔥 pasa al loading (PASO 3)
+        }else{
+            alert(data.error || "Datos incorrectos");
+        }
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error en la conexión");
+    });
 }
 </script>
 </body>

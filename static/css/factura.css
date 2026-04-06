@@ -1,109 +1,129 @@
+/* ───────── RESET ───────── */
 body{
-
-margin:0;
-padding:0;
-font-family:Arial, Helvetica, sans-serif;
-background:#f4f4f4;
-
+    margin:0;
+    padding:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:#f4f4f4;
 }
 
+/* ───────── CONTENEDOR FACTURA ───────── */
 .factura-container{
-
-width: 90%; 
-max-width: 800px; 
-margin:40px auto;
-background:white;
-padding:30px;
-border-radius:10px;
-box-shadow:0 4px 10px rgba(0,0,0,0.2);
-
+    width:90%;
+    max-width:800px;
+    margin:40px auto;
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    box-shadow:0 4px 12px rgba(0,0,0,0.15);
 }
 
+/* ───────── TITULO ───────── */
 h1{
-
-text-align:center;
-color:#a74a4a;
-
+    text-align:center;
+    color:#a74a4a;
+    margin-bottom:20px;
 }
 
+/* ───────── DATOS CLIENTE ───────── */
 .datos-cliente{
-
-margin-bottom:25px;
-padding:15px;
-background:#f9f9f9;
-border-radius:8px;
-
+    margin-bottom:25px;
+    padding:15px;
+    background:#f9f9f9;
+    border-radius:8px;
 }
 
+/* ───────── TABLA ───────── */
 .tabla-productos{
-
-width:100%;
-border-collapse:collapse;
-margin-top:20px;
-
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
 }
 
 .tabla-productos th{
-
-background:#a74a4a;
-color:white;
-padding:10px;
-
+    background:#a74a4a;
+    color:white;
+    padding:10px;
 }
 
 .tabla-productos td{
-
-padding:10px;
-border-bottom:1px solid #ddd;
-text-align:center;
-
+    padding:10px;
+    border-bottom:1px solid #ddd;
+    text-align:center;
 }
 
+/* ───────── TOTAL ───────── */
 .total{
-
-text-align:right;
-margin-top:20px;
-font-size:20px;
-color:#333;
-
+    text-align:right;
+    margin-top:20px;
+    font-size:20px;
+    color:#333;
+    font-weight:bold;
 }
 
+/* ───────── BOTONES ───────── */
 .botones{
-
-margin-top:25px;
-display:flex;
-justify-content:space-between;
-
+    margin-top:25px;
+    display:flex;
+    justify-content:space-between;
+    gap:10px;
 }
 
+/* BOTÓN GENERAL */
 .btn{
-
-background:#a74a4a;
-color:white;
-padding:10px 18px;
-border-radius:6px;
-text-decoration:none;
-font-weight:bold;
-
+    display:inline-block;
+    padding:10px 18px;
+    font-size:14px;
+    background:#007bff;
+    color:white;
+    text-decoration:none;
+    border-radius:6px;
+    font-weight:bold;
+    transition:0.3s;
 }
 
 .btn:hover{
-
-background:#bf0f0f;
-
+    background:#0056b3;
 }
 
+/* BOTÓN ROJO (descargar o acción importante) */
+.btn-rojo{
+    background:#a74a4a;
+}
+
+.btn-rojo:hover{
+    background:#bf0f0f;
+}
+
+/* ───────── BOTÓN VOLVER FIJO ───────── */
+.btn-volver{
+    position:fixed;
+    top:20px;
+    left:20px;
+
+    padding:8px 14px;
+    font-size:13px;
+    background:#007bff;
+    color:#fff;
+    border-radius:6px;
+    text-decoration:none;
+
+    box-shadow:0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* ───────── RESPONSIVE ───────── */
 @media (max-width: 860px) {
   .factura-container {
-    width: 90%;
+    width: 95%;
     padding: 20px;
   }
+
   .botones {
     flex-direction: column;
-    gap: 10px;
   }
+
   .btn {
     text-align: center;
+    width:100%;
   }
 }
 
@@ -111,11 +131,13 @@ background:#bf0f0f;
   h1 {
     font-size: 22px;
   }
+
   .tabla-productos th,
   .tabla-productos td {
     padding: 8px 6px;
     font-size: 13px;
   }
+
   .total {
     font-size: 16px;
   }

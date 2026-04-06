@@ -13,33 +13,47 @@
 
 <header class="header">
   <div class="container">
-    <div class="menu-btn">
+    <div class="menu">
 
-      <!-- Logo a la izquierda -->
-      <img class="logo"
-           src="{% static 'images/logo-deporte.png' %}"
-           alt="Logo Deportes 360" />
+      <!-- Logo -->
+      <a href="{% url 'index' %}" class="logo-wrapper">
+        <div class="logo-icon"><span>360</span></div>
+        <div class="logo-text">
+          <strong>Deportes</strong>
+          <small>360</small>
+        </div>
+      </a>
 
+      <!-- Checkbox para menú hamburguesa -->
       <input type="checkbox" id="menu" />
 
-      <label for="menu" class="menu-extra">
-        <button class="menu-btn">☰</button>
+      <!-- Botón hamburguesa -->
+      <label for="menu" class="menu-btn">
+        <span></span>
+        <span></span>
+        <span></span>
       </label>
 
+      <!-- Overlay oscuro en móvil -->
+      <div class="nav-overlay"></div>
+
+      <!-- Barra de navegación -->
       <nav class="navbar">
         <ul>
-          <li><a href="{% url 'perfil' %}">Actualizar Perfil</a></li>
+          <li><a href="{% url 'perfil' %}">Perfil</a></li>
           <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
           <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
           <li><a href="{% url 'sugerencias' %}">Sugerencias</a></li>
           <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
           <li><a href="{% url 'carrito' %}">🛒</a></li>
+          
         </ul>
       </nav>
 
     </div>
   </div>
 </header>
+
 
 <div class="hero-section">
     <div class="container hero-content">
@@ -133,7 +147,7 @@
         <ul>
             <li><a href="{% url 'usuario' %}">Inicio</a></li>
             <li><a href="{% url 'contactousu' %}">Contacto</a></li>
-            <li><a href="#">Ayuda con tallas</a></li>
+        
         </ul>
     </div>
 </footer>

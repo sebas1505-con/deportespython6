@@ -31,4 +31,5 @@ urlpatterns = [
     path('nueva_contrasena/', views.nueva_contrasena, name='nueva_contrasena_sin_token'),
     path("prueba-correo/", views.prueba_correo),
     path('api/barrios-bogota/', views.barrios_bogota, name='api_barrios'),
+    
 ]

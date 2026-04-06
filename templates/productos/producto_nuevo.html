@@ -23,12 +23,13 @@
         <li><a href="{% url 'movimientos' %}">Movimientos</a></li>
         <li><a href="{% url 'producto_nuevo' %}" class="active">Nuevo Producto</a></li>
         <li><a href="{% url 'panel_sugerencias' %}">Sugerencias</a></li>
+        <li><a href="#carga-masiva">Carga Masiva</a></li>
         <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
     </ul>
 </nav>
 
-<main class="dashboard">
-    <section class="pedidos">
+<main class="dashboard container">
+    <section class="form-card">
         <h2>Registrar Nuevo Producto</h2>
 
         {% if messages %}
@@ -37,64 +38,62 @@
             {% endfor %}
         {% endif %}
 
-        <div class="form-container">
-            <form method="POST" action="{% url 'producto_nuevo' %}" enctype="multipart/form-data" class="formulario">
-                {% csrf_token %}
+        <form method="POST" action="{% url 'producto_nuevo' %}" enctype="multipart/form-data" class="formulario">
+            {% csrf_token %}
 
-                <div class="campo">
-                    <label>Nombre del Producto</label>
-                    <input type="text" name="nombre" class="campo-input" placeholder="Ej: Guayos Nike" required>
-                </div>
+            <div class="campo">
+                <label>Nombre del Producto</label>
+                <input type="text" name="nombre" placeholder="Ej: Guayos Nike" required>
+            </div>
 
-                <div class="campo">
-                    <label>Precio</label>
-                    <input type="number" name="precio" class="campo-input" placeholder="Ej: 120000" required>
-                </div>
+            <div class="campo">
+                <label>Precio</label>
+                <input type="number" name="precio" placeholder="Ej: 120000" required>
+            </div>
 
+            <div class="campo-grid">
                 <div class="campo">
                     <label>Stock Talla S</label>
-                    <input type="number" name="stock_s" class="campo-input" min="0" value="0">
+                    <input type="number" name="stock_s" min="0" value="0">
                 </div>
-
                 <div class="campo">
                     <label>Stock Talla M</label>
-                    <input type="number" name="stock_m" class="campo-input" min="0" value="0">
+                    <input type="number" name="stock_m" min="0" value="0">
                 </div>
-
                 <div class="campo">
                     <label>Stock Talla L</label>
-                    <input type="number" name="stock_l" class="campo-input" min="0" value="0">
+                    <input type="number" name="stock_l" min="0" value="0">
                 </div>
-
                 <div class="campo">
                     <label>Stock Talla XL</label>
-                    <input type="number" name="stock_xl" class="campo-input" min="0" value="0">
+                    <input type="number" name="stock_xl" min="0" value="0">
                 </div>
+            </div>
 
-                <div class="campo">
-                    <label>Descripción</label>
-                    <textarea name="descripcion" class="campo-input" rows="3" placeholder="Descripción del producto"></textarea>
-                </div>
+            <div class="campo">
+                <label>Descripción</label>
+                <textarea name="descripcion" rows="3" placeholder="Descripción del producto"></textarea>
+            </div>
 
-                <div class="campo">
-                    <label>Categoría</label>
-                    <select name="categoria" class="campo-input">
-                        <option value="">Seleccionar</option>
-                        <option value="HOMBRE">Hombre</option>
-                        <option value="MUJER">Mujer</option>
-                        <option value="MIXTO">Mixto</option>
-                    </select>
-                </div>
+            <div class="campo">
+                <label>Categoría</label>
+                <select name="categoria">
+                    <option value="">Seleccionar</option>
+                    <option value="HOMBRE">Hombre</option>
+                    <option value="MUJER">Mujer</option>
+                    <option value="MIXTO">Mixto</option>
+                </select>
+            </div>
 
-                <div class="campo">
-                    <label>Imagen</label>
-                    <input type="file" name="imagen" accept="image/*" class="campo-input">
-                </div>
+            <div class="campo">
+                <label>Imagen</label>
+                <input type="file" name="imagen" accept="image/*">
+            </div>
 
-                <button type="submit" class="btn-submit">Guardar Producto</button>
-            </form>
-        </div>
+            <button type="submit" class="btn-guardar">Guardar Producto</button>
+        </form>
     </section>
 </main>
+
 </body>
 </html>

@@ -6,6 +6,8 @@ from usuarios.models import Usuario, Cliente, Repartidor
 from django.contrib.auth.decorators import login_required
 from reportlab.lib.styles import getSampleStyleSheet
 from django.core.exceptions import ValidationError
+from django.http import JsonResponse
+from django.contrib.auth.hashers import check_password
 from django.contrib import messages
 from reportlab.pdfgen import canvas
 from django.http import HttpResponse
@@ -13,6 +15,8 @@ from django.conf import settings
 from django.utils import timezone
 from reportlab.lib import colors
 import os
+import pandas as pd
+import json
 from decimal import Decimal
 from rest_framework import viewsets
 
@@ -36,13 +40,49 @@ def catalogo_categoria(request, categoria):
 
 def mis_compras(request):
     try:
-        cliente = Cliente.objects.get(usuario=request)
+        usuario_id = request.session.get('usuario_id')  # 🔥 este es el correcto
+        usuario = Usuario.objects.get(id=usuario_id)
+
+        cliente = Cliente.objects.get(usuario=usuario)
         compras = Venta.objects.filter(cliente=cliente)
-    except Cliente.DoesNotExist:
+
+    except (Cliente.DoesNotExist, Usuario.DoesNotExist):
         compras = []
 
-    return render(request, 'mis_compras.html', {'compras': compras})
-     
+    return render(request, 'usuarios/mis_compras.html', {'compras': compras})
+
+def carga_masiva_productos(request):
+    if request.method == 'POST':
+        archivo = request.FILES.get('archivo')
+
+        if not archivo:
+            messages.error(request, "Debe subir un archivo.")
+            return redirect('carga_masiva')
+
+        # validar que sea excel
+        if not archivo.name.endswith(('.xlsx', '.xls')):
+            messages.error(request, "Solo se permiten archivos Excel (.xlsx, .xls)")
+            return redirect('carga_masiva')
+
+        try:
+            df = pd.read_excel(archivo)
+
+            for _, fila in df.iterrows():
+                Producto.objects.create(
+                    nombre=fila['nombre'],
+                    precio=fila['precio'],
+                    stock=fila['stock'],
+                    descripcion=fila['descripcion']
+                )
+
+            messages.success(request, "Productos cargados correctamente")
+
+        except Exception as e:
+            messages.error(request, f"Error al procesar el archivo: {e}")
+
+        return redirect('carga_masiva')
+
+    return redirect('panel_admin')
 
 def productos(request):
     productos = Producto.objects.all()
@@ -161,7 +201,7 @@ def carrito(request):
                 talla_obj = get_object_or_404(TallaProducto, producto=producto, talla=talla)
 
                 if item['cantidad'] > talla_obj.stock:
-                    return render(request, 'stock_insuficiente.html', {
+                    return render(request, 'productos/stock_insuficiente.html', {
                         'producto_nombre': producto.nombre,
                         'talla': talla,
                         'stock_disponible': talla_obj.stock
@@ -246,12 +286,24 @@ def formulario_compra(request):
                 for key, item in carrito.items():
                     producto_id = key.split('_')[0]
                     producto = Producto.objects.get(id=int(producto_id))
+
+    # 🔥 CREAR DETALLE (ESTO TE FALTABA)
+                    DetalleVentaProductos.objects.create(
+                        venta=venta,
+                        producto=producto,
+                        talla=item['talla'],
+                        cantidad=item['cantidad'],
+                        precio_unitario=item['precio'],
+                        subtotal=item['precio'] * item['cantidad']
+                    )
+
+    # Pedido para repartidor
                     Pedido.objects.create(
                         venta=venta,
                         producto=producto,
                         cantidad=item['cantidad'],
                         total=item['precio'] * item['cantidad'],
-                        estado="Pendiente",
+                        estado="Disponible",  # 🔥 aprovecha y arregla esto
                         usuario=usuario
                     )
 
@@ -337,6 +389,29 @@ def pse(request):
         'venta_ref': '123456'  # puedes hacerlo dinámico
     })
 
+def validar_pse(request):
+    if request.method == "POST":
+        data = json.loads(request.body)
+
+        password_input = data.get("password")
+
+        # 🔥 Obtener usuario logueado desde sesión
+        usuario_id = request.session.get('usuario_id')
+
+        if not usuario_id:
+            return JsonResponse({"ok": False, "error": "Usuario no autenticado"})
+
+        from usuarios.models import Usuario
+        usuario = Usuario.objects.get(id=usuario_id)
+
+        # 🔥 SOLO valida contraseña
+        if check_password(password_input, usuario.password):
+            return JsonResponse({"ok": True})
+        else:
+            return JsonResponse({"ok": False, "error": "Contraseña incorrecta"})
+
+    return JsonResponse({"ok": False})
+
 def confirmar_compra(request):
     if request.method == 'POST':
         compra = request.session.get('compra')
@@ -366,6 +441,16 @@ def factura(request, venta_id):
     venta    = get_object_or_404(Venta, id=venta_id)
     detalles = DetalleVentaProductos.objects.filter(venta=venta)
     return render(request, 'productos/factura.html', {
+        'venta': venta,
+        'detalles': detalles,
+        'cliente': venta.cliente,
+        'total': venta.totalVenta
+    })
+
+def factura1(request, venta_id):
+    venta    = get_object_or_404(Venta, id=venta_id)
+    detalles = DetalleVentaProductos.objects.filter(venta=venta)
+    return render(request, 'usuarios/factura1.html', {
         'venta': venta,
         'detalles': detalles,
         'cliente': venta.cliente,
@@ -452,20 +537,26 @@ def mis_pedidos(request):
     usuario_id = request.session.get('usuario_id')
     repartidor = get_object_or_404(Repartidor, usuario__id=usuario_id)
 
-    ventas_pendientes = Pedido.objects.filter(estado='Disponible', repartidor=None)\
-                                      .select_related('venta__cliente__usuario')
-    pedidos_activos   = Pedido.objects.filter(repartidor=repartidor, estado='En camino')\
-                                      .select_related('venta__cliente__usuario')
-    mis_pedidos_qs    = Pedido.objects.filter(repartidor=repartidor, estado='Entregado')\
-                                      .select_related('venta__cliente__usuario')\
-                                      .order_by('-fecha_pedido')
+    ventas_pendientes = Pedido.objects.filter(
+        estado='Disponible',
+        repartidor=None
+    ).select_related('venta__cliente__usuario')
+
+    pedidos_activos = Pedido.objects.filter(
+        repartidor=repartidor,
+        estado='En camino'
+    ).select_related('venta__cliente__usuario')
+
+    mis_pedidos_qs = Pedido.objects.filter(
+        repartidor=repartidor,
+        estado='Entregado'
+    ).select_related('venta__cliente__usuario').order_by('-fecha_pedido')
 
     return render(request, 'repartidor.html', {
         'Nombre': repartidor.usuario.first_name,
         'ventas_pendientes': ventas_pendientes,
         'pedidos_activos': pedidos_activos,
         'mis_pedidos': mis_pedidos_qs,
-        'repartidor': repartidor,
     })
 
 

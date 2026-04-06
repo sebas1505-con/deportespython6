@@ -10,44 +10,34 @@
 <body>
     <div class="compras-container">
         <h1 class="titulo-compras">Mis Compras</h1>
-
+         <a href="{% url 'usuario' %}" class="btn-volver">
+         Volver
+        </a>
         {% if compras %}
-            <div class="compras-lista">
-                {% for compra in compras %}
-    <div class="compra-card">
-        <div class="compra-header">
-            <span class="compra-fecha">📅 {{ compra.fecha_venta|date:"d/m/Y H:i" }}</span>
-            <span class="compra-total">💰 Total: ${{ compra.totalVenta }}</span>
-        </div>
-        <div class="compra-detalles">
-            {% for detalle in compra.detalleventaproductos_set.all %}
-                <div class="detalle-item">
-                    <img src="{{ detalle.producto.imagen.url }}" alt="{{ detalle.producto.nombre }}">
-                    <div class="detalle-info">
-                        <h3>{{ detalle.producto.nombre }}</h3>
-                        <p>Talla: <strong>{{ detalle.talla }}</strong></p>
-                        <p>Cantidad: {{ detalle.cantidad }}</p>
-                        <p>Subtotal: ${{ detalle.subtotal }}</p>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        <div class="compra-footer">
-            <a href="{% url 'detalle_compra' compra.id %}" class="btn-ver">Ver factura</a>
-        </div>
-    </div>
-{% endfor %}
+            <div class="compras-grid">
 
+                {% for compra in compras %}
+                    <div class="compra-card">
+                        
+                        <div class="compra-info">
+                            <p><strong>ID:</strong> {{ compra.id }}</p>
+                            <p><strong>Total:</strong> ${{ compra.totalVenta }}</p>
                         </div>
+
                         <div class="compra-footer">
-                            <a href="{% url 'detalle_compra' compra.id %}" class="btn-ver">Ver factura</a>
+                            <a href="{% url 'factura1' compra.id %}" class="btn-ver">
+                                Ver factura
+                            </a>
                         </div>
+
                     </div>
                 {% endfor %}
+
             </div>
         {% else %}
             <p class="sin-compras">No tienes compras registradas todavía.</p>
         {% endif %}
     </div>
+
 </body>
 </html>
