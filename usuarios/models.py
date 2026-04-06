@@ -63,7 +63,7 @@ class Producto(models.Model):
     slug = models.SlugField(unique=True, blank=True)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     descripcion = models.TextField()
-    imagen = models.ImageField(upload_to='productos/')
+    imagen = models.ImageField(upload_to='productos/', blank=True, null=True)
     categoria = models.CharField(max_length=20, choices=CATEGORIAS, blank=True, null=True)
 
     @property

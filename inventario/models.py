@@ -16,10 +16,7 @@ class Producto(models.Model):
     descripcion = models.TextField()
     imagen = models.ImageField(upload_to='productos/')
     categoria = models.CharField(max_length=10, choices=CATEGORIAS, default="MIXTO")
-
-    @property
-    def stock_total(self):
-        return sum(t.stock for t in self.tallas.all())
+    stock_total = models.IntegerField(default=0)  # 👈 ahora es un campo real
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -53,7 +50,13 @@ class Inventario(models.Model):
 class Movimiento(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     talla = models.CharField(max_length=5)
+    tipo_movimiento = models.CharField(
+        max_length=10,
+        choices=[("entrada", "Entrada"), ("salida", "Salida")],
+        default="entrada"   # 👈 aquí va el default
+    )
     cantidad = models.IntegerField()
+    motivo = models.TextField(blank=True, null=True)
     fecha = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
@@ -62,7 +65,11 @@ class Movimiento(models.Model):
             talla=self.talla,
             defaults={'stock': 0}
         )
-        talla_producto.stock += self.cantidad
+        # Ajustar stock según tipo
+        if self.tipo_movimiento == "entrada":
+            talla_producto.stock += self.cantidad
+        elif self.tipo_movimiento == "salida":
+            talla_producto.stock -= self.cantidad
         talla_producto.save()
         super().save(*args, **kwargs)
 

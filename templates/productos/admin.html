@@ -182,13 +182,39 @@
 
 <!-- CARGA MASIVA -->
 <section class="productos" id="carga-masiva">
-    <h2>Carga Masiva de Productos</h2>
+    <h2>Carga Masiva</h2>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <p class="mensaje {{ message.tags }}">{{ message }}</p>
+        {% endfor %}
+    {% endif %}
+
     <form method="POST" enctype="multipart/form-data">
-{% csrf_token %}
-<input type="file" name="archivo_excel" accept=".xlsx,.xls">
-<button type="submit">Subir Excel</button>
-</form>
+        {% csrf_token %}
+
+        <!-- Selector de tipo de carga -->
+        <div class="campo">
+            <label>Tipo de carga</label>
+            <select name="tipo_carga" class="campo-input" required>
+                <option value="">Seleccionar</option>
+                <option value="productos">Productos</option>
+                <option value="stock">Stock por talla</option>
+            </select>
+        </div>
+
+        <!-- Archivo -->
+        <div class="campo">
+            <label>Archivo (CSV o Excel)</label>
+            <input type="file" name="archivo" accept=".csv,.xlsx" required>
+        </div>
+
+        <!-- Botón -->
+        <button type="submit" class="btn-submit">Subir Archivo</button>
+    </form>
 </section>
+
 
 
 <!-- REPORTES DE VENTAS -->
@@ -236,30 +262,43 @@
 
 <!-- MOVIMIENTOS -->
 <section class="productos" id="movimientos">
-<h2>Movimientos de Inventario</h2>
-<table class="tabla-productos">
-<thead>
-<tr>
-<th>ID</th>
-<th>Producto</th>
-<th>Tipo</th>
-<th>Cantidad</th>
-<th>Fecha</th>
-</tr>
-</thead>
-<tbody>
-{% for m in movimientos %}
-<tr>
-<td>{{m.id}}</td>
-<td>{{m.producto.nombre}}</td>
-<td>{{m.tipo}}</td>
-<td>{{m.cantidad}}</td>
-<td>{{m.fecha}}</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+    <h2>Movimientos de Inventario</h2>
+
+    <a href="{% url 'movimiento_nuevo' %}" 
+       class="btn" 
+       style="background:#007bff; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; display:inline-block; margin-bottom:15px;">
+       ➕ Realizar Movimiento
+    </a>
+
+    <table class="tabla-productos">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Producto</th>
+                <th>Tipo</th>
+                <th>Cantidad</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for m in movimientos %}
+            <tr>
+                <td>{{ m.id }}</td>
+                <td>{{ m.producto.nombre }}</td>
+                <td>{{ m.tipo_movimiento }}</td>
+                <td>{{ m.cantidad }}</td>
+                <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align:center;">No hay movimientos registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </section>
+
+
 
 <!-- SUGERENCIAS -->
 <section class="productos" id="panel_sugerencias">

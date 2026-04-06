@@ -4,16 +4,18 @@ from django.core.mail import EmailMessage
 from django.contrib import messages
 from django.http import HttpResponse
 from django.db.models import Sum, F
+from django.utils.text import slugify
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 import json
 import uuid
+import io
 import pandas as pd
 from .models import Usuario, Cliente, Repartidor, Sugerencia, Administrador, Pedido
 from .forms import RegistroClienteForm, RepartidorForm
 from .barrios import BARRIOS_BOGOTA
 from email.mime.image import MIMEImage
-from inventario.models import Producto, Pedido, Movimiento, Sugerencia, Venta
+from inventario.models import Producto, Pedido, Movimiento, Sugerencia, Venta, TallaProducto
 # ── Páginas generales ─────────────────────────────────────────────────────────
 
 def index(request):
@@ -175,38 +177,81 @@ def usuario(request):
     return render(request, "usuario.html", {"usuario": usuario, "productos": productos})
 
 def admin(request):
-
     usuario_id = request.session.get('usuario_id')
     rol = request.session.get('rol')
     if not usuario_id or rol != 'ADMIN':
         return redirect('sinacceso')
 
     # ==============================
-    # Carga masiva de Excel
+    # Carga masiva desde la página
     # ==============================
-    if request.method == "POST" and request.FILES.get("archivo_excel"):
-        archivo = request.FILES["archivo_excel"]
-
-        if not archivo.name.endswith(('.xlsx', '.xls')):
-            messages.error(request, "Solo se permiten archivos Excel")
-            return redirect('panel_admin')
+    if request.method == "POST" and request.FILES.get("archivo"):
+        archivo = request.FILES["archivo"]
+        tipo_carga = request.POST.get("tipo_carga", "productos")  # por defecto productos
 
         try:
-            df = pd.read_excel(archivo)
-            for _, fila in df.iterrows():
-                Producto.objects.create(
-                    nombre=fila['nombre'],
-                    precio=fila['precio'],
-                    stock_total=fila['stock_total'],
-                    descripcion=fila['descripcion'],
-                    categoria=fila['categoria']
-                )
-            messages.success(request, "Productos cargados correctamente")
+            # Leer archivo CSV o Excel
+            if archivo.name.endswith(".csv"):
+                df = pd.read_csv(io.TextIOWrapper(archivo.file, encoding="utf-8"))
+            elif archivo.name.endswith(".xlsx"):
+                df = pd.read_excel(archivo)
+            else:
+                messages.error(request, "Solo se permiten archivos CSV o Excel")
+                return redirect("panel_admin")
+
+            print("Columnas detectadas:", df.columns)
+            print("Primeras filas:", df.head())
+
+            # Carga de productos
+            if tipo_carga == "productos":
+                columnas = ["id", "nombre", "slug", "precio", "descripcion", "imagen", "categoria"]
+                if not all(col in df.columns for col in columnas):
+                    messages.error(request, "El archivo no tiene las columnas requeridas para productos")
+                    return redirect("panel_admin")
+
+                for _, fila in df.iterrows():
+                    Producto.objects.update_or_create(
+                        id=int(fila["id"]),
+                        defaults={
+                            "nombre": str(fila["nombre"]),
+                            "slug": slugify(f"{fila['nombre']}-{fila['id']}"),
+                            "precio": float(fila["precio"]),
+                            "descripcion": str(fila["descripcion"]),
+                            "categoria": str(fila["categoria"]).upper(),
+                            "imagen": fila["imagen"] if fila["imagen"] else None,
+                        }
+                    )
+                messages.success(request, "✅ Productos cargados correctamente")
+
+            # Carga de stock
+            elif tipo_carga == "stock":
+                columnas = ["id", "talla", "stock", "producto_id"]
+                if not all(col in df.columns for col in columnas):
+                    messages.error(request, "El archivo no tiene las columnas requeridas para stock")
+                    return redirect("panel_admin")
+
+                for _, fila in df.iterrows():
+                    if int(fila["stock"]) < 0:
+                        messages.warning(request, f"Stock negativo en producto {fila['producto_id']} - talla {fila['talla']}")
+                        continue
+                    TallaProducto.objects.update_or_create(
+                        id=int(fila["id"]),
+                        defaults={
+                            "talla": str(fila["talla"]),
+                            "stock": int(fila["stock"]),
+                            "producto_id": int(fila["producto_id"]),
+                        }
+                    )
+                messages.success(request, "✅ Stock cargado correctamente")
+
         except Exception as e:
-            messages.error(request, f"Error al procesar el Excel: {e}")
+            messages.error(request, f"Error al procesar archivo: {e}")
+        return redirect("panel_admin")
 
-        return redirect('panel_admin')
-
+    # ==============================
+    # Render del panel (datos extra)
+    # ==============================
+    return render(request, 'productos/admin.html', {})
     # ==============================
     # Datos del panel
     # ==============================
@@ -251,6 +296,8 @@ def admin(request):
     # Renderizar template
     # ==============================
     return render(request, 'productos/admin.html', context)
+
+
 
 def repartidor(request):
     usuario_id = request.session.get('usuario_id')

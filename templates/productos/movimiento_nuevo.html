@@ -1,0 +1,93 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Movimientos - Deportes 360</title>
+
+<link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
+<link rel="stylesheet" href="{% static 'css/nuevo_movimiento.css' %}">
+
+</head>
+<body>
+
+<header class="topbar">
+    <h1>Panel Administrador</h1>
+    <a href="{% url 'panel_admin' %}" class="btn-volver">Volver</a>
+</header>
+
+<main class="dashboard">
+
+<section class="card">
+
+<h2>Registrar Movimiento</h2>
+
+{% if messages %}
+{% for message in messages %}
+<p class="mensaje {{ message.tags }}">
+    {{ message }}
+</p>
+{% endfor %}
+{% endif %}
+
+<form method="post">
+{% csrf_token %}
+
+<div class="form-group">
+<label>Producto</label>
+<select name="producto" required>
+<option value="">Seleccione un producto</option>
+{% for p in productos %}
+<option value="{{ p.id }}">{{ p.nombre }}</option>
+{% endfor %}
+</select>
+</div>
+
+<div class="form-group">
+<label>Talla</label>
+<select name="talla" required>
+<option value="">Seleccione talla</option>
+<option value="S">S</option>
+<option value="M">M</option>
+<option value="L">L</option>
+<option value="XL">XL</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Tipo de Movimiento</label>
+<select name="tipo_movimiento" required>
+<option value="">Seleccione tipo</option>
+<option value="entrada">Entrada</option>
+<option value="salida">Salida</option>
+</select>
+</div>
+
+<div class="form-group">
+<label>Proveedor (opcional)</label>
+<input type="text" name="proveedor" placeholder="Nike, Adidas...">
+</div>
+
+<div class="form-group">
+<label>Cantidad</label>
+<input type="number" name="cantidad" min="1" required>
+</div>
+
+<div class="form-group">
+<label>Motivo</label>
+<textarea name="motivo" rows="3" required></textarea>
+</div>
+
+<button type="submit" class="btn-guardar">
+Guardar Movimiento
+</button>
+
+</form>
+
+</section>
+
+</main>
+
+</body>
+</html>

@@ -1,14 +1,16 @@
-<h2>Carga masiva de productos</h2>
-
-<form method="POST" enctype="multipart/form-data">
+<section id="carga-masiva">
+  <h2>Carga Masiva</h2>
+  <form method="POST" enctype="multipart/form-data">
     {% csrf_token %}
+    <select name="tipo_carga" required>
+      <option value="productos">Productos</option>
+      <option value="stock">Stock por talla</option>
+    </select>
+    <input type="file" name="archivo" accept=".csv,.xlsx" required>
+    <button type="submit">Subir Archivo</button>
+  </form>
+  {% for message in messages %}
+    <p class="{{ message.tags }}">{{ message }}</p>
+  {% endfor %}
+</section>
 
-    <input type="file" name="archivo" accept=".xlsx,.xls" required>
-
-    <button type="submit">Subir Excel</button>
-
-</form>
-
-{% for message in messages %}
-<p>{{ message }}</p>
-{% endfor %}

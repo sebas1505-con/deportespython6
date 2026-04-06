@@ -34,17 +34,30 @@
         {% for producto in productos %}
 
         <div class="Prodcts-1">
-            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"/>
+            {% if producto.imagen %}
+                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+            {% else %}
+                <img src="{% static 'images/producto_default.png' %}" alt="Sin imagen">
+            {% endif %}
 
             <h4>{{ producto.nombre }}</h4>
-                <p>Precio: ${{ producto.precio }}</p>
-                <p>Stock disponible: {{ producto.stock_total }}</p>
-                <p>Categoría: {{ producto.get_categoria_display }}</p>
-                <p>{{ producto.descripcion }}</p>
+            <p>Precio: ${{ producto.precio }}</p>
+            <p>Stock disponible: {{ producto.stock_total }}</p>
 
-                <a href="{% url 'producto_editar' producto.id %}" class="btn">Editar</a>
-                <a href="{% url 'producto_eliminar' producto.id %}" class="btn btn-danger">Eliminar</a>
+            {% if producto.stock_total == 0 %}
+                <p style="color:red; font-weight:bold;">⚠ ¡Sin stock!</p>
+            {% elif producto.stock_total <= 10 %}
+                <p style="color:orange; font-weight:bold;">⚠ ¡Poco stock!</p>
+            {% endif %}
+
+
+            <p>Categoría: {{ producto.get_categoria_display }}</p>
+            <p>{{ producto.descripcion }}</p>
+
+            <a href="{% url 'producto_editar' producto.id %}" class="btn">Editar</a>
+            <a href="{% url 'producto_eliminar' producto.id %}" class="btn btn-danger">Eliminar</a>
         </div>
+
         {% empty %}
             <p>No hay productos registrados</p>
         {% endfor %}

@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
-from .models import (Producto, TallaProducto, Venta, Movimiento,Reporte, DetalleVentaProductos, Pedido)
+from .models import (Producto, TallaProducto, Venta, Movimiento,Reporte, DetalleVentaProductos, Pedido, Sugerencia)
 from .forms import CompraForm, ReportesForm, MovimientoForm
 from usuarios.models import Usuario, Cliente, Repartidor
 from django.contrib.auth.decorators import login_required
@@ -84,6 +84,56 @@ def carga_masiva_productos(request):
 
     return redirect('panel_admin')
 
+def panel_admin(request):
+    ultimos_pedidos = Pedido.objects.order_by('-fecha_pedido')[:10]
+    usuarios = Usuario.objects.all()
+    productos = Producto.objects.all()
+    ventas = Venta.objects.all()
+    movimientos = Movimiento.objects.order_by('-fecha')[:20]  # últimos 20 movimientos
+    sugerencias = Sugerencia.objects.all()
+
+    return render(request, 'admin/panel_admin.html', {
+        'ultimos_pedidos': ultimos_pedidos,
+        'usuarios': usuarios,
+        'productos': productos,
+        'ventas': ventas,
+        'movimientos': movimientos,
+        'sugerencias': sugerencias,
+    })
+
+def movimiento_nuevo(request):
+    productos = Producto.objects.all()
+
+    if request.method == "POST":
+        producto_id = request.POST.get("producto")
+        tipo = request.POST.get("tipo_movimiento")
+        cantidad = int(request.POST.get("cantidad"))
+        motivo = request.POST.get("motivo")
+
+        producto = get_object_or_404(Producto, id=producto_id)
+
+        Movimiento.objects.create(
+            producto=producto,
+            talla=request.POST.get("talla"),
+            cantidad=int(request.POST.get("cantidad")),
+            tipo_movimiento=request.POST.get("tipo_movimiento"),
+            motivo=request.POST.get("motivo", "")
+        )
+
+
+        if tipo == "entrada":
+            producto.stock_total += cantidad
+        elif tipo == "salida":
+            producto.stock_total -= cantidad
+
+        producto.save()
+
+        messages.success(request, "Movimiento registrado correctamente")
+        return redirect('movimientos')
+
+    return render(request, 'productos/movimiento_nuevo.html', {'productos': productos})
+
+
 def productos(request):
     productos = Producto.objects.all()
     return render(request, 'productos/productos.html', {'productos': productos})
@@ -128,17 +178,30 @@ def producto_editar(request, id):
         return redirect('productos')
     return render(request, 'productos/producto_editar.html', {'producto': producto})
 
+def movimientos(request, id):
+    producto = get_object_or_404(Producto, id=id)
+    movimientos = Movimiento.objects.filter(producto=producto).order_by('-fecha')
+    return render(request, 'productos/movimientos.html', {
+        'producto': producto,
+        'movimientos': movimientos
+    })
+
+
+
 def producto_eliminar(request, id):
     producto = get_object_or_404(Producto, id=id)
     producto.delete()
-    return redirect('inventario')
+    messages.success(request, "Producto eliminado correctamente")
+    return redirect('productos')  # <- usa el name de la URL de productos
+
+
 
 
 # ── Inventario y movimientos ──────────────────────────────────────────────────
 
 def inventario(request):
     productos = Producto.objects.all()
-    return render(request, 'inventario.html', {'productos': productos})
+    return render(request, 'productos/inventario.html', {'productos': productos})
 
 def registrar_movimiento(request):
     productos = Producto.objects.all()
@@ -156,7 +219,8 @@ def registrar_movimiento(request):
         except ValidationError as e:
             messages.error(request, f"Error: {e.message}")
         return redirect('movimientos')
-    return render(request, 'movimientos.html', {'productos': productos})
+    return render(request, 'productos/movimiento_nuevo.html', {'productos': productos})
+
 
 
 # ── Carrito ───────────────────────────────────────────────────────────────────
@@ -233,6 +297,22 @@ def agregar_al_carrito(request, id):
             }
         request.session['carrito'] = carrito
     return redirect('carrito')
+
+def agregar_producto(request):
+    if request.method == "POST":
+        nombre = request.POST.get("nombre")
+        cantidad = request.POST.get("cantidad")
+        precio = request.POST.get("precio")
+
+        Producto.objects.create(
+            nombre=nombre,
+            precio=precio,
+            descripcion="",
+            categoria="MIXTO"
+        )
+        messages.success(request, "Producto agregado correctamente")
+        return redirect('inventario')
+    return redirect('inventario')
 
 
 # ── Compra y factura ──────────────────────────────────────────────────────────

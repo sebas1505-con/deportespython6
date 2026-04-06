@@ -20,7 +20,8 @@
 
     <!-- FORMULARIO -->
     <section class="form-section">
-        <form method="POST" action="{% url 'agregar_producto' %}" class="formulario-inventario">
+        <form method="POST" action="{% url 'producto_nuevo' %}" class="formulario-inventario">
+
 
             {% csrf_token %}
 
