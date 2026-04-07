@@ -43,7 +43,6 @@
     <div class="card">
         <nav>
             <a href="{% url 'repartidor' %}" class="btn">Inicio</a>
-            <a href="{% url 'mis_pedidos' %}" class="btn">Mis Pedidos</a>
             <a href="{% url 'logout' %}" class="btn">Cerrar Sesión</a>
         </nav>
     </div>
@@ -85,6 +84,7 @@
                         <td>{{ pedido.venta.telefonoContacto }}</td>
                         <td>${{ pedido.venta.totalVenta }}</td>
                         <td>
+                            <a href="{% url 'detalle_pedido' pedido.id %}" class="btn" style="background:#0d1a26; color:white; margin-right:6px;">Ver</a>
                             <form method="post" action="{% url 'tomar_pedido' pedido.id %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn">Tomar</button>

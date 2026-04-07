@@ -11,7 +11,7 @@ import json
 import uuid
 import io
 import pandas as pd
-from .models import Usuario, Cliente, Repartidor, Sugerencia, Administrador, Pedido
+from .models import Usuario, Cliente, Repartidor, Sugerencia, Administrador, Pedido, DetalleVentaProductos
 from .forms import RegistroClienteForm, RepartidorForm
 from .barrios import BARRIOS_BOGOTA
 from email.mime.image import MIMEImage
@@ -315,15 +315,15 @@ def repartidor(request):
                               .select_related('venta__cliente__usuario')
     pedidos_activos  = Pedido.objects.filter(repartidor=repartidor_obj, estado='En camino')\
                               .select_related('venta__cliente__usuario')
-    mis_pedidos      = Pedido.objects.filter(repartidor=repartidor_obj, estado='Entregado')\
+    mis_pedidos       = Pedido.objects.filter(repartidor=repartidor_obj, estado='Entregado')\
                               .select_related('venta__cliente__usuario')
 
     return render(request, 'repartidor.html', {
         'Nombre':           usuario.first_name,
         'ventas_pendientes': ventas_pendientes,
         'pedidos_activos':  pedidos_activos,
-        'mis_pedidos':      mis_pedidos,
         'repartidor':       repartidor_obj,
+        'mis_pedidos':      mis_pedidos,
     })
 
 
@@ -358,7 +358,7 @@ def eliminar_usuario(request, id):
     return redirect('panel_admin')
 
 def pedidos_disponibles(request):
-    pedidos = Pedido.objects.filter(estado='disponible')
+    pedidos = Pedido.objects.filter(estado__in=['disponible', 'Pendiente'] )
     return render(request, 'usuarios/pedidos_disponibles.html', {'pedidos': pedidos})
 
 def tomar_pedido(request, pedido_id):
@@ -371,10 +371,6 @@ def tomar_pedido(request, pedido_id):
     messages.success(request, "Pedido tomado correctamente.")
     return redirect('repartidor')
 
-def mis_pedidos(request):
-    pedidos = Pedido.objects.filter(repartidor=request.user)
-    return render(request, 'usuarios/mis_pedidos.html', {'pedidos': pedidos})
-
 def entregar_pedido(request, pedido_id):
     usuario_id = request.session.get('usuario_id')
     repartidor_obj = get_object_or_404(Repartidor, usuario__id=usuario_id)
@@ -384,6 +380,27 @@ def entregar_pedido(request, pedido_id):
     messages.success(request, "Pedido marcado como entregado.")
     return redirect('repartidor')
 
+def mis_pedidos(request):
+    pedidos = Pedido.objects.filter(repartidor=request.user, estado='Entregado')
+    return render(request, 'usuarios/repartidor.html', {'mis_pedidos': pedidos})
+
+def detalle_pedido(request, pedido_id):
+    usuario_id = request.session.get('usuario_id')
+    try:
+        repartidor = Repartidor.objects.get(usuario__id=usuario_id)
+    except Repartidor.DoesNotExist:
+        return redirect('login')
+
+    pedido = get_object_or_404(Pedido, id=pedido_id)
+    venta = pedido.venta
+    detalles = DetalleVentaProductos.objects.filter(venta_id=venta.id)
+
+    return render(request, 'detalle_pedido.html', {
+        'pedido': pedido,
+        'venta': venta,
+        'repartidor': repartidor,
+        'detalles': detalles,
+    })
 
 # ── Sugerencias ───────────────────────────────────────────────────────────────
 
