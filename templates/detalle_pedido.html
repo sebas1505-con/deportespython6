@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle Pedido #{{ pedido.id }}</title>
+    <link rel="stylesheet" href="{% static 'css/repartidor.css' %}">
+</head>
+<body>
+
+<div class="header">
+    <h1>Panel del Repartidor</h1>
+</div>
+
+<div class="container">
+
+    <div class="card">
+        <a href="{% url 'repartidor' %}" class="btn">⬅ Volver</a>
+    </div>
+
+    <div class="card">
+    <h2>Detalle del Pedido #{{ pedido.id }}</h2>
+    <table class="table" style="margin-top:16px;">
+        <tr><th>Cliente</th><td>{{ venta.cliente.usuario.username }}</td></tr>
+        <tr><th>Dirección</th><td>{{ venta.direccionEnvio }}</td></tr>
+        <tr><th>Teléfono</th><td>{{ venta.telefonoContacto }}</td></tr>
+        <tr><th>Método de Pago</th><td>{{ venta.metodo_de_pago|title|cut:"_" }}</td></tr>
+        <tr><th>Producto</th><td>{{ pedido.producto.nombre }}</td></tr>
+        <tr><th>Cantidad</th><td>{{ pedido.cantidad }}</td></tr>
+        <tr><th>Total</th><td>${{ pedido.total }}</td></tr>
+        
+        {% if venta.observaciones %}
+        <tr><th>Observaciones</th><td>{{ venta.observaciones }}</td></tr>
+        {% endif %}
+    </table>
+</div>
+
+</div>
+</body>
+</html>
