@@ -7,15 +7,18 @@ from django.db.models import Sum, F
 from django.utils.text import slugify
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-import json
-import uuid
-import io
-import pandas as pd
+from django.db.models.functions import TruncDate
 from .models import Usuario, Cliente, Repartidor, Sugerencia, Administrador, Pedido
 from .forms import RegistroClienteForm, RepartidorForm
 from .barrios import BARRIOS_BOGOTA
 from email.mime.image import MIMEImage
-from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto
+from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto,DetalleVentaProductos
+import requests
+import pandas as pd
+import json
+import uuid
+import io
+
 # ── Páginas generales ─────────────────────────────────────────────────────────
 
 def index(request):
@@ -149,7 +152,7 @@ def crear_admin(request):
             is_superuser=True
         )
         Administrador.objects.create(codigo=codigo, usuario=usuario)
-        return redirect("login")
+        return redirect("panel_admin")
     return render(request, "crear_admin.html")
 
 
@@ -187,10 +190,9 @@ def admin(request):
     # ==============================
     if request.method == "POST" and request.FILES.get("archivo"):
         archivo = request.FILES["archivo"]
-        tipo_carga = request.POST.get("tipo_carga", "productos")  # por defecto productos
+        tipo_carga = request.POST.get("tipo_carga", "productos")
 
         try:
-            # Leer archivo CSV o Excel
             if archivo.name.endswith(".csv"):
                 df = pd.read_csv(io.TextIOWrapper(archivo.file, encoding="utf-8"))
             elif archivo.name.endswith(".xlsx"):
@@ -202,7 +204,6 @@ def admin(request):
             print("Columnas detectadas:", df.columns)
             print("Primeras filas:", df.head())
 
-            # Carga de productos
             if tipo_carga == "productos":
                 columnas = ["id", "nombre", "slug", "precio", "descripcion", "imagen", "categoria"]
                 if not all(col in df.columns for col in columnas):
@@ -223,7 +224,6 @@ def admin(request):
                     )
                 messages.success(request, "✅ Productos cargados correctamente")
 
-            # Carga de stock
             elif tipo_carga == "stock":
                 columnas = ["id", "talla", "stock", "producto_id"]
                 if not all(col in df.columns for col in columnas):
@@ -248,19 +248,49 @@ def admin(request):
             messages.error(request, f"Error al procesar archivo: {e}")
         return redirect("panel_admin")
 
+    # ── Datos para gráfico de ventas por fecha ──────────────────────────────
+    ventas_por_fecha = (
+        Venta.objects
+        .annotate(fecha=TruncDate('fecha_venta'))
+        .values('fecha')
+        .annotate(total=Sum('totalVenta'))
+        .order_by('fecha')
+    )
+    fechas_ventas  = json.dumps([str(v['fecha']) for v in ventas_por_fecha])
+    totales_ventas = json.dumps([float(v['total']) for v in ventas_por_fecha])
 
+    # ── Datos para gráfico de ventas por producto ───────────────────────────
+    ventas_por_producto = (
+        DetalleVentaProductos.objects
+        .values('producto__nombre')
+        .annotate(total=Sum('subtotal'))
+        .order_by('-total')[:10]
+    )
+    nombres_productos = json.dumps([v['producto__nombre'] for v in ventas_por_producto])
+    totales_productos = json.dumps([float(v['total']) for v in ventas_por_producto])
+
+    # ── Consultas generales ─────────────────────────────────────────────────
     ultimos_pedidos = Pedido.objects.all().order_by('-fecha_pedido')[:10]
-    usuarios = Usuario.objects.all()
-    ventas = Venta.objects.all().order_by('-fecha_venta')
-    movimientos = Movimiento.objects.all().order_by('-fecha')
-    sugerencias = Sugerencia.objects.all().order_by('-fecha')
+    usuarios        = Usuario.objects.all()
+    ventas          = Venta.objects.all().order_by('-fecha_venta')
+    movimientos     = Movimiento.objects.all().order_by('-fecha')
+    sugerencias     = Sugerencia.objects.all().order_by('-fecha')
+
+    cantidad_ventas = ventas.count()
+    total_general   = ventas.aggregate(total=Sum('totalVenta'))['total'] or 0
 
     return render(request, 'productos/admin.html', {
-        "ultimos_pedidos": ultimos_pedidos,
-        "usuarios": usuarios,
-        "ventas": ventas,
-        "movimientos": movimientos,
-        "sugerencias": sugerencias,
+        "ultimos_pedidos":  ultimos_pedidos,
+        "usuarios":         usuarios,
+        "ventas":           ventas,
+        "movimientos":      movimientos,
+        "sugerencias":      sugerencias,
+        "fechas_ventas":    fechas_ventas,
+        "totales_ventas":   totales_ventas,
+        "nombres_productos": nombres_productos,
+        "totales_productos": totales_productos,
+        "cantidad_ventas":  cantidad_ventas,
+        "total_general":    total_general,
     })
 
 def repartidor(request):
@@ -473,13 +503,55 @@ def nueva_contrasena(request, token=None):
 # ── API ───────────────────────────────────────────────────────────────────────
 
 @api_view(['GET'])
-def barrios_bogota(request):
-    localidad = request.GET.get('localidad')
-    data = BARRIOS_BOGOTA
-    if localidad:
-        data = [b for b in data if b['localidad'].lower() == localidad.lower()]
-    return Response(data)
+def localidades_bogota(request):
+    try:
+        url = "https://www.datos.gov.co/resource/93dx-5ayx.json"
+        params = {
+            "$select": "localidad_nombre",
+            "$group": "localidad_nombre",
+            "$order": "localidad_nombre ASC",
+            "$limit": 25
+        }
+        response = requests.get(url, params=params, timeout=5)
+        data = response.json()
+        localidades = [{"nombre": item["localidad_nombre"]} for item in data if "localidad_nombre" in item]
+        return Response(localidades)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
 
+@api_view(['GET'])
+def barrios_bogota(request):
+    localidad = request.GET.get('localidad', '')
+    try:
+        url = "https://bogota-laburbano.opendatasoft.com/api/records/1.0/search/"
+        params = {
+            "dataset": "poligonos-barrios",
+            "q": localidad,
+            "facet": "localidad",
+            "refine.localidad": localidad,
+            "rows": 200,
+            "fields": "nombre_bar,localidad"
+        }
+        response = requests.get(url, params=params, timeout=8)
+        data = response.json()
+        
+        barrios = sorted(set(
+            r["fields"]["nombre_bar"]
+            for r in data.get("records", [])
+            if "nombre_bar" in r.get("fields", {})
+        ))
+        
+        return Response([{"nombre": b} for b in barrios])
+
+    except Exception:
+        # Fallback a tu lista local si la API falla
+        from .barrios import BARRIOS_BOGOTA
+        barrios_locales = [
+            {"nombre": b["nombre"]}
+            for b in BARRIOS_BOGOTA
+            if b["localidad"].lower() == localidad.lower()
+        ]
+        return Response(barrios_locales)
 
 # ── Utilidades ────────────────────────────────────────────────────────────────
 

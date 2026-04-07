@@ -18,7 +18,6 @@
             <h2>Registro Repartidor</h2>
         </div>
 
-        <!-- Mensajes -->
         {% if messages %}
             {% for message in messages %}
                 <div class="alert">{{ message }}</div>
@@ -26,23 +25,23 @@
         {% endif %}
 
         {% if form.errors %}
-    <ul class="form-errors">
-    {% for field in form %}
-        {% for error in field.errors %}
-            <li>{{ field.label }}: {{ error }}</li>
-        {% endfor %}
-    {% endfor %}
-    {% for error in form.non_field_errors %}
-        <li>{{ error }}</li>
-    {% endfor %}
-    </ul>
-    {% endif %}
+        <ul class="form-errors">
+            {% for field in form %}
+                {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                {% endfor %}
+            {% endfor %}
+            {% for error in form.non_field_errors %}
+                <li>{{ error }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
 
         <form method="POST" class="login-form">
             {% csrf_token %}
             
             <label>Nombre Completo:</label>
-             {{ form.first_name }}
+            {{ form.first_name }}
 
             <label>Tipo de Documento:</label>
             <select name="tipo_documento" id="tipo_documento" required>
@@ -55,104 +54,116 @@
 
             <label>Número de Documento:</label>
             <input type="text" name="cedula" id="cedula" placeholder="Ingrese su documento" required>
-            
+
             <label>Correo Electrónico:</label>
-             {{ form.email }}
+            {{ form.email }}
 
             <label>Usuario:</label>
-             {{ form.username }}
+            {{ form.username }}
 
             <label>Contraseña:</label>
-             {{ form.password }}
+            {{ form.password }}
 
             <label>Confirmar Contraseña:</label>
-             {{ form.confirmar }}
+            {{ form.confirmar }}
 
             <label>Número de Placa:</label>
-             {{ form.placa }}
+            {{ form.placa }}
 
             <label>Teléfono:</label>
-             {{ form.telefono }}
+            {{ form.telefono }}
 
             <label>Tipo de Vehículo:</label>
-             {{ form.vehiculo }}
+            {{ form.vehiculo }}
 
             <label>Localidad:</label>
             <select name="localidad" id="localidad">
-             <option value="">Seleccione localidad</option>
-             <option value="Usaquen">Usaquén</option>
-             <option value="Chapinero">Chapinero</option>
-             <option value="Santa Fe">Santa Fe</option>
-             <option value="San Cristobal">San Cristóbal</option>
-             <option value="Usme">Usme</option>
-             <option value="Tunjuelito">Tunjuelito</option>
-             <option value="Bosa">Bosa</option>
-             <option value="Kennedy">Kennedy</option>
-             <option value="Fontibon">Fontibón</option>
-             <option value="Engativa">Engativá</option>
-             <option value="Suba">Suba</option>
-             <option value="Barrios Unidos">Barrios Unidos</option>
-             <option value="Teusaquillo">Teusaquillo</option>
-             <option value="Los Martires">Los Mártires</option>
-             <option value="Antonio Nariño">Antonio Nariño</option>
-             <option value="Puente Aranda">Puente Aranda</option>
-             <option value="La Candelaria">La Candelaria</option>
-             <option value="Rafael Uribe Uribe">Rafael Uribe Uribe</option>
-             <option value="Ciudad Bolivar">Ciudad Bolívar</option>
-             <option value="Sumapaz">Sumapaz</option>
+                <option value="">Seleccione localidad</option>
+                <option value="Usaquen">Usaquén</option>
+                <option value="Chapinero">Chapinero</option>
+                <option value="Santa Fe">Santa Fe</option>
+                <option value="San Cristobal">San Cristóbal</option>
+                <option value="Usme">Usme</option>
+                <option value="Tunjuelito">Tunjuelito</option>
+                <option value="Bosa">Bosa</option>
+                <option value="Kennedy">Kennedy</option>
+                <option value="Fontibon">Fontibón</option>
+                <option value="Engativa">Engativá</option>
+                <option value="Suba">Suba</option>
+                <option value="Barrios Unidos">Barrios Unidos</option>
+                <option value="Teusaquillo">Teusaquillo</option>
+                <option value="Los Martires">Los Mártires</option>
+                <option value="Antonio Nariño">Antonio Nariño</option>
+                <option value="Puente Aranda">Puente Aranda</option>
+                <option value="La Candelaria">La Candelaria</option>
+                <option value="Rafael Uribe Uribe">Rafael Uribe Uribe</option>
+                <option value="Ciudad Bolivar">Ciudad Bolívar</option>
+                <option value="Sumapaz">Sumapaz</option>
             </select>
 
-
             <label>Barrio:</label>
-            <select name="barrio" id="barrio">
-                <option value="">Seleccione barrio</option>
+            <select name="barrio" id="barrio" disabled>
+                <option value="">Seleccione primero una localidad</option>
             </select>
 
             <label>Fecha de nacimiento:</label>
-             {{ form.fecha_nacimiento }}
+            {{ form.fecha_nacimiento }}
 
             <button type="submit" class="btn-login">Registrarse</button>
-<script>
-const tipoDoc = document.getElementById("tipo_documento");
-const cedulaInput = document.getElementById("cedula");
 
-tipoDoc.addEventListener("change", function() {
-    let tipo = this.value;
-
-    if (tipo === "CC") {
-        cedulaInput.placeholder = "Ej: 1234567890";
-    } 
-    else if (tipo === "TI") {
-        cedulaInput.placeholder = "Ej: 1001234567";
-    } 
-    else if (tipo === "CE") {
-        cedulaInput.placeholder = "Ej: CE123456";
-    } 
-    else if (tipo === "PAS") {
-        cedulaInput.placeholder = "Ej: AB123456";
-    }
-});
-
-document.getElementById("localidad").addEventListener("change", function() {
-    const localidad = this.value;
-
-    fetch(`/api/barrios-bogota/?localidad=${localidad}`)
-        .then(response => response.json())
-        .then(data => {
-            const barrioSelect = document.getElementById("barrio");
-            barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
-
-            data.forEach(b => {
-                const option = document.createElement("option");
-                option.value = b.nombre;
-                option.textContent = b.nombre;
-                barrioSelect.appendChild(option);
+            <script>
+            // Placeholder dinámico según tipo de documento
+            document.getElementById("tipo_documento").addEventListener("change", function () {
+                const placeholders = {
+                    "CC":  "Ej: 1234567890",
+                    "TI":  "Ej: 1001234567",
+                    "CE":  "Ej: CE123456",
+                    "PAS": "Ej: AB123456"
+                };
+                document.getElementById("cedula").placeholder = placeholders[this.value] || "Ingrese su documento";
             });
-        });
-});
-</script>
-        </form>
 
+            // Barrios según localidad
+            document.getElementById("localidad").addEventListener("change", function () {
+                const localidad = this.value;
+                const barrioSelect = document.getElementById("barrio");
+
+                barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
+                barrioSelect.disabled = true;
+
+                if (!localidad) return;
+
+                barrioSelect.innerHTML = '<option value="">Cargando barrios...</option>';
+
+                fetch(`/api/barrios-bogota/?localidad=${encodeURIComponent(localidad)}`)
+                    .then(response => {
+                        if (!response.ok) throw new Error("Error de red");
+                        return response.json();
+                    })
+                    .then(data => {
+                        barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
+
+                        if (!data || data.length === 0) {
+                            barrioSelect.innerHTML = '<option value="">No hay barrios disponibles</option>';
+                            return;
+                        }
+
+                        data.forEach(b => {
+                            const option = document.createElement("option");
+                            option.value = b.nombre;
+                            option.textContent = b.nombre;
+                            barrioSelect.appendChild(option);
+                        });
+
+                        barrioSelect.disabled = false;
+                    })
+                    .catch(() => {
+                        barrioSelect.innerHTML = '<option value="">Sin conexión, intenta de nuevo</option>';
+                        barrioSelect.disabled = false;
+                    });
+            });
+            </script>
+        </form>
     </div>
 </body>
 </html>

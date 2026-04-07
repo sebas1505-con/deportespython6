@@ -17,22 +17,12 @@
     {% if messages %}
     <div id="alerts-container">
         {% for message in messages %}
-            <div class="alerta 
-                {% if message.tags %}alerta--{{ message.tags }}{% endif %}">
+            <div class="alerta {% if message.tags %}alerta--{{ message.tags }}{% endif %}">
                 {{ message }}
                 <button class="alerta-close" onclick="this.parentElement.style.display='none';">&times;</button>
             </div>
         {% endfor %}
     </div>
-    {% endif %}
-
-    <!-- Mensajes tipo growl -->
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert">
-                {{ message }}
-            </div>
-        {% endfor %}
     {% endif %}
 
     <form method="POST" class="login-form">
@@ -74,61 +64,79 @@
     <label>Fecha de nacimiento:</label>
     <input type="date" name="fecha_nacimiento">
 
-<label>Localidad:</label>
-<select name="localidad" id="localidad">
-    <option value="">Seleccione localidad</option>
-    <option value="Usaquen">Usaquén</option>
-    <option value="Chapinero">Chapinero</option>
-    <option value="Santa Fe">Santa Fe</option>
-    <option value="San Cristobal">San Cristóbal</option>
-    <option value="Usme">Usme</option>
-    <option value="Tunjuelito">Tunjuelito</option>
-    <option value="Bosa">Bosa</option>
-    <option value="Kennedy">Kennedy</option>
-    <option value="Fontibon">Fontibón</option>
-    <option value="Engativa">Engativá</option>
-    <option value="Suba">Suba</option>
-    <option value="Barrios Unidos">Barrios Unidos</option>
-    <option value="Teusaquillo">Teusaquillo</option>
-    <option value="Los Martires">Los Mártires</option>
-    <option value="Antonio Nariño">Antonio Nariño</option>
-    <option value="Puente Aranda">Puente Aranda</option>
-    <option value="La Candelaria">La Candelaria</option>
-    <option value="Rafael Uribe Uribe">Rafael Uribe Uribe</option>
-    <option value="Ciudad Bolivar">Ciudad Bolívar</option>
-    <option value="Sumapaz">Sumapaz</option>
-</select>
+    <label>Localidad:</label>
+    <select name="localidad" id="localidad">
+        <option value="">Seleccione localidad</option>
+        <option value="Usaquen">Usaquén</option>
+        <option value="Chapinero">Chapinero</option>
+        <option value="Santa Fe">Santa Fe</option>
+        <option value="San Cristobal">San Cristóbal</option>
+        <option value="Usme">Usme</option>
+        <option value="Tunjuelito">Tunjuelito</option>
+        <option value="Bosa">Bosa</option>
+        <option value="Kennedy">Kennedy</option>
+        <option value="Fontibon">Fontibón</option>
+        <option value="Engativa">Engativá</option>
+        <option value="Suba">Suba</option>
+        <option value="Barrios Unidos">Barrios Unidos</option>
+        <option value="Teusaquillo">Teusaquillo</option>
+        <option value="Los Martires">Los Mártires</option>
+        <option value="Antonio Nariño">Antonio Nariño</option>
+        <option value="Puente Aranda">Puente Aranda</option>
+        <option value="La Candelaria">La Candelaria</option>
+        <option value="Rafael Uribe Uribe">Rafael Uribe Uribe</option>
+        <option value="Ciudad Bolivar">Ciudad Bolívar</option>
+        <option value="Sumapaz">Sumapaz</option>
+    </select>
 
     <label>Barrio:</label>
-    <select name="barrio" id="barrio">
-        <option value="">Seleccione barrio</option>
+    <select name="barrio" id="barrio" disabled>
+        <option value="">Seleccione primero una localidad</option>
     </select>
 
     <button type="submit" class="btn-login">Registrarse</button>
 
-<script>
-document.getElementById("localidad").addEventListener("change", function() {
-    const localidad = this.value;
+    <script>
+    document.getElementById("localidad").addEventListener("change", function () {
+        const localidad = this.value;
+        const barrioSelect = document.getElementById("barrio");
 
-    fetch(`/api/barrios-bogota/?localidad=${localidad}`)
-        .then(response => response.json())
-        .then(data => {
-            const barrioSelect = document.getElementById("barrio");
-            barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
+        // Resetear barrio
+        barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
+        barrioSelect.disabled = true;
 
-            data.forEach(b => {
-                const option = document.createElement("option");
-                option.value = b.nombre;
-                option.textContent = b.nombre;
-                barrioSelect.appendChild(option);
+        if (!localidad) return;
+
+        // Indicador de carga
+        barrioSelect.innerHTML = '<option value="">Cargando barrios...</option>';
+
+        fetch(`/api/barrios-bogota/?localidad=${encodeURIComponent(localidad)}`)
+            .then(response => response.json())
+            .then(data => {
+                barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
+
+                if (data.length === 0) {
+                    barrioSelect.innerHTML = '<option value="">No se encontraron barrios</option>';
+                    return;
+                }
+
+                data.forEach(b => {
+                    const option = document.createElement("option");
+                    option.value = b.nombre;
+                    option.textContent = b.nombre;
+                    barrioSelect.appendChild(option);
+                });
+
+                barrioSelect.disabled = false;
+            })
+            .catch(error => {
+                console.error("Error al cargar barrios:", error);
+                barrioSelect.innerHTML = '<option value="">Error al cargar barrios</option>';
             });
-        })
-        .catch(error => console.error("Error:", error));
-});
-</script>
+    });
+    </script>
 
-</form>
-
+    </form>
 </div>
 
 <a href="{% url 'menu' %}" class="btn-volver-home">Volver</a>

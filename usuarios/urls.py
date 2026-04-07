@@ -30,6 +30,7 @@ urlpatterns = [
     path('nueva_contrasena/<str:token>/', views.nueva_contrasena, name='nueva_contrasena'),
     path('nueva_contrasena/', views.nueva_contrasena, name='nueva_contrasena_sin_token'),
     path("prueba-correo/", views.prueba_correo),
+    path('api/localidades-bogota/', views.localidades_bogota, name='api_localidades'),
     path('api/barrios-bogota/', views.barrios_bogota, name='api_barrios'),
     
 ]
