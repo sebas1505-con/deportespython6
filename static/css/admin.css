@@ -558,3 +558,19 @@ html{
 scroll-behavior:smooth;
 }
 
+.form-container {
+    display: flex;
+    justify-content: center;   /* centra horizontalmente */
+    align-items: flex-start;   /* alinea arriba, no en medio */
+    width: 100%;               /* ocupa todo el ancho disponible */
+    margin-top: 30px;          /* separa del encabezado */
+}
+
+.formulario {
+    background: #fff;
+    padding: 30px;             /* más espacio interno */
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    width: 80%;                /* ancho grande, ocupa 80% de la pantalla */
+    max-width: 1000px;         /* límite máximo para pantallas grandes */
+}

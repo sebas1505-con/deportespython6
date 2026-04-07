@@ -136,7 +136,11 @@ def movimiento_nuevo(request):
 
 def productos(request):
     productos = Producto.objects.all()
+    for producto in productos:
+        tallas = TallaProducto.objects.filter(producto=producto)
+        producto.stock_total = sum(t.stock for t in tallas)  # cálculo dinámico
     return render(request, 'productos/productos.html', {'productos': productos})
+
 
 def detalle_producto(request, id):
     producto = get_object_or_404(Producto, id=id)
@@ -193,8 +197,6 @@ def producto_eliminar(request, id):
     producto.delete()
     messages.success(request, "Producto eliminado correctamente")
     return redirect('productos')  # <- usa el name de la URL de productos
-
-
 
 
 # ── Inventario y movimientos ──────────────────────────────────────────────────

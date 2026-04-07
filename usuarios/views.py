@@ -15,7 +15,7 @@ from .models import Usuario, Cliente, Repartidor, Sugerencia, Administrador, Ped
 from .forms import RegistroClienteForm, RepartidorForm
 from .barrios import BARRIOS_BOGOTA
 from email.mime.image import MIMEImage
-from inventario.models import Producto, Pedido, Movimiento, Sugerencia, Venta, TallaProducto
+from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto
 # ── Páginas generales ─────────────────────────────────────────────────────────
 
 def index(request):
@@ -248,56 +248,20 @@ def admin(request):
             messages.error(request, f"Error al procesar archivo: {e}")
         return redirect("panel_admin")
 
-    # ==============================
-    # Render del panel (datos extra)
-    # ==============================
-    return render(request, 'productos/admin.html', {})
-    # ==============================
-    # Datos del panel
-    # ==============================
+
+    ultimos_pedidos = Pedido.objects.all().order_by('-fecha_pedido')[:10]
     usuarios = Usuario.objects.all()
-    productos = Producto.objects.all()
-    ventas = Venta.objects.all()
-    ultimos_pedidos = Pedido.objects.all().select_related('usuario', 'producto').order_by('-fecha_pedido')[:10]
+    ventas = Venta.objects.all().order_by('-fecha_venta')
     movimientos = Movimiento.objects.all().order_by('-fecha')
-    sugerencias = Sugerencia.objects.all().order_by('-id')
+    sugerencias = Sugerencia.objects.all().order_by('-fecha')
 
-    # ==============================
-    # Datos para gráficos
-    # ==============================
-    # Ventas por fecha
-    fechas_ventas = [v.fecha_venta.strftime("%d/%m/%Y") for v in ventas]
-    totales_ventas = [float(v.totalVenta) for v in ventas]
-
-    # Ventas por producto
-    productos_ventas = Producto.objects.annotate(
-        total_vendido=Sum(F('detalleventaproductos__venta__totalVenta'))
-    )
-    nombres_productos = [p.nombre for p in productos_ventas]
-    totales_productos = [float(p.total_vendido or 0) for p in productos_ventas]
-
-    # ==============================
-    # Contexto
-    # ==============================
-    context = {
-        'usuarios': usuarios,
-        'productos': productos,
-        'ventas': ventas,
-        'ultimos_pedidos': ultimos_pedidos,
-        'movimientos': movimientos,
-        'sugerencias': sugerencias,
-        'fechas_ventas': json.dumps(fechas_ventas),
-        'totales_ventas': json.dumps(totales_ventas),
-        'nombres_productos': json.dumps(nombres_productos),
-        'totales_productos': json.dumps(totales_productos)
-    }
-
-    # ==============================
-    # Renderizar template
-    # ==============================
-    return render(request, 'productos/admin.html', context)
-
-
+    return render(request, 'productos/admin.html', {
+        "ultimos_pedidos": ultimos_pedidos,
+        "usuarios": usuarios,
+        "ventas": ventas,
+        "movimientos": movimientos,
+        "sugerencias": sugerencias,
+    })
 
 def repartidor(request):
     usuario_id = request.session.get('usuario_id')
@@ -389,20 +353,33 @@ def entregar_pedido(request, pedido_id):
 
 def sugerencias(request):
     if request.method == "POST":
-        nombre = request.POST.get("nombre")
-        texto  = request.POST.get("texto")
-        if texto:
-            Sugerencia.objects.create(nombre=nombre, texto=texto)
-            messages.success(request, "¡Gracias por tu sugerencia!")
+        usuario_id = request.session.get("usuario_id")
+        try:
+            usuario = Usuario.objects.get(id=usuario_id)
+        except Usuario.DoesNotExist:
+            messages.error(request, "Usuario no encontrado")
             return redirect("sugerencias")
+
+        texto = request.POST.get("texto")  # 👈 debe coincidir con el campo del modelo
+
+        if texto:
+            Sugerencia.objects.create(
+                nombre=getattr(usuario, "username", ""),  # o el campo real de tu modelo Usuario
+                texto=texto
+            )
+            messages.success(request, "Sugerencia enviada correctamente")
         else:
-            messages.error(request, "Debes escribir una sugerencia.")
-    return render(request, "sugerencias.html")
+            messages.error(request, "Debe escribir una sugerencia")
+
+        return redirect("sugerencias")
+
+    sugerencias = Sugerencia.objects.all().order_by("-fecha")
+    return render(request, "sugerencias.html", {"sugerencias": sugerencias})
+
 
 def panel_sugerencias(request):
     sugerencias = Sugerencia.objects.all().order_by('-fecha')
     return render(request, "panel_sugerencias.html", {"sugerencias": sugerencias})
-
 
 # ── Recuperación de contraseña ────────────────────────────────────────────────
 

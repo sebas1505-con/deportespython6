@@ -185,8 +185,6 @@ class Sugerencia(models.Model):
 
         return f"Sugerencia de {self.nombre or 'Anónimo'} - {self.fecha.strftime('%Y-%m-%d')}"
 
-        return f"Sugerencia de {self.nombre or 'Anónimo'} - {self.fecha.strftime('%Y-%m-%d')}"
-
 class TallaProducto(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='tallas')
     talla = models.CharField(max_length=5)

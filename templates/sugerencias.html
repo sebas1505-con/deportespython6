@@ -6,7 +6,6 @@
     <title>Módulo de Sugerencias</title>
     <link rel="stylesheet" href="{% static 'css/sugerencias.css' %}">
 </head>
-
 <body>
 
     <div class="contenedor-sugerencia">
@@ -14,32 +13,27 @@
         <h1>Déjanos tu sugerencia</h1>
         <p>Queremos mejorar. Cuéntanos qué opinas de nuestra página:</p>
 
+        <!-- Mensajes de Django -->
         {% if messages %}
             {% for message in messages %}
-                <div class="alert">
+                <div class="alert {{ message.tags }}">
                     {{ message }}
                 </div>
             {% endfor %}
         {% endif %}
 
+        <!-- Formulario -->
         <form method="POST">
             {% csrf_token %}
-
-            <input type="text"
-                   name="nombre"
-                   class="input-text"
-                   placeholder="Tu nombre (opcional)">
-
             <textarea name="texto"
-                      class="textarea"
-                      placeholder="Escribe tu sugerencia aquí..."
-                      required></textarea>
+                class="textarea"
+                placeholder="Escribe tu sugerencia aquí..."
+                required></textarea>
 
             <button type="submit" class="btn-enviar">
                 Enviar sugerencia
             </button>
         </form>
-
 
         <a href="{% url 'usuario' %}" class="btn-volver-home">
             Volver

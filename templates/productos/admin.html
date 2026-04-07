@@ -18,17 +18,16 @@
 
 <nav class="sidebar">
     <ul>
-<li><a href="#pedidos">Inicio</a></li>
-<li><a href="#usuarios">Usuarios</a></li>
-<li><a href="#productos">Productos</a></li>
-<li><a href="#nuevo-producto">Nuevo Producto</a></li>
-<li><a href="{% url 'productos' %}">Info Productos</a></li>
-<li><a href="#movimientos">Movimientos</a></li>
-<li><a href="#reportes">Reportes</a></li>
-<li><a href="#panel_sugerencias">Sugerencias</a></li>
-<li><a href="#carga-masiva">Carga Masiva</a></li>
-<li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
-</ul>
+        <li><a href="#pedidos">Inicio</a></li>
+        <li><a href="#usuarios">Usuarios</a></li>
+        <li><a href="#nuevo-producto">Nuevo Producto</a></li>
+        <li><a href="{% url 'productos' %}">Info Productos</a></li>
+        <li><a href="#movimientos">Movimientos</a></li>
+        <li><a href="#reportes">Reportes</a></li>
+        <li><a href="#panel_sugerencias">Sugerencias</a></li>
+        <li><a href="#carga-masiva">Carga Masiva</a></li>
+        <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+    </ul>
 </nav>
 
 <main class="dashboard">
@@ -216,48 +215,63 @@
 </section>
 
 
-
-<!-- REPORTES DE VENTAS -->
 <section class="productos" id="reportes">
-<h2>Reportes de Ventas</h2>
+    <h2>Reportes de Ventas</h2>
 
-<!-- Gráfico de Ventas por Fecha -->
-<div style="background:white; padding:20px; border-radius:12px; margin-bottom:25px;">
-<canvas id="graficoVentas" height="90"></canvas>
-</div>
+    <!-- Filtros por fecha -->
+    <form method="GET" action="{% url 'panel_admin' %}" class="filtros-reportes" style="margin-bottom:20px;">
+        <label>Desde:</label>
+        <input type="date" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
+        
+        <label>Hasta:</label>
+        <input type="date" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
+        
+        <button type="submit">Filtrar</button>
+    </form>
 
-<!-- Gráfico de Total Vendido por Producto -->
-<div style="background:white; padding:20px; border-radius:12px; margin-bottom:25px;">
-<canvas id="graficoProductos" height="90"></canvas>
-</div>
+    <!-- Resumen -->
+    <div class="resumen-reportes" style="background:white; padding:15px; border-radius:8px; margin-bottom:20px;">
+        <p><strong>Total de ventas:</strong> {{ cantidad_ventas }}</p>
+        <p><strong>Valor total vendido:</strong> ${{ total_general }}</p>
+    </div>
 
-<!-- Tabla de Ventas -->
-<table class="tabla-productos">
-<thead>
-<tr>
-<th>ID</th>
-<th>Cliente</th>
-<th>Método de Pago</th>
-<th>Total</th>
-<th>Fecha</th>
-</tr>
-</thead>
-<tbody>
-{% for venta in ventas %}
-<tr>
-<td>{{ venta.id }}</td>
-<td>{{ venta.cliente.usuario.username }}</td>
-<td>{{ venta.metodo_de_pago }}</td>
-<td>${{ venta.totalVenta }}</td>
-<td>{{ venta.fecha_venta|date:"d/m/Y" }}</td>
-</tr>
-{% empty %}
-<tr>
-<td colspan="5" style="text-align:center;">No hay ventas registradas</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+    <!-- Gráfico de Ventas por Fecha -->
+    <div style="background:white; padding:20px; border-radius:12px; margin-bottom:25px;">
+        <canvas id="graficoVentas" height="90"></canvas>
+    </div>
+
+    <!-- Gráfico de Total Vendido por Producto -->
+    <div style="background:white; padding:20px; border-radius:12px; margin-bottom:25px;">
+        <canvas id="graficoProductos" height="90"></canvas>
+    </div>
+
+    <!-- Tabla de Ventas -->
+    <table class="tabla-productos">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cliente</th>
+                <th>Método de Pago</th>
+                <th>Total</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for venta in ventas %}
+            <tr>
+                <td>{{ venta.id }}</td>
+                <td>{{ venta.cliente.usuario.username }}</td>
+                <td>{{ venta.metodo_de_pago }}</td>
+                <td>${{ venta.totalVenta }}</td>
+                <td>{{ venta.fecha_venta|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align:center;">No hay ventas registradas</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </section>
 
 <!-- MOVIMIENTOS -->
@@ -298,31 +312,34 @@
     </table>
 </section>
 
-
-
 <!-- SUGERENCIAS -->
 <section class="productos" id="panel_sugerencias">
-<h2>Sugerencias de Usuarios</h2>
-<table class="tabla-productos">
-<thead>
-<tr>
-<th>ID</th>
-<th>Usuario</th>
-<th>Mensaje</th>
-</tr>
-</thead>
-<tbody>
-{% for s in sugerencias %}
-<tr>
-<td>{{s.id}}</td>
-<td>{{s.usuario}}</td>
-<td>{{s.mensaje}}</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
+    <h2>Sugerencias de Usuarios</h2>
+    <table class="tabla-productos">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Mensaje</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sugerencias %}
+            <tr>
+                <td>{{ s.id }}</td>
+                <td>{{ s.nombre|default:"Anónimo" }}</td>
+                <td>{{ s.texto }}</td>
+                <td>{{ s.fecha|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align:center;">No hay sugerencias registradas.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </section>
-
 
 </main>
 
