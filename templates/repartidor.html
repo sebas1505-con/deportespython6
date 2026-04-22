@@ -1,65 +1,271 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panel Repartidor</title>
     <link rel="stylesheet" href="{% static 'css/repartidor.css' %}">
     <link rel="icon" type="image/png" href="{% static 'images/repar.png' %}">
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+
+        body { background: #f2f3f5; color: #222; }
+
+        .header {
+            background: linear-gradient(90deg, #0d1a26, #1a2f45);
+            color: #fff;
+            padding: 18px 28px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            border-bottom: 3px solid #d40000;
+        }
+
+        .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+
+        .header nav { display: flex; gap: 10px; }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 18px;
+            background: #0d1a26;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: 0.2s;
+        }
+        .btn:hover { background: #1a2f45; }
+
+        .btn-logout {
+            background: #d40000;
+        }
+        .btn-logout:hover { background: #8b0000; }
+
+        .container { max-width: 1100px; margin: 28px auto; padding: 0 20px 60px; }
+
+        /* ── PERFIL ── */
+        .perfil-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.09);
+            padding: 24px 28px;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .perfil-avatar {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0d1a26, #d40000);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 32px; font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .perfil-info { flex: 1; }
+
+        .perfil-info h2 { font-size: 22px; font-weight: 700; color: #0d1a26; margin-bottom: 6px; }
+
+        .perfil-info p { font-size: 14px; color: #555; margin-bottom: 4px; }
+
+        .perfil-info p strong { color: #0d1a26; }
+
+        .perfil-badge {
+            display: inline-block;
+            background: #e3f2fd;
+            color: #1565c0;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 20px;
+            margin-top: 6px;
+        }
+
+        /* ── STATS GANANCIAS ── */
+        .stats-wrap {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            border-bottom: 4px solid transparent;
+            transition: 0.2s;
+        }
+        .stat-box:hover { border-bottom-color: #d40000; transform: translateY(-3px); }
+
+        .stat-box h3 { font-size: 13px; color: #777; margin-bottom: 8px; }
+
+        .stat-box p { font-size: 26px; font-weight: 700; color: #d40000; }
+
+        .stat-box.verde p { color: #2e7d32; }
+
+        /* ── CARD ── */
+        .card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            padding: 22px 24px;
+            margin-bottom: 24px;
+        }
+
+        .card h2 { font-size: 18px; font-weight: 700; color: #0d1a26; margin-bottom: 16px; }
+
+        /* ── TABLA ── */
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+
+        .table thead th {
+            background: #0d1a26;
+            color: #fff;
+            padding: 12px 14px;
+            text-align: left;
+        }
+
+        .table td {
+            padding: 12px 14px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .table tr:hover { background: #fafafa; }
+
+        /* ── BADGES ── */
         .badge {
             display: inline-block;
             padding: 4px 12px;
             border-radius: 20px;
-            font-size: 13px;
-            font-weight: bold;
+            font-size: 12px;
+            font-weight: 700;
         }
-        .badge-camino { background: #fff8e1; color: #f57f17; }
+        .badge-camino    { background: #fff8e1; color: #f57f17; }
         .badge-entregado { background: #e8f5e9; color: #2e7d32; }
+        .badge-disp      { background: #e3f2fd; color: #1565c0; }
 
+        /* ── INFO PEDIDO ── */
         .info-pedido {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
             gap: 10px;
             background: #f9f9f9;
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 12px;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 14px;
         }
-        .info-pedido span { font-size: 13px; color: #555; }
-        .info-pedido strong { display: block; font-size: 15px; color: #0d1a26; }
+        .info-pedido span { font-size: 12px; color: #888; }
+        .info-pedido strong { display: block; font-size: 14px; color: #0d1a26; margin-top: 2px; }
+
+        /* ── MAPA ── */
+        .mapa {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+            padding: 22px 24px;
+            margin-bottom: 24px;
+        }
+
+        .mapa h2 { font-size: 18px; font-weight: 700; color: #0d1a26; margin-bottom: 16px; }
+
+        .mapa-contenedor iframe {
+            width: 100%; height: 320px;
+            border-radius: 10px; border: 0;
+        }
+
+        /* ── GANANCIA POR PEDIDO ── */
+        .ganancia-tag {
+            display: inline-block;
+            background: #e8f5e9;
+            color: #2e7d32;
+            font-size: 12px;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 20px;
+            margin-left: 8px;
+        }
+
+        @media (max-width: 600px) {
+            .perfil-card { flex-direction: column; text-align: center; }
+            .stats-wrap { grid-template-columns: 1fr 1fr; }
+            .table { display: block; overflow-x: auto; }
+        }
     </style>
 </head>
 
 <body>
 
+<!-- HEADER -->
 <div class="header">
     <h1>Panel del Repartidor</h1>
+    <nav>
+        <a href="{% url 'repartidor' %}" class="btn">Inicio</a>
+        <a href="{% url 'perfil_repartidor' %}" class="btn">Mi Perfil</a>
+        <a href="{% url 'logout' %}" class="btn btn-logout">Cerrar Sesión</a>
+    </nav>
 </div>
 
 <div class="container">
 
-    <!-- NAV -->
-    <div class="card">
-        <nav>
-            <a href="{% url 'repartidor' %}" class="btn">Inicio</a>
-            <a href="{% url 'logout' %}" class="btn">Cerrar Sesión</a>
-        </nav>
+    <!-- PERFIL -->
+    <div class="perfil-card">
+        <div class="perfil-avatar">
+            {{ Nombre|slice:":1"|upper }}
+        </div>
+        <div class="perfil-info">
+            <h2>{{ usuario.first_name }}</h2>
+            <p><strong>Usuario:</strong> {{ usuario.username }}</p>
+            <p><strong>Correo:</strong> {{ usuario.email }}</p>
+            <p><strong>Teléfono:</strong> {{ usuario.telefono|default:"No registrado" }}</p>
+            <p><strong>Vehículo:</strong> {{ repartidor.vehiculo }} &nbsp;·&nbsp; <strong>Placa:</strong> {{ repartidor.placa }}</p>
+            <span class="perfil-badge">Repartidor activo</span>
+        </div>
     </div>
 
-    <!-- BIENVENIDA -->
-    <div class="card">
-        <h2>Bienvenido, {{ Nombre }}</h2>
-        <p>Gestiona tus entregas de manera rápida y eficiente.</p>
+    <!-- STATS -->
+    <div class="stats-wrap">
+        <div class="stat-box">
+            <h3>Pedidos disponibles</h3>
+            <p>{{ ventas_pendientes|length }}</p>
+        </div>
+        <div class="stat-box">
+            <h3>En camino</h3>
+            <p>{{ pedidos_activos|length }}</p>
+        </div>
+        <div class="stat-box">
+            <h3>Entregas realizadas</h3>
+            <p>{{ mis_pedidos|length }}</p>
+        </div>
+        <div class="stat-box verde">
+            <h3>Ganancias totales</h3>
+            <p>${{ total_ganancias }}</p>
+        </div>
     </div>
 
     <!-- PEDIDOS DISPONIBLES -->
     <div class="card">
-        <h2> Pedidos Disponibles</h2>
+        <h2>Pedidos Disponibles</h2>
 
         {% if messages %}
             {% for message in messages %}
-                <p style="color: green;">{{ message }}</p>
+                <p style="color:#2e7d32;font-weight:600;margin-bottom:12px;">{{ message }}</p>
             {% endfor %}
         {% endif %}
 
@@ -71,6 +277,7 @@
                     <th>Dirección</th>
                     <th>Teléfono</th>
                     <th>Total</th>
+                    <th>Domicilio</th>
                     <th>Acción</th>
                 </tr>
             </thead>
@@ -83,30 +290,35 @@
                         <td>{{ pedido.venta.direccionEnvio }}</td>
                         <td>{{ pedido.venta.telefonoContacto }}</td>
                         <td>${{ pedido.venta.totalVenta }}</td>
-                        <td>
-                            <a href="{% url 'detalle_pedido' pedido.id %}" class="btn" style="background:#0d1a26; color:white; margin-right:6px;">Ver</a>
+                        <td><span class="ganancia-tag">${{ pedido.valor_domicilio }}</span></td>
+                        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <a href="{% url 'detalle_pedido' pedido.id %}" class="btn">Ver</a>
                             <form method="post" action="{% url 'tomar_pedido' pedido.id %}">
                                 {% csrf_token %}
-                                <button type="submit" class="btn">Tomar</button>
+                                <button type="submit" class="btn" style="background:#2e7d32;">Tomar</button>
                             </form>
                         </td>
                     </tr>
                     {% endfor %}
                     <tr>
-                        <td colspan="6">Total disponibles: {{ ventas_pendientes|length }}</td>
+                        <td colspan="7" style="color:#aaa;font-size:13px;padding:10px 14px;">
+                            Total disponibles: {{ ventas_pendientes|length }}
+                        </td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td colspan="6" style="text-align:center;">No hay pedidos disponibles.</td>
+                        <td colspan="7" style="text-align:center;color:#aaa;padding:20px;">
+                            No hay pedidos disponibles.
+                        </td>
                     </tr>
                 {% endif %}
             </tbody>
         </table>
     </div>
 
-    <!-- PEDIDOS ACTIVOS EN CAMINO -->
+    <!-- PEDIDOS ACTIVOS -->
     <div class="card">
-        <h2> Mis Pedidos Activos</h2>
+        <h2>Mis Pedidos Activos</h2>
 
         {% if pedidos_activos %}
             {% for pedido in pedidos_activos %}
@@ -128,20 +340,36 @@
                     <strong>{{ pedido.venta.telefonoContacto }}</strong>
                 </div>
                 <div>
-                    <span>Total</span>
+                    <span>Total pedido</span>
                     <strong>${{ pedido.venta.totalVenta }}</strong>
                 </div>
                 <div>
-                    <span>Estado</span>
-                    <strong><span class="badge badge-camino"> En camino</span></strong>
+                    <span>Tu ganancia</span>
+                    <strong style="color:#2e7d32;">${{ pedido.valor_domicilio }}</strong>
                 </div>
-                <div style="align-self: center;">
+                <div>
+                    <span>Estado</span>
+                    <strong><span class="badge badge-camino">En camino</span></strong>
+                </div>
+                <div style="align-self:center;">
                     <form method="post" action="{% url 'entregar_pedido' pedido.id %}">
                         {% csrf_token %}
-                        <button type="submit" class="btn" style="background:#4caf50; color:white;">
-                             Marcar Entregado
+                        <button type="submit" class="btn" style="background:#2e7d32;">
+                            Marcar Entregado
                         </button>
                     </form>
+                </div>
+                <!-- Botón WhatsApp — va dentro del div de pedidos activos, al lado del form de entregar -->
+                <div style="align-self:center;margin-top:6px;">
+                    <a href="https://wa.me/57{{ pedido.venta.telefonoContacto|slugify }}?text={{ mensaje_wa|urlencode }}"
+                        target="_blank" class="btn"
+                        style="background:#25d366;display:flex;align-items:center;gap:8px;text-decoration:none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                            <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.526 5.845L.057 23.885l6.21-1.63A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.6a9.573 9.573 0 0 1-4.889-1.344l-.35-.208-3.635.954.969-3.54-.228-.364A9.565 9.565 0 0 1 2.4 12c0-5.292 4.308-9.6 9.6-9.6s9.6 4.308 9.6 9.6-4.308 9.6-9.6 9.6z"/>
+                        </svg>
+                        WhatsApp
+                    </a>
                 </div>
             </div>
             {% endfor %}
@@ -150,25 +378,22 @@
         {% endif %}
     </div>
 
-<section class="mapa">
-    <h2>Ubicación de la Tienda</h2>
-    <div class="mapa-contenedor">
-        <iframe
-          src="https://www.google.com/maps/embed?pb=...COORDENADAS_DE_TU_TIENDA..."
-          width="600"
-          height="450"
-          style="border:0;"
-          allowfullscreen=""
-          loading="lazy"
-          referrerpolicy="no-referrer-when-downgrade">
-        </iframe>
+    <!-- MAPA -->
+    <div class="mapa">
+        <h2>Ubicación de la Tienda</h2>
+        <div class="mapa-contenedor">
+            <iframe
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3976.8!2d-74.0721!3d4.7110!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zBMKwNDInMzkuNiJOIDc0wrAwNCcxOS42Ilc!5e0!3m2!1ses!2sco!4v1234567890"
+              allowfullscreen=""
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade">
+            </iframe>
+        </div>
     </div>
-</section>
 
-
-    <!-- HISTORIAL DE ENTREGAS -->
+    <!-- HISTORIAL -->
     <div class="card">
-        <h2> Historial de Entregas</h2>
+        <h2>Historial de Entregas</h2>
         <table class="table">
             <thead>
                 <tr>
@@ -176,6 +401,7 @@
                     <th>Cliente</th>
                     <th>Dirección</th>
                     <th>Total</th>
+                    <th>Ganancia</th>
                     <th>Fecha</th>
                     <th>Estado</th>
                 </tr>
@@ -188,13 +414,16 @@
                         <td>{{ pedido.venta.cliente.usuario.username }}</td>
                         <td>{{ pedido.venta.direccionEnvio }}</td>
                         <td>${{ pedido.venta.totalVenta }}</td>
+                        <td style="color:#2e7d32;font-weight:700;">${{ pedido.valor_domicilio }}</td>
                         <td>{{ pedido.fecha_pedido|date:"d/m/Y" }}</td>
-                        <td><span class="badge badge-entregado"> Entregado</span></td>
+                        <td><span class="badge badge-entregado">Entregado</span></td>
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="6" style="text-align:center;">No hay entregas realizadas aún.</td>
+                        <td colspan="7" style="text-align:center;color:#aaa;padding:20px;">
+                            No hay entregas realizadas aún.
+                        </td>
                     </tr>
                 {% endif %}
             </tbody>
@@ -202,6 +431,5 @@
     </div>
 
 </div>
-
 </body>
 </html>

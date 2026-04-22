@@ -16,7 +16,8 @@ class Producto(models.Model):
     descripcion = models.TextField()
     imagen = models.ImageField(upload_to='productos/')
     categoria = models.CharField(max_length=10, choices=CATEGORIAS, default="MIXTO")
-    stock_total = models.IntegerField(default=0)  # 👈 ahora es un campo real
+    stock_total = models.IntegerField(default=0) 
+    descontinuado = models.BooleanField(default=False)
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -28,12 +29,28 @@ class Producto(models.Model):
 
 
 class TallaProducto(models.Model):
+    TALLAS = [
+        # Adulto
+        ('S',  'S'),
+        ('M',  'M'),
+        ('L',  'L'),
+        ('XL', 'XL'),
+        # Niño por talla numérica
+        ('6',  'Talla 6'),
+        ('8',  'Talla 8'),
+        ('10', 'Talla 10'),
+        ('12', 'Talla 12'),
+        ('14', 'Talla 14'),
+        ('16', 'Talla 16'),
+        ('18', 'Talla 18'),
+    ]
+
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE, related_name='tallas')
-    talla = models.CharField(max_length=5)
-    stock = models.IntegerField()
+    talla    = models.CharField(max_length=5, choices=TALLAS)
+    stock    = models.PositiveIntegerField(default=0)
 
     def __str__(self):
-        return f"{self.producto.nombre} - {self.talla}"
+        return f"{self.producto.nombre} — Talla {self.talla}"
 
 
 class Inventario(models.Model):
@@ -48,31 +65,38 @@ class Inventario(models.Model):
         super().save(*args, **kwargs)
 
 class Movimiento(models.Model):
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    talla = models.CharField(max_length=5)
+    producto = models.ForeignKey(
+        Producto,
+        on_delete=models.SET_NULL,   # ← antes era CASCADE
+        null=True, blank=True        # ← agregar esto
+    )
+    talla           = models.CharField(max_length=5)
+    nombre_producto = models.CharField(max_length=100, blank=True)  # ← nuevo campo para guardar el nombre
     tipo_movimiento = models.CharField(
         max_length=10,
         choices=[("entrada", "Entrada"), ("salida", "Salida")],
-        default="entrada"   # 👈 aquí va el default
+        default="entrada"
     )
     cantidad = models.IntegerField()
-    motivo = models.TextField(blank=True, null=True)
-    fecha = models.DateTimeField(auto_now_add=True)
+    motivo   = models.TextField(blank=True, null=True)
+    fecha    = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+        # Guardar nombre del producto antes de que pueda eliminarse
+        if self.producto and not self.nombre_producto:
+            self.nombre_producto = self.producto.nombre
+
         talla_producto, _ = TallaProducto.objects.get_or_create(
             producto=self.producto,
             talla=self.talla,
             defaults={'stock': 0}
         )
-        # Ajustar stock según tipo
         if self.tipo_movimiento == "entrada":
             talla_producto.stock += self.cantidad
         elif self.tipo_movimiento == "salida":
             talla_producto.stock -= self.cantidad
         talla_producto.save()
         super().save(*args, **kwargs)
-
 
 class Proveedor(models.Model):
     fecha_registro = models.DateField(null=True, blank=True)
@@ -128,6 +152,19 @@ class Sugerencia(models.Model):
     mensaje = models.TextField()
     fecha = models.DateTimeField(auto_now_add=True)
 
+class RespuestaSugerencia(models.Model):
+    sugerencia = models.ForeignKey(
+        Sugerencia,
+        on_delete=models.CASCADE,
+        related_name='respuestas'
+    )
+    mensaje = models.TextField()
+    es_admin = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Respuesta a sugerencia {self.sugerencia.id}"
+
 class Asignacion(models.Model):
     venta = models.ForeignKey(Venta, on_delete=models.CASCADE, related_name='inventario_asignaciones')
     repartidor = models.ForeignKey(
@@ -166,6 +203,7 @@ class Pedido(models.Model):
     fecha_pedido = models.DateTimeField(auto_now_add=True)
     usuario = models.ForeignKey('usuarios.Usuario', on_delete=models.CASCADE)
     repartidor = models.ForeignKey('usuarios.Repartidor', on_delete=models.CASCADE, null=True, blank=True)
+    valor_domicilio = models.DecimalField(max_digits=10, decimal_places=2, default=5000)
 
     def __str__(self):
         return f"Pedido {self.id} - {self.producto}"

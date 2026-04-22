@@ -1,116 +1,229 @@
 {% load static %}
-
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Carrito de Compras - Deportes 360</title>
+    <title>Carrito — Deportes 360</title>
     <link rel="icon" type="image/x-icon" href="{% static 'images/Carrito.png' %}">
-    <link rel="stylesheet" href="{% static 'css/carrito.css' %}">
-</head>
+    <link rel="stylesheet" href="{% static 'css/usuario.css' %}">
+    <style>
+    /* ── Wrap ── */
+    .carrito-wrap {
+        max-width: 860px; margin: 36px auto 60px; padding: 0 24px;
+        font-family: 'Segoe UI', sans-serif;
+    }
 
+    .carrito-titulo {
+        font-size: 24px; font-weight: 800; color: #111;
+        margin-bottom: 24px; display: flex; align-items: center; gap: 10px;
+    }
+    .carrito-titulo span { color: #d40000; }
+
+    /* ── Item ── */
+    .item-carrito {
+        background: #fff; border-radius: 14px;
+        box-shadow: 0 2px 10px rgba(0,0,0,.07);
+        padding: 16px 20px; margin-bottom: 14px;
+        display: flex; align-items: center; gap: 18px;
+        border-left: 4px solid #d40000;
+        transition: box-shadow .2s;
+    }
+    .item-carrito:hover { box-shadow: 0 4px 18px rgba(0,0,0,.12); }
+
+    .item-carrito img {
+        width: 86px; height: 86px; border-radius: 10px;
+        object-fit: cover; flex-shrink: 0;
+    }
+
+    .item-info { flex: 1; }
+    .item-info h4 { font-size: 15px; font-weight: 700; color: #111; margin-bottom: 4px; }
+    .item-info p  { font-size: 13px; color: #666; margin-bottom: 2px; }
+    .item-precio  { font-size: 16px; font-weight: 800; color: #d40000; margin-top: 4px; }
+
+    /* Controles cantidad */
+    .item-controles {
+        display: flex; align-items: center; gap: 8px; flex-shrink: 0;
+    }
+    .btn-cant {
+        width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid #e5e7eb;
+        background: #f9f9f9; font-size: 16px; font-weight: 700; cursor: pointer;
+        display: flex; align-items: center; justify-content: center; transition: .15s;
+        color: #111;
+    }
+    .btn-cant:hover { background: #d40000; color: #fff; border-color: #d40000; }
+    .cant-num { font-size: 15px; font-weight: 700; color: #111; min-width: 24px; text-align: center; }
+
+    /* ── Carrito vacío ── */
+    .carrito-vacio {
+        text-align: center; padding: 60px 20px; color: #aaa;
+    }
+    .carrito-vacio div { font-size: 56px; margin-bottom: 14px; }
+    .carrito-vacio h3  { font-size: 18px; color: #111; margin-bottom: 8px; }
+    .carrito-vacio a {
+        display: inline-block; margin-top: 16px;
+        padding: 11px 28px; background: #d40000; color: #fff;
+        border-radius: 10px; font-weight: 700; text-decoration: none;
+        font-size: 14px; transition: .2s;
+    }
+    .carrito-vacio a:hover { background: #8b0000; }
+
+    /* ── Resumen ── */
+    .carrito-resumen {
+        background: #fff; border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        padding: 22px 24px; margin-top: 24px;
+        border-top: 4px solid #d40000;
+    }
+    .resumen-fila {
+        display: flex; justify-content: space-between;
+        align-items: center; margin-bottom: 10px;
+        font-size: 14px; color: #555;
+    }
+    .resumen-fila.total {
+        font-size: 20px; font-weight: 800; color: #111;
+        border-top: 1px solid #f0f0f0; padding-top: 14px; margin-top: 8px;
+    }
+    .resumen-fila.total span { color: #d40000; font-size: 26px; }
+
+    .resumen-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+
+    .btn-finalizar {
+        width: 100%; padding: 13px;
+        background: linear-gradient(180deg, #d40000, #8b0000);
+        color: #fff; border: none; border-radius: 10px;
+        font-size: 15px; font-weight: 700; cursor: pointer;
+        text-decoration: none; text-align: center; display: block;
+        transition: .2s; font-family: inherit;
+    }
+    .btn-finalizar:hover { opacity: .9; transform: translateY(-1px); }
+
+    .btn-seguir {
+        width: 100%; padding: 12px;
+        background: #f3f4f6; color: #555;
+        border: 1px solid #e5e7eb; border-radius: 10px;
+        font-size: 14px; font-weight: 700; cursor: pointer;
+        text-decoration: none; text-align: center; display: block;
+        transition: .2s; font-family: inherit;
+    }
+    .btn-seguir:hover { background: #e5e7eb; }
+
+    .btn-vaciar {
+        width: 100%; padding: 12px;
+        background: #fff1f2; color: #be123c;
+        border: 1px solid #fca5a5; border-radius: 10px;
+        font-size: 14px; font-weight: 700; cursor: pointer;
+        transition: .2s; font-family: inherit;
+    }
+    .btn-vaciar:hover { background: #be123c; color: #fff; }
+
+    @media(max-width:600px){
+        .item-carrito { flex-wrap: wrap; }
+        .item-controles { width: 100%; justify-content: flex-end; }
+    }
+    </style>
+</head>
 <body>
 
+<!-- Header igual a usuario.html -->
 <header class="header">
-    <div class="container menu">
-        <a href="{% url 'usuario' %}" class="logo">Deportes 360</a>
-
-        <nav class="navbar">
-            <ul>
-                <li><a href="{% url 'usuario' %}">Volver</a></li>
-                <li><a href="{% url 'catalogo' %}">Productos</a></li>
-                <li><a href="{% url 'contacto' %}">Contacto</a></li>
-            </ul>
-        </nav>
+    <div class="container">
+        <div class="menu">
+            <a href="{% url 'index' %}" class="logo-wrapper">
+                <div class="logo-icon"><span>360</span></div>
+                <div class="logo-text">
+                    <strong>Deportes</strong>
+                    <small>360</small>
+                </div>
+            </a>
+            <input type="checkbox" id="menu" />
+            <label for="menu" class="menu-btn">
+                <span></span><span></span><span></span>
+            </label>
+            <div class="nav-overlay"></div>
+            <nav class="navbar">
+                <ul>
+                    <li><a href="{% url 'perfil' %}">Perfil</a></li>
+                    <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
+                    <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+                    <li><a href="{% url 'sugerencias' %}">Sugerencias</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                    <li><a href="{% url 'carrito' %}" style="color:#d40000;font-weight:700;">🛒</a></li>
+                </ul>
+            </nav>
+        </div>
     </div>
 </header>
 
-<main class="container">
+<div class="carrito-wrap">
 
-    <h1>🛒 Tu Carrito de Compras</h1>
+    <h1 class="carrito-titulo">🛒 Tu <span>Carrito</span></h1>
 
-    <form method="post">
+    <form method="POST">
         {% csrf_token %}
 
-{% for slug, p in productos.items %}
-<div class="item-carrito">
-
-    <div class="item-left">
-
-        <img src="{{ p.imagen }}" width="90" height="90" style="border-radius:10px;">
-
-        <div class="item-info">
-            <h4>{{ p.nombre }}</h4>
-            <p><strong>Precio:</strong> ${{ p.precio }}</p>
-            <p><strong>Talla:</strong> {{ p.talla }}</p>
-            <p><strong>Cantidad:</strong> {{ p.cantidad }}</p>
+        {% for slug, p in productos.items %}
+        <div class="item-carrito">
+            <img src="{{ p.imagen }}" alt="{{ p.nombre }}">
+            <div class="item-info">
+                <h4>{{ p.nombre }}</h4>
+                <p>Talla: <strong>{{ p.talla }}</strong></p>
+                <p class="item-precio">${{ p.precio }}</p>
+            </div>
+            <div class="item-controles">
+                <button type="submit" name="accion" value="disminuir_{{ slug }}" class="btn-cant">−</button>
+                <span class="cant-num">{{ p.cantidad }}</span>
+                <button type="submit" name="accion" value="aumentar_{{ slug }}" class="btn-cant">+</button>
+            </div>
         </div>
-
-    </div>
-
-    <!-- BOTONES A LA DERECHA -->
-    <div class="item-actions">
-        
-        <button type="submit"
-                name="accion"
-                value="disminuir_{{ slug }}"
-                class="btn-restar">
-            -
-        </button>
-
-        <button type="submit"
-                name="accion"
-                value="aumentar_{{ slug }}"
-                class="btn-sumar">
-            +
-        </button>
-
-    </div>
-
-</div>
-{% endfor %}
+        {% endfor %}
 
         {% if not productos %}
-            <p class="vacio">Tu carrito está vacío.</p>
+        <div class="carrito-vacio">
+            <div></div>
+            <h3>Tu carrito está vacío</h3>
+            <p>Agrega productos desde el catálogo.</p>
+            <a href="{% url 'catalogo' %}">Ver catálogo →</a>
+        </div>
         {% endif %}
 
-        <div class="resumen-carrito">
-
-            <h3>Total:
-                <span id="total">
-                    ${{ total }}
-                </span>
-            </h3>
-
-            <div class="acciones">
-
-                 <a href="{% url 'usuario' %}" class="btn-finalizar">
-                    Volver
-                </a>
-
-                <a href="{% url 'catalogo' %}" class="btn-finalizar">
-                  Volver al catálogo
-                </a>
-
-
-                <button type="submit"
-                        name="finalizar"
-                        value="1"
-                        class="btn-finalizar">
-                    Finalizar compra
+        {% if productos %}
+        <div class="carrito-resumen">
+            <div class="resumen-fila">
+                <span>Productos</span>
+                <strong>{{ productos|length }} artículo{{ productos|length|pluralize }}</strong>
+            </div>
+            <div class="resumen-fila total">
+                <span>Total</span>
+                <span>${{ total }}</span>
+            </div>
+            <div class="resumen-btns">
+                <button type="submit" name="finalizar" value="1" class="btn-finalizar">
+                     Finalizar compra
                 </button>
-
-                <button type="submit"
-                        name="vaciar"
-                        value="1"
-                        class="btn-danger">
-                    Vaciar carrito
+                <a href="{% url 'catalogo' %}" class="btn-seguir">
+                     Seguir comprando
+                </a>
+                <button type="submit" name="vaciar" value="1" class="btn-vaciar">
+                     Vaciar carrito
                 </button>
             </div>
         </div>
+        {% endif %}
+
     </form>
-</main>
+</div>
+
+<footer class="footer container">
+    <div class="footer-content">
+        <a href="{% url 'index' %}" class="logo">Deportes 360</a>
+        <ul>
+            <li><a href="{% url 'usuario' %}">Inicio</a></li>
+            <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+            <li><a href="{% url 'contactousu' %}">Contacto</a></li>
+        </ul>
+    </div>
+</footer>
 
 </body>
 </html>

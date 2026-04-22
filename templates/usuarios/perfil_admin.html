@@ -1,0 +1,385 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Configuración — Deportes 360</title>
+<link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+<style>
+/* ── Layout ── */
+.cfg-wrap {
+  max-width: 860px; margin: 0 auto; padding: 28px 20px 60px;
+}
+
+/* ── Cabecera de perfil ── */
+.cfg-hero {
+  background: linear-gradient(135deg, #0d0d0d 0%, #1a1a1a 100%);
+  border-radius: 18px; padding: 32px 36px;
+  display: flex; align-items: center; gap: 28px;
+  margin-bottom: 24px; flex-wrap: wrap;
+  border-bottom: 4px solid #d40000;
+}
+.cfg-avatar {
+  width: 80px; height: 80px; border-radius: 50%;
+  background: linear-gradient(135deg, #d40000, #8b0000);
+  color: #fff; font-size: 32px; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; box-shadow: 0 4px 16px rgba(212,0,0,.4);
+}
+.cfg-hero-info h2 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
+.cfg-hero-info p  { font-size: 13px; color: rgba(255,255,255,.55); margin-bottom: 8px; }
+.cfg-badge {
+  display: inline-block; padding: 4px 14px; border-radius: 20px;
+  font-size: 12px; font-weight: 700;
+  background: rgba(212,0,0,.2); color: #ff8080; border: 1px solid rgba(212,0,0,.4);
+}
+
+/* ── Cards ── */
+.cfg-card {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 2px 12px rgba(0,0,0,.08);
+  margin-bottom: 20px; overflow: hidden;
+}
+.cfg-card-head {
+  padding: 16px 24px; border-bottom: 1px solid #f0f0f0;
+  display: flex; align-items: center; gap: 10px;
+}
+.cfg-card-head h3 { font-size: 15px; font-weight: 700; color: #111; margin: 0; }
+.cfg-card-head .icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 16px; flex-shrink: 0;
+}
+.icon-red  { background: #fff0f0; }
+.icon-blue { background: #eff6ff; }
+.icon-amber{ background: #fffbeb; }
+
+.cfg-card-body { padding: 24px; }
+
+/* ── Grid de campos ── */
+.cfg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.cfg-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.cfg-full { grid-column: 1 / -1; }
+
+.cfg-campo { display: flex; flex-direction: column; }
+.cfg-campo label {
+  font-size: 11px; font-weight: 700; color: #888;
+  text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px;
+}
+.cfg-campo input, .cfg-campo select {
+  padding: 10px 14px; border: 1.5px solid #e5e7eb;
+  border-radius: 10px; font-size: 14px; color: #111;
+  outline: none; transition: .2s; background: #fafafa;
+  font-family: inherit;
+}
+.cfg-campo input:focus, .cfg-campo select:focus {
+  border-color: #d40000; background: #fff;
+  box-shadow: 0 0 0 3px rgba(212,0,0,.08);
+}
+.cfg-campo input[readonly] {
+  background: #f3f4f6; color: #999; cursor: not-allowed; border-color: #e5e7eb;
+}
+
+/* ── Separador de sección ── */
+.cfg-sep {
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .6px; color: #bbb; margin: 20px 0 12px;
+  display: flex; align-items: center; gap: 10px;
+}
+.cfg-sep::after { content:''; flex:1; height:1px; background:#f0f0f0; }
+
+/* ── Botones ── */
+.cfg-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; flex-wrap: wrap; }
+.cfg-btn-save {
+  padding: 11px 28px; background: linear-gradient(180deg,#d40000,#8b0000);
+  color: #fff; border: none; border-radius: 10px;
+  font-size: 14px; font-weight: 700; cursor: pointer; transition: .2s;
+  font-family: inherit;
+}
+.cfg-btn-save:hover { opacity: .88; transform: scale(1.02); }
+.cfg-btn-cancel {
+  padding: 11px 22px; background: #f3f4f6; color: #555;
+  border: 1px solid #e5e7eb; border-radius: 10px;
+  font-size: 14px; font-weight: 600; cursor: pointer; transition: .2s;
+  font-family: inherit; text-decoration: none; display: inline-block;
+}
+.cfg-btn-cancel:hover { background: #e5e7eb; }
+
+/* ── Contraseña ── */
+.pwd-wrap { position: relative; }
+.pwd-wrap input { padding-right: 44px; width: 100%; }
+.pwd-eye {
+  position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; font-size: 18px; color: #aaa;
+}
+
+/* ── Stats rápidas ── */
+.cfg-stats { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; margin-bottom: 20px; }
+.cfg-stat {
+  background: #fff; border-radius: 14px; padding: 18px;
+  text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,.07);
+  border-bottom: 3px solid transparent; transition: .2s;
+}
+.cfg-stat:hover { transform: translateY(-2px); }
+.cfg-stat:nth-child(1){ border-bottom-color: #d40000; }
+.cfg-stat:nth-child(2){ border-bottom-color: #3b82f6; }
+.cfg-stat:nth-child(3){ border-bottom-color: #16a34a; }
+.cfg-stat-val { font-size: 26px; font-weight: 800; color: #0d0d0d; }
+.cfg-stat-lbl { font-size: 12px; color: #888; margin-top: 4px; }
+
+/* ── Mensajes ── */
+.cfg-msg { padding: 12px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; margin-bottom: 16px; }
+.cfg-msg.success { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+.cfg-msg.error   { background: #fff0f0; color: #d40000; border: 1px solid #fca5a5; }
+
+/* ── Zona peligrosa ── */
+.danger-zone {
+  border: 1.5px solid #fca5a5; border-radius: 12px;
+  padding: 18px 22px; background: #fff8f8;
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+}
+.danger-zone p { font-size: 13px; color: #555; margin: 4px 0 0; }
+.danger-zone h4 { font-size: 14px; font-weight: 700; color: #d40000; }
+.btn-danger {
+  padding: 9px 20px; background: #fff; border: 1.5px solid #d40000;
+  color: #d40000; border-radius: 8px; font-size: 13px; font-weight: 700;
+  cursor: pointer; transition: .15s; font-family: inherit;
+}
+.btn-danger:hover { background: #d40000; color: #fff; }
+
+@media(max-width:700px){
+  .cfg-grid,.cfg-grid-3,.cfg-stats{ grid-template-columns:1fr; }
+  .cfg-hero{ flex-direction:column; text-align:center; }
+}
+</style>
+</head>
+<body style="background:#f2f3f5;">
+
+<header class="header">
+  <div class="header-logo">
+    <span class="material-symbols-outlined">storefront</span>
+    <span>Panel Admin — Deportes 360</span>
+  </div>
+</header>
+
+<nav class="sidebar">
+  <div class="sidebar-nav-wrap">
+    <div class="sidebar-nav-main">
+      <a class="nav-item" href="{% url 'panel_admin' %}">
+        <span class="material-symbols-outlined">dashboard</span><span>Inicio</span>
+      </a>
+      <a class="nav-item" href="{% url 'panel_admin' %}">
+        <span class="material-symbols-outlined">group</span><span>Usuarios</span>
+      </a>
+      <a class="nav-item" href="{% url 'panel_admin' %}">
+        <span class="material-symbols-outlined">add_box</span><span>Nuevo Producto</span>
+      </a>
+      <a class="nav-item" href="{% url 'productos' %}">
+        <span class="material-symbols-outlined">inventory_2</span><span>Info Productos</span>
+      </a>
+      <a class="nav-item" href="{% url 'panel_admin' %}">
+        <span class="material-symbols-outlined">swap_vert</span><span>Movimientos</span>
+      </a>
+      <a class="nav-item" href="{% url 'panel_admin' %}">
+        <span class="material-symbols-outlined">bar_chart</span><span>Reportes</span>
+      </a>
+      <a class="nav-item" href="{% url 'panel_admin' %}">
+        <span class="material-symbols-outlined">chat</span><span>Sugerencias</span>
+      </a>
+      <a class="nav-item" href="{% url 'panel_admin' %}">
+        <span class="material-symbols-outlined">upload_file</span><span>Carga Masiva</span>
+      </a>
+    </div>
+    <div class="sidebar-nav-bottom">
+      <a class="nav-item active" href="{% url 'crear_admin' %}">
+        <span class="material-symbols-outlined">settings</span><span>Configuración</span>
+      </a>
+      <a class="nav-item nav-logout" href="{% url 'logout' %}">
+        <span class="material-symbols-outlined">logout</span><span>Cerrar Sesión</span>
+      </a>
+    </div>
+  </div>
+</nav>
+
+<main class="dashboard">
+<div class="cfg-wrap">
+
+  {% if messages %}
+    {% for message in messages %}
+    <div class="cfg-msg {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+  {% endif %}
+
+  <!-- Hero perfil -->
+  <div class="cfg-hero">
+    <div class="cfg-avatar">{{ admin.first_name|slice:":1"|upper|default:"A" }}</div>
+    <div class="cfg-hero-info">
+      <h2>{{ admin.first_name|default:admin.username }}</h2>
+      <p>@{{ admin.username }} &nbsp;·&nbsp; {{ admin.email }}</p>
+      <span class="cfg-badge">Administrador</span>
+    </div>
+  </div>
+
+  <!-- Stats rápidas -->
+  <div class="cfg-stats">
+    <div class="cfg-stat">
+      <div class="cfg-stat-val">{{ total_ventas }}</div>
+      <div class="cfg-stat-lbl">Ventas registradas</div>
+    </div>
+    <div class="cfg-stat">
+      <div class="cfg-stat-val">{{ total_usuarios }}</div>
+      <div class="cfg-stat-lbl">Usuarios en sistema</div>
+    </div>
+    <div class="cfg-stat">
+      <div class="cfg-stat-val">{{ total_productos }}</div>
+      <div class="cfg-stat-lbl">Productos activos</div>
+    </div>
+  </div>
+
+  <!-- ── INFORMACIÓN PERSONAL ── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="icon icon-red">👤</div>
+      <h3>Información Personal</h3>
+    </div>
+    <div class="cfg-card-body">
+      <form method="POST" action="{% url 'perfil_admin' %}">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="perfil">
+
+        <div class="cfg-grid">
+          <div class="cfg-campo">
+            <label>Nombre completo</label>
+            <input type="text" name="first_name" value="{{ admin.first_name }}" placeholder="Tu nombre" required>
+          </div>
+          <div class="cfg-campo">
+            <label>Usuario</label>
+            <input type="text" name="username" value="{{ admin.username }}" placeholder="nombre_usuario" required>
+          </div>
+          <div class="cfg-campo">
+            <label>Correo electrónico</label>
+            <input type="email" name="email" value="{{ admin.email }}" placeholder="correo@ejemplo.com" required>
+          </div>
+          <div class="cfg-campo">
+            <label>Teléfono</label>
+            <input type="text" name="telefono" value="{{ admin.telefono }}" placeholder="3001234567">
+          </div>
+          <div class="cfg-campo">
+            <label>Fecha de nacimiento</label>
+            <input type="date" name="fecha_nacimiento" value="{{ admin.fecha_nacimiento|date:'Y-m-d' }}">
+          </div>
+          <div class="cfg-campo">
+            <label>Rol</label>
+            <input type="text" value="Administrador" readonly>
+          </div>
+        </div>
+
+        <div class="cfg-sep">Documento de identidad</div>
+        <div class="cfg-grid-3">
+          <div class="cfg-campo">
+            <label>Tipo de documento</label>
+            <select name="tipo_documento">
+              <option value="">Seleccionar</option>
+              <option value="CC"  {% if admin.tipo_documento == 'CC'  %}selected{% endif %}>Cédula de ciudadanía</option>
+              <option value="CE"  {% if admin.tipo_documento == 'CE'  %}selected{% endif %}>Cédula de extranjería</option>
+              <option value="PA"  {% if admin.tipo_documento == 'PA'  %}selected{% endif %}>Pasaporte</option>
+              <option value="TI"  {% if admin.tipo_documento == 'TI'  %}selected{% endif %}>Tarjeta de identidad</option>
+            </select>
+          </div>
+          <div class="cfg-campo">
+            <label>Número de documento</label>
+            <input type="text" name="cedula" value="{{ admin.cedula }}" placeholder="123456789">
+          </div>
+          <div class="cfg-campo">
+            <label>Localidad</label>
+            <input type="text" name="localidad" value="{{ admin.localidad }}" placeholder="Kennedy">
+          </div>
+        </div>
+
+        <div class="cfg-sep">Dirección</div>
+        <div class="cfg-grid">
+          <div class="cfg-campo">
+            <label>Barrio</label>
+            <input type="text" name="barrio" value="{{ admin.barrio }}" placeholder="Chapinero">
+          </div>
+        </div>
+
+        <div class="cfg-actions">
+          <a href="{% url 'panel_admin' %}" class="cfg-btn-cancel">← Volver al panel</a>
+          <button type="submit" class="cfg-btn-save">Guardar cambios</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── CAMBIAR CONTRASEÑA ── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="icon icon-blue">🔒</div>
+      <h3>Cambiar Contraseña</h3>
+    </div>
+    <div class="cfg-card-body">
+      <form method="POST" action="{% url 'perfil_admin' %}">
+        {% csrf_token %}
+        <input type="hidden" name="accion" value="password">
+        <div class="cfg-grid">
+          <div class="cfg-campo cfg-full">
+            <label>Contraseña actual</label>
+            <div class="pwd-wrap">
+              <input type="password" name="password_actual" id="pwdActual" placeholder="Tu contraseña actual" required>
+              <button type="button" class="pwd-eye" onclick="togglePwd('pwdActual', this)">👁</button>
+            </div>
+          </div>
+          <div class="cfg-campo">
+            <label>Nueva contraseña</label>
+            <div class="pwd-wrap">
+              <input type="password" name="password_nueva" id="pwdNueva" placeholder="Mínimo 8 caracteres" required>
+              <button type="button" class="pwd-eye" onclick="togglePwd('pwdNueva', this)">👁</button>
+            </div>
+          </div>
+          <div class="cfg-campo">
+            <label>Confirmar nueva contraseña</label>
+            <div class="pwd-wrap">
+              <input type="password" name="password_confirmar" id="pwdConfirm" placeholder="Repite la nueva contraseña" required>
+              <button type="button" class="pwd-eye" onclick="togglePwd('pwdConfirm', this)">👁</button>
+            </div>
+          </div>
+        </div>
+        <div class="cfg-actions">
+          <button type="submit" class="cfg-btn-save">Cambiar contraseña</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ── ZONA DE PELIGRO ── -->
+  <div class="cfg-card">
+    <div class="cfg-card-head">
+      <div class="icon icon-amber">⚠️</div>
+      <h3>Zona de peligro</h3>
+    </div>
+    <div class="cfg-card-body">
+      <div class="danger-zone">
+        <div>
+          <h4>Cerrar todas las sesiones</h4>
+          <p>Se cerrará la sesión en todos los dispositivos donde estés conectado.</p>
+        </div>
+        <a href="{% url 'logout' %}" class="btn-danger">Cerrar sesión</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+</main>
+
+<script>
+function togglePwd(id, btn) {
+  var inp = document.getElementById(id);
+  if(inp.type === 'password'){ inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+</script>
+</body>
+</html>

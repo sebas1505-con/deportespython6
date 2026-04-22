@@ -1,392 +1,771 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Administrador - Deportes 360</title>
-    <link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
-    <link rel="stylesheet" href="{% static 'css/admin.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel de Administrador - Deportes 360</title>
+<link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
+<link rel="stylesheet" href="{% static 'css/admin.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+.tallas-grupo-titulo {
+  font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .5px; margin: 14px 0 8px; padding: 5px 10px;
+  border-radius: 6px; display: inline-block;
+}
+.tallas-grupo-titulo.adulto { background: #fff0f0; color: #d40000; }
+.tallas-grupo-titulo.nino   { background: #eff6ff; color: #1565c0; }
 
+.mov-card {
+  background: #fff; border-radius: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-bottom: 16px;
+  overflow: hidden; border-left: 5px solid transparent; transition: .15s;
+}
+.mov-card.entrada { border-left-color: #16a34a; }
+.mov-card.salida  { border-left-color: #d40000; }
+.mov-card:hover   { box-shadow: 0 4px 18px rgba(0,0,0,.13); }
+.mov-card-head {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 18px; background: #fafafa;
+  border-bottom: 1px solid #f0f0f0; flex-wrap: wrap;
+}
+.mov-tipo-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;
+}
+.mov-tipo-badge.entrada { background: #dcfce7; color: #15803d; }
+.mov-tipo-badge.salida  { background: #fee2e2; color: #b91c1c; }
+.mov-cant { font-size: 22px; font-weight: 800; margin-left: auto; }
+.mov-cant.entrada { color: #16a34a; }
+.mov-cant.salida  { color: #d40000; }
+.mov-card-body {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0; padding: 0;
+}
+.mov-dato { padding: 12px 18px; border-right: 1px solid #f5f5f5; }
+.mov-dato:last-child { border-right: none; }
+.mov-dato-lbl { font-size: 10px; font-weight: 700; color: #aaa; text-transform: uppercase; letter-spacing: .4px; margin-bottom: 3px; }
+.mov-dato-val { font-size: 14px; font-weight: 600; color: #111; }
+.talla-chip-badge { display: inline-block; background: #f3f4f6; padding: 2px 10px; border-radius: 6px; font-size: 13px; }
+
+/* Carga masiva mejorada */
+.carga-cols {
+  background: #f9f9f9; border-radius: 10px; padding: 16px 20px;
+  margin-top: 16px; border: 1px solid #ebebeb;
+}
+.carga-cols h4 { font-size: 13px; font-weight: 700; color: #555; margin-bottom: 10px; }
+.carga-cols table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.carga-cols th { background: #0d0d0d; color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; }
+.carga-cols td { padding: 7px 12px; border-bottom: 1px solid #eee; color: #444; }
+.carga-cols tr:last-child td { border-bottom: none; }
+.carga-cols code { background: #fff0f0; color: #d40000; padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
 <body>
 
 <header class="header">
-    <h1>PANEL DE ADMINISTRADOR - DEPORTES 360</h1>
+  <div class="header-logo">
+    <span class="material-symbols-outlined">storefront</span>
+    <span>Panel Admin — Deportes 360</span>
+  </div>
 </header>
 
 <nav class="sidebar">
-    <ul>
-        <li><a href="#pedidos">Inicio</a></li>
-        <li><a href="#usuarios">Usuarios</a></li>
-        <li><a href="{% url 'crear_admin' %}">Crear Admin</a></li>
-        <li><a href="#nuevo-producto">Nuevo Producto</a></li>
-        <li><a href="{% url 'productos' %}">Info Productos</a></li>
-        <li><a href="#movimientos">Movimientos</a></li>
-        <li><a href="#reportes">Reportes</a></li>
-        <li><a href="#panel_sugerencias">Sugerencias</a></li>
-        <li><a href="#carga-masiva">Carga Masiva</a></li>
-        <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
-    </ul>
+  <div class="sidebar-nav-wrap">
+    <div class="sidebar-nav-main">
+      <a class="nav-item active" onclick="show('inicio', this)">
+        <span class="material-symbols-outlined">dashboard</span><span>Inicio</span>
+      </a>
+      <a class="nav-item" onclick="show('usuarios', this)">
+        <span class="material-symbols-outlined">group</span><span>Usuarios</span>
+      </a>
+      <a class="nav-item" onclick="show('productos', this)">
+        <span class="material-symbols-outlined">add_box</span><span>Nuevo Producto</span>
+      </a>
+      <a class="nav-item" href="{% url 'productos' %}">
+        <span class="material-symbols-outlined">inventory_2</span><span>Info Productos</span>
+      </a>
+      <a class="nav-item" onclick="show('movimientos', this)">
+        <span class="material-symbols-outlined">swap_vert</span><span>Movimientos</span>
+      </a>
+      <a class="nav-item" onclick="show('reportes', this)">
+        <span class="material-symbols-outlined">bar_chart</span><span>Reportes</span>
+      </a>
+      <a class="nav-item" onclick="show('sugerencias', this)">
+        <span class="material-symbols-outlined">chat</span><span>Sugerencias</span>
+      </a>
+      <a class="nav-item" onclick="show('carga', this)">
+        <span class="material-symbols-outlined">upload_file</span><span>Carga Masiva</span>
+      </a>
+    </div>
+    <div class="sidebar-nav-bottom">
+      <a class="nav-item" href="{% url 'perfil_admin' %}">
+        <span class="material-symbols-outlined">settings</span><span>Configuración</span>
+      </a>
+      <a class="nav-item nav-logout" href="{% url 'logout' %}">
+        <span class="material-symbols-outlined">logout</span><span>Cerrar Sesión</span>
+      </a>
+    </div>
+  </div>
 </nav>
 
 <main class="dashboard">
 
-<!-- PEDIDOS -->
-<section class="pedidos" id="pedidos">
-<h2>Últimos Pedidos</h2>
-<table class="tabla-pedidos">
-<thead>
-<tr>
-<th>#</th>
-<th>Cliente</th>
-<th>Dirección</th>
-<th>Teléfono</th>
-<th>Fecha</th>
-<th>Total</th>
-<th>Estado</th>
-</tr>
-</thead>
-<tbody>
-{% for pedido in ultimos_pedidos %}
-<tr>
-<td>{{ pedido.id }}</td>
-<td>{{ pedido.usuario.username }}</td>
-<td>{{ pedido.usuario.direccion|default:"-" }}</td>
-<td>{{ pedido.usuario.telefono|default:"-" }}</td>
-<td>{{ pedido.fecha_pedido|date:"d/m/Y" }}</td>
-<td>$ {{ pedido.total }}</td>
-<td>{{ pedido.estado }}</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-</section>
+  <!-- ══ INICIO ══ -->
+  <div class="section visible" id="sec-inicio">
+    <div class="stats">
+      <div class="stat-box"><h3>Ventas totales</h3><p>{{ cantidad_ventas }}</p></div>
+      <div class="stat-box"><h3>Total vendido</h3><p>${{ total_general|floatformat:0 }}</p></div>
+      <div class="stat-box"><h3>Pedidos recientes</h3><p>{{ ultimos_pedidos|length }}</p></div>
+      <div class="stat-box"><h3>Usuarios</h3><p>{{ usuarios|length }}</p></div>
+    </div>
+    <div class="card-section">
+      <h2>Últimos Pedidos</h2>
+      <table class="tabla-admin">
+        <thead>
+          <tr><th>#</th><th>Cliente</th><th>Producto</th><th>Dirección envío</th><th>Teléfono</th><th>Fecha</th><th>Total</th><th>Estado</th></tr>
+        </thead>
+        <tbody>
+          {% for pedido in ultimos_pedidos %}
+          <tr>
+            <td><span style="font-family:monospace;color:#888">#{{ pedido.id }}</span></td>
+            <td><strong>{{ pedido.usuario.first_name|default:pedido.usuario.username }}</strong><div style="font-size:11px;color:#aaa">{{ pedido.usuario.username }}</div></td>
+            <td style="font-size:13px">{{ pedido.producto.nombre }}</td>
+            <td style="font-size:13px;color:#555">{% if pedido.venta %}{{ pedido.venta.direccionEnvio|default:"—" }}{% else %}{{ pedido.usuario.barrio|default:"—" }}{% endif %}</td>
+            <td style="font-size:13px">{{ pedido.usuario.telefono|default:"-" }}</td>
+            <td style="font-size:13px;color:#888;white-space:nowrap">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
+            <td><strong>${{ pedido.total|floatformat:0 }}</strong></td>
+            <td>
+              {% if pedido.estado == 'Entregado' %}<span class="badge badge-green">Entregado</span>
+              {% elif pedido.estado == 'En camino' %}<span class="badge badge-blue">En camino</span>
+              {% elif pedido.estado == 'Disponible' %}<span class="badge badge-amber">Disponible</span>
+              {% else %}<span class="badge badge-amber">{{ pedido.estado }}</span>{% endif %}
+            </td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">Sin pedidos</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
 
-<!-- USUARIOS -->
-<section class="usuarios" id="usuarios">
-<h2>Gestión de Usuarios</h2>
-<table class="tabla-usuarios">
-<thead>
-<tr>
-<th>ID</th>
-<th>Nombre</th>
-<th>Correo</th>
-<th>Rol</th>
-<th>Acción</th>
-</tr>
-</thead>
-<tbody>
-{% for u in usuarios %}
-<tr>
-<td>#{{u.id}}</td>
-<td>{{u.first_name}}</td>
-<td>{{u.email}}</td>
-<td>{{u.rol}}</td>
-<td>
-<form method="POST" action="{% url 'eliminar_usuario' u.id %}">
-{% csrf_token %}
-<button class="btn-eliminar">Eliminar</button>
-</form>
-</td>
-</tr>
-{% endfor %}
-</tbody>
-</table>
-</section>
-
-<!-- PRODUCTOS -->
-<section class="productos" id="productos">
-<h2>Productos</h2>
- 
-
-<section class="productos" id="nuevo-producto">
-    <h2>Registrar Nuevo Producto</h2>
-
-    <!-- Mensajes -->
-    {% if messages %}
-        {% for message in messages %}
-            <p class="mensaje {{ message.tags }}">{{ message }}</p>
-        {% endfor %}
-    {% endif %}
-
-    <div class="form-container">
+  <!-- ══ NUEVO PRODUCTO ══ -->
+  <div class="section" id="sec-productos">
+    <div class="card-section">
+      <h2>Registrar Nuevo Producto</h2>
+      {% if messages %}{% for message in messages %}<p class="mensaje {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
+      <div class="form-container">
         <form method="POST" action="{% url 'producto_nuevo' %}" enctype="multipart/form-data" class="formulario">
-            {% csrf_token %}
-
-            <!-- Nombre -->
-            <div class="campo">
-                <label>Nombre del Producto</label>
-                <input type="text" name="nombre" class="campo-input" placeholder="Ej: Guayos Nike" required>
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="campo"><label>Nombre del Producto</label><input type="text" name="nombre" class="campo-input" placeholder="Ej: Guayos Nike" required></div>
+            <div class="campo"><label>Precio</label><input type="number" name="precio" class="campo-input" placeholder="Ej: 120000" required></div>
+          </div>
+          <div class="campo"><label>Descripción</label><textarea name="descripcion" class="campo-input" rows="3" placeholder="Descripción del producto..."></textarea></div>
+          <div class="form-row">
+            <div class="campo"><label>Categoría</label>
+              <select name="categoria" class="campo-input">
+                <option value="">Seleccionar</option>
+                <option value="HOMBRE">Hombre</option>
+                <option value="MUJER">Mujer</option>
+                <option value="MIXTO">Mixto</option>
+              </select>
             </div>
+            <div class="campo"><label>Imagen</label><input type="file" name="imagen" accept="image/*" class="campo-input"></div>
+          </div>
+          <hr class="sep">
+          <span class="tallas-grupo-titulo adulto">Tallas Adulto</span>
+          <div class="form-row-4">
+            <div class="campo"><label>S</label><input type="number" name="stock_s" class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>M</label><input type="number" name="stock_m" class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>L</label><input type="number" name="stock_l" class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>XL</label><input type="number" name="stock_xl" class="campo-input" min="0" value="0"></div>
+          </div>
+          <span class="tallas-grupo-titulo nino">Tallas Pequeñas</span>
+            <div class="form-row-4">
+            <div class="campo"><label>Talla 6</label><input type="number" name="stock_6"  class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>Talla 8</label><input type="number" name="stock_8"  class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>Talla 10</label><input type="number" name="stock_10" class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>Talla 12</label><input type="number" name="stock_12" class="campo-input" min="0" value="0"></div>
+          </div>
+            <div class="form-row-4">
+            <div class="campo"><label>Talla 14</label><input type="number" name="stock_14" class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>Talla 16</label><input type="number" name="stock_16" class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>Talla 18</label><input type="number" name="stock_18" class="campo-input" min="0" value="0"></div>
+            <div class="campo"></div>
+          </div>
+          <button type="submit" class="btn-submit">Guardar Producto</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
-            <!-- Precio -->
-            <div class="campo">
-                <label>Precio</label>
-                <input type="number" name="precio" class="campo-input" placeholder="Ej: 120000" required>
+  <!-- ══ REPORTES ══ -->
+  <div class="section" id="sec-reportes">
+    <div class="rp-page-header">
+      <h1>Reportes de Ventas</h1>
+      <p>Analiza el detalle de tus ventas, productos y clientes</p>
+    </div>
+    <div class="rp-filter-box">
+      <div class="rp-filter-row">
+        <div class="rp-preset-btns">
+          <button class="rp-preset" data-period="mes">Este mes</button>
+          <button class="rp-preset" data-period="3meses">3 meses</button>
+          <button class="rp-preset" data-period="6meses">6 meses</button>
+          <button class="rp-preset" data-period="anio">Este año</button>
+          <button class="rp-preset" data-period="custom">Personalizado</button>
+        </div>
+        <div class="rp-date-row">
+          <input type="date" id="rp-fi" value="{{ request.GET.fecha_inicio }}">
+          <span class="rp-date-sep">hasta</span>
+          <input type="date" id="rp-ff" value="{{ request.GET.fecha_fin }}">
+          <button class="rp-aplicar" onclick="rpAplicar()">Aplicar</button>
+        </div>
+      </div>
+      <div class="rp-tabs">
+        <button class="rp-tab-btn active" data-tipo="TODAS">Todas</button>
+        <button class="rp-tab-btn" data-tipo="PSE"> PSE / En línea</button>
+        <button class="rp-tab-btn" data-tipo="CONTRA_ENTREGA">Contra entrega</button>
+      </div>
+    </div>
+    <div class="rp-summary">
+      <div class="rp-sum-card"><div class="rp-sum-icon rp-sum-icon--g">🛒</div><div><p class="rp-sum-label">Total ventas</p><p class="rp-sum-val">{{ cantidad_ventas }}</p></div></div>
+      <div class="rp-sum-card"><div class="rp-sum-icon rp-sum-icon--r">💰</div><div><p class="rp-sum-label">Valor total</p><p class="rp-sum-val">${{ total_general|floatformat:0 }}</p></div></div>
+      <div class="rp-sum-card"><div class="rp-sum-icon rp-sum-icon--b">📈</div><div><p class="rp-sum-label">Ticket promedio</p><p class="rp-sum-val">${{ ticket_promedio|floatformat:0 }}</p></div></div>
+      <div class="rp-sum-card"><div class="rp-sum-icon rp-sum-icon--a">👥</div><div><p class="rp-sum-label">Clientes únicos</p><p class="rp-sum-val">{{ clientes_unicos }}</p></div></div>
+      <div class="rp-sum-card"><div class="rp-sum-icon rp-sum-icon--p">📦</div><div><p class="rp-sum-label">Unidades vendidas</p><p class="rp-sum-val">{{ unidades_vendidas|default:"0" }}</p></div></div>
+    </div>
+    <div class="rp-charts-grid">
+      <div class="rp-chart-card">
+        <div class="rp-chart-head">
+          <h3>Evolución de ventas</h3>
+          <div class="rp-chart-legend"><span class="rp-ldot rp-ldot--r"></span> Total ($) &nbsp;<span class="rp-ldot rp-ldot--b"></span> Cantidad</div>
+        </div>
+        <div class="rp-cwrap"><canvas id="rpEvolucion"></canvas></div>
+      </div>
+      <div class="rp-chart-card">
+        <div class="rp-chart-head"><h3>Por método de pago</h3></div>
+        <div class="rp-cwrap rp-cwrap--donut"><canvas id="rpMetodo"></canvas></div>
+      </div>
+      <div class="rp-chart-card rp-chart-card--full">
+        <div class="rp-chart-head"><h3>Top 10 productos más vendidos</h3></div>
+        <div class="rp-cwrap"><canvas id="rpProductos"></canvas></div>
+      </div>
+    </div>
+    <div class="rp-resumen">
+      <div class="rp-resumen-head">
+        <h3>Resumen mensual</h3>
+        <div class="rp-mes-nav">
+          <button class="rp-mes-btn" id="rpMesAnt">‹</button>
+          <span class="rp-mes-label" id="rpMesLabel">—</span>
+          <button class="rp-mes-btn" id="rpMesSig">›</button>
+        </div>
+      </div>
+      <div class="rp-mes-stats">
+        <div class="rp-mes-stat rp-mes-stat--v"><p class="rp-mes-stat-lbl">Ventas del mes</p><p class="rp-mes-stat-val" id="rpMVentas">—</p></div>
+        <div class="rp-mes-stat rp-mes-stat--t"><p class="rp-mes-stat-lbl">Total recaudado</p><p class="rp-mes-stat-val" id="rpMTotal">—</p></div>
+        <div class="rp-mes-stat rp-mes-stat--k"><p class="rp-mes-stat-lbl">Ticket promedio</p><p class="rp-mes-stat-val" id="rpMTicket">—</p></div>
+        <div class="rp-mes-stat rp-mes-stat--c"><p class="rp-mes-stat-lbl">Clientes únicos</p><p class="rp-mes-stat-val" id="rpMClientes">—</p></div>
+      </div>
+      <p style="font-size:12px;font-weight:700;color:#888;text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Top productos del período</p>
+      <div class="rp-top-list">
+        {% for prod in top_productos %}
+        <div class="rp-top-item">
+          <span class="rp-top-pos">{{ forloop.counter }}</span>
+          <span class="rp-top-name">{{ prod.nombre }}</span>
+          <div class="rp-top-bar-w"><div class="rp-top-bar" style="width:{{ prod.porcentaje|default:0|floatformat:0 }}%"></div></div>
+          <span class="rp-top-val">${{ prod.total_ingresos|floatformat:0 }}</span>
+        </div>
+        {% empty %}<p style="color:#aaa;font-size:13px;">Sin datos</p>{% endfor %}
+      </div>
+    </div>
+    <div class="rp-detail">
+      <div class="rp-detail-head">
+        <h3>Detalle de ventas</h3>
+        <div class="rp-export-row">
+          <a class="rp-exp-btn rp-exp-btn--excel" id="rpExcelLink" href="{% url 'exportar_excel' %}?fecha_inicio={{ request.GET.fecha_inicio|default:'' }}&fecha_fin={{ request.GET.fecha_fin|default:'' }}">📊 Excel</a>
+          <a class="rp-exp-btn rp-exp-btn--pdf"   id="rpPdfLink"   href="{% url 'generar_pdf' %}?fecha_inicio={{ request.GET.fecha_inicio|default:'' }}&fecha_fin={{ request.GET.fecha_fin|default:'' }}">📄 PDF</a>
+          <button class="rp-exp-btn rp-exp-btn--print" onclick="window.print()">🖨 Imprimir</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="tabla-admin">
+          <thead><tr><th>ID</th><th>Cliente</th><th>Método</th><th>Dirección</th><th>Cant.</th><th>Total</th><th>Estado</th><th>Fecha</th></tr></thead>
+          <tbody id="rpVentasBody">
+            {% for venta in ventas %}
+            <tr data-metodo="{{ venta.metodo_de_pago }}">
+              <td><span style="font-family:monospace;color:#888;font-size:12px">#{{ venta.id }}</span></td>
+              <td><strong>{{ venta.cliente.usuario.username }}</strong></td>
+              <td>{% if venta.metodo_de_pago == 'PSE' or venta.metodo_de_pago == 'PAGO_EN_LINEA' %}<span class="badge badge-blue">PSE</span>{% else %}<span class="badge badge-amber">Contra entrega</span>{% endif %}</td>
+              <td style="color:#888;font-size:13px">{{ venta.direccionEnvio|truncatechars:30 }}</td>
+              <td>{{ venta.cantProducto }}</td>
+              <td><strong>${{ venta.totalVenta|floatformat:0 }}</strong></td>
+              <td>
+                {% if venta.estado == 'Entregado' or venta.estado == 'completada' %}<span class="badge badge-green">Entregado</span>
+                {% elif venta.estado == 'En camino' %}<span class="badge badge-blue">En camino</span>
+                {% elif venta.estado == 'cancelada' %}<span class="badge badge-red">Cancelada</span>
+                {% else %}<span class="badge" style="background:#f3f4f6;color:#6b7280">{{ venta.estado }}</span>{% endif %}
+              </td>
+              <td style="color:#888;font-size:13px;white-space:nowrap">{{ venta.fecha_venta|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}<tr><td colspan="8" style="text-align:center;color:#aaa;padding:28px;font-style:italic">No hay ventas en este período</td></tr>{% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ MOVIMIENTOS ══ -->
+  <div class="section" id="sec-movimientos">
+    <div class="card-section">
+      <h2>Registrar Movimiento</h2>
+      {% if messages %}{% for message in messages %}<p class="mensaje {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
+      <div class="form-container">
+        <form method="POST" action="{% url 'movimiento_nuevo' %}" class="formulario">
+          {% csrf_token %}
+          <div class="form-row">
+            <div class="campo"><label>Producto</label>
+              <select name="producto" id="sel-producto" class="campo-input" required onchange="cargarTallas(this)">
+                <option value="">Seleccione un producto</option>
+                {% for p in productos %}
+                <option value="{{ p.id }}" data-tallas="{% for t in p.tallas.all %}{{ t.talla }}:{{ t.stock }},{% endfor %}">
+                  {{ p.nombre }} — Stock total: {{ p.stock_total }}
+                </option>
+                {% endfor %}
+              </select>
             </div>
-
-            <!-- Stock -->
-            <div class="campo">
-                <label>Stock Talla S</label>
-                <input type="number" name="stock_s" class="campo-input" min="0" value="0">
+            <div class="campo"><label>Talla</label>
+              <select name="talla" id="sel-talla" class="campo-input" required>
+                <option value="">Primero seleccione producto</option>
+              </select>
             </div>
-
-            <div class="campo">
-                <label>Stock Talla M</label>
-                <input type="number" name="stock_m" class="campo-input" min="0" value="0">
+          </div>
+          <div class="form-row">
+            <div class="campo"><label>Tipo de Movimiento</label>
+              <select name="tipo_movimiento" class="campo-input" required>
+                <option value="">Seleccione tipo</option>
+                <option value="entrada">↑ Entrada — ingreso de stock</option>
+                <option value="salida">↓ Salida — reducción de stock</option>
+              </select>
             </div>
-
-            <div class="campo">
-                <label>Stock Talla L</label>
-                <input type="number" name="stock_l" class="campo-input" min="0" value="0">
+            <div class="campo"><label>Cantidad</label>
+              <input type="number" name="cantidad" class="campo-input" min="1" placeholder="Ej: 10" required>
             </div>
-
-            <div class="campo">
-                <label>Stock Talla XL</label>
-                <input type="number" name="stock_xl" class="campo-input" min="0" value="0">
+          </div>
+          <div class="campo"><label>Proveedor (opcional)</label><input type="text" name="proveedor" class="campo-input" placeholder="Ej: Nike, Adidas..."></div>
+          <div class="campo"><label>Motivo</label><textarea name="motivo" class="campo-input" rows="3" placeholder="Ej: Compra a proveedor, devolución, daño..." required></textarea></div>
+          <button type="submit" class="btn-submit">Guardar Movimiento</button>
+        </form>
+      </div>
+    </div>
+    <div class="mov-summary">
+      <div class="mov-sum-card mov-sum-card--total"><p class="mov-sum-lbl">Total movimientos</p><p class="mov-sum-val">{{ movimientos|length }}</p></div>
+      <div class="mov-sum-card mov-sum-card--entrada"><p class="mov-sum-lbl">↑ Entradas</p><p class="mov-sum-val">{{ total_entradas|default:"0" }}</p></div>
+      <div class="mov-sum-card mov-sum-card--salida"><p class="mov-sum-lbl">↓ Salidas</p><p class="mov-sum-val">{{ total_salidas|default:"0" }}</p></div>
+      <div class="mov-sum-card mov-sum-card--uent"><p class="mov-sum-lbl">Uds. ingresadas</p><p class="mov-sum-val">{{ unidades_entrada|default:"0" }}</p></div>
+      <div class="mov-sum-card mov-sum-card--usal"><p class="mov-sum-lbl">Uds. salidas</p><p class="mov-sum-val">{{ unidades_salida|default:"0" }}</p></div>
+    </div>
+    <div class="card-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <h2 style="margin:0;">Historial de Movimientos</h2>
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <input type="text" id="buscador-mov" placeholder="Buscar producto, talla, motivo..." oninput="filtrarMovimientos()" style="padding:8px 14px;border:1px solid #ccc;border-radius:8px;font-size:13px;width:240px;outline:none;">
+          <div style="display:flex;gap:6px;">
+            <button class="mov-filtro mov-filtro--active" onclick="filtrarTipo('todos',this)">Todos</button>
+            <button class="mov-filtro" onclick="filtrarTipo('entrada',this)">↑ Entradas</button>
+            <button class="mov-filtro" onclick="filtrarTipo('salida',this)">↓ Salidas</button>
+          </div>
+        </div>
+      </div>
+      <div id="lista-movimientos">
+        {% for m in movimientos %}
+        <div class="mov-card {{ m.tipo_movimiento }}" data-tipo="{{ m.tipo_movimiento }}" data-busq="{{ m.producto.nombre|lower }} {{ m.talla|lower }} {{ m.motivo|lower }} {{ m.proveedor|lower }}">
+          <div class="mov-card-head">
+            <span class="mov-tipo-badge {{ m.tipo_movimiento }}">
+              {% if m.tipo_movimiento == 'entrada' %}↑ Entrada{% else %}↓ Salida{% endif %}
+            </span>
+            <div>
+              <div style="font-size:15px;font-weight:700;color:#111;">
+                {{ m.producto.nombre|default:m.nombre_producto|default:"Producto eliminado" }}
+              </div>
+              <div style="font-size:12px;color:#aaa;">{{ m.fecha|date:"d/m/Y H:i" }} &nbsp;·&nbsp; #{{ m.id }}</div>
             </div>
-
-            <!-- Descripción -->
-            <div class="campo">
-                <label>Descripción</label>
-                <textarea name="descripcion" class="campo-input" rows="3"></textarea>
+            <div class="mov-cant {{ m.tipo_movimiento }}">
+              {% if m.tipo_movimiento == 'entrada' %}+{% else %}−{% endif %}{{ m.cantidad }} uds
             </div>
-
-            <!-- Categoría -->
-            <div class="campo">
-                <label>Categoría</label>
-                <select name="categoria" class="campo-input">
-                    <option value="">Seleccionar</option>
-                    <option value="HOMBRE">Hombre</option>
-                    <option value="MUJER">Mujer</option>
-                    <option value="MIXTO">Mixto</option>
-                </select>
+          </div>
+          <div class="mov-card-body">
+            <div class="mov-dato">
+              <p class="mov-dato-lbl">Talla</p>
+              <p class="mov-dato-val"><span class="talla-chip-badge">{{ m.talla }}</span></p>
             </div>
-
-            <!-- Imagen -->
-            <div class="campo">
-                <label>Imagen</label>
-                <input type="file" name="imagen" accept="image/*" class="campo-input">
+            <div class="mov-dato">
+              <p class="mov-dato-lbl">Stock actual talla</p>
+              <p class="mov-dato-val" style="font-size:16px;font-weight:800;">
+                {% for t in m.producto.tallas.all %}{% if t.talla == m.talla %}{{ t.stock }}{% endif %}{% endfor %} uds
+              </p>
             </div>
+            <div class="mov-dato">
+              <p class="mov-dato-lbl">Proveedor</p>
+              <p class="mov-dato-val">{{ m.proveedor|default:"—" }}</p>
+            </div>
+            <div class="mov-dato" style="min-width:200px;">
+              <p class="mov-dato-lbl">Motivo</p>
+              <p class="mov-dato-val" style="color:#555;">{{ m.motivo|default:"—" }}</p>
+            </div>
+          </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;color:#aaa;padding:40px;font-style:italic;background:#fff;border-radius:14px;">
+          No hay movimientos registrados todavía.
+        </div>
+        {% endfor %}
+      </div>
+      <p id="mov-sin-resultados" style="display:none;text-align:center;color:#aaa;padding:20px;font-style:italic;">No se encontraron movimientos.</p>
+    </div>
+  </div>
 
-            <!-- Botón -->
-            <button type="submit" class="btn-submit">
-                Guardar Producto
-            </button>
+  <!-- ══ USUARIOS ══ -->
+  <div class="section" id="sec-usuarios">
+    <div class="card-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h2 style="margin:0;">Gestión de Usuarios</h2>
+        <a href="{% url 'crear_admin' %}" class="btn-dark">+ Crear Admin</a>
+      </div>
+      <table class="tabla-admin">
+        <thead><tr><th>ID</th><th>Nombre</th><th>Correo</th><th>Rol</th><th>Acción</th></tr></thead>
+        <tbody>
+          {% for u in usuarios %}
+          <tr>
+            <td>#{{ u.id }}</td><td>{{ u.first_name }}</td><td>{{ u.email }}</td>
+            <td>{% if u.rol == 'ADMIN' %}<span class="badge badge-red">Admin</span>{% elif u.rol == 'REPARTIDOR' %}<span class="badge badge-amber">Repartidor</span>{% else %}<span class="badge badge-blue">Cliente</span>{% endif %}</td>
+            <td>
+              <form method="POST" action="{% url 'eliminar_usuario' u.id %}" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="btn-eliminar" onclick="return confirm('¿Eliminar usuario {{ u.username }}?')">Eliminar</button>
+              </form>
+            </td>
+          </tr>
+          {% empty %}<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;">Sin usuarios</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ SUGERENCIAS ══ -->
+  <div class="section" id="sec-sugerencias">
+    <div class="sugerencias-layout">
+      <div class="lista-sugerencias">
+        <div class="lista-header">Conversaciones ({{ sugerencias|length }})</div>
+        <div class="lista-scroll">
+          {% for sug in sugerencias %}
+          <div class="sug-item" onclick="abrirChat('{{ sug.id }}')" id="item-{{ sug.id }}">
+            <div class="sug-item-nombre">
+              <div class="avatar">{{ sug.nombre|default:"A"|slice:":1"|upper }}</div>
+              {{ sug.nombre|default:"Anónimo" }}<span class="badge-id">#{{ sug.id }}</span>
+            </div>
+           <div class="sug-item-preview">{{ sug.texto|truncatechars:50 }}</div>
+            <div class="sug-item-fecha">{{ sug.fecha|date:"d/m/Y H:i" }}</div>
+          </div>
+          {% empty %}<div style="padding:30px;text-align:center;color:#bbb;font-size:14px;">No hay sugerencias.</div>{% endfor %}
+        </div>
+      </div>
+      <div class="chat-panel" id="chat-panel">
+        <div class="chat-panel-empty" id="empty-state"><div class="icon-empty">&#128172;</div><p>Selecciona una conversación para responder</p></div>
+        {% for sug in sugerencias %}
+        <div class="chat-content" id="chat-{{ sug.id }}">
+          <div class="chat-top">
+            <div class="avatar-lg">{{ sug.nombre|default:"A"|slice:":1"|upper }}</div>
+            <div class="chat-top-info"><strong>{{ sug.nombre|default:"Anónimo" }}</strong><span>Sugerencia #{{ sug.id }} &nbsp;·&nbsp; {{ sug.fecha|date:"d/m/Y H:i" }}</span></div>
+          </div>
+          <div class="chat-mensajes" id="msgs-{{ sug.id }}">
+            <div class="label-burbuja">{{ sug.nombre|default:"Cliente" }}</div>
+            <div class="burbuja cliente">{{ sug.texto }}<span class="fecha">{{ sug.fecha|date:"d/m/Y H:i" }}</span></div>
+            {% for r in sug.respuestas.all %}
+              {% if r.es_admin %}<div class="label-burbuja right">Tú (Soporte)</div><div class="burbuja admin">{{ r.mensaje }}<span class="fecha">{{ r.fecha|date:"d/m/Y H:i" }}</span></div>
+              {% else %}<div class="label-burbuja">{{ sug.nombre|default:"Cliente" }}</div><div class="burbuja cliente">{{ r.mensaje }}<span class="fecha">{{ r.fecha|date:"d/m/Y H:i" }}</span></div>{% endif %}
+            {% endfor %}
+          </div>
+          <div class="chat-footer">
+            <form class="chat-input-row" id="form-admin-{{ sug.id }}" data-url="{% url 'responder_sugerencia' sug.id %}" onsubmit="enviarRespuesta(event,'{{ sug.id }}',this.getAttribute('data-url'))">
+              {% csrf_token %}
+              <input type="text" name="mensaje" id="input-admin-{{ sug.id }}" placeholder="Escribe tu respuesta..." required autocomplete="off">
+              <button type="submit">Responder &#10148;</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ CARGA MASIVA ══ -->
+  <div class="section" id="sec-carga">
+    <div class="card-section">
+      <h2>Carga Masiva</h2>
+      {% if messages %}{% for message in messages %}<p class="mensaje {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
+      <div class="form-container">
+        <form method="POST" action="{% url 'panel_admin' %}" enctype="multipart/form-data" class="formulario">
+          {% csrf_token %}
+          <div class="campo"><label>Tipo de carga</label>
+            <select name="tipo_carga" id="tipo-carga-sel" class="campo-input" required onchange="mostrarColumnas(this.value)">
+              <option value="">Seleccionar tipo</option>
+              <option value="productos">Productos</option>
+              <option value="stock">Stock por talla</option>
+            </select>
+          </div>
+
+          <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+            <div class="icon">&#8679;</div>
+            <div id="upload-text">Haz clic o arrastra tu archivo aquí</div>
+            <div style="font-size:12px;margin-top:6px;color:#bbb;">Formatos: .csv · .xlsx</div>
+            <input type="file" id="file-input" name="archivo" accept=".csv,.xlsx" style="display:none" onchange="updateFileName(this)">
+          </div>
+
+          <button type="submit" class="btn-submit" style="margin-top:10px;">Subir Archivo</button>
+
+          <!-- Columnas productos -->
+          <div class="carga-cols" id="cols-productos" style="display:none;">
+            <h4>📋 Columnas requeridas — Productos</h4>
+            <table>
+              <thead><tr><th>Columna</th><th>Tipo</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+              <tbody>
+                <tr><td><code>id</code></td><td>Número</td><td>ID único del producto</td><td>1</td></tr>
+                <tr><td><code>nombre</code></td><td>Texto</td><td>Nombre del producto</td><td>Guayos Nike</td></tr>
+                <tr><td><code>slug</code></td><td>Texto</td><td>URL amigable (sin espacios)</td><td>guayos-nike</td></tr>
+                <tr><td><code>precio</code></td><td>Número</td><td>Precio en pesos</td><td>120000</td></tr>
+                <tr><td><code>descripcion</code></td><td>Texto</td><td>Descripción del producto</td><td>Guayos de fútbol...</td></tr>
+                <tr><td><code>imagen</code></td><td>Texto</td><td>Nombre del archivo de imagen</td><td>guayos.jpg</td></tr>
+                <tr><td><code>categoria</code></td><td>Texto</td><td>HOMBRE, MUJER o MIXTO</td><td>HOMBRE</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Columnas stock -->
+          <div class="carga-cols" id="cols-stock" style="display:none;">
+            <h4>📋 Columnas requeridas — Stock por talla</h4>
+            <table>
+              <thead><tr><th>Columna</th><th>Tipo</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
+              <tbody>
+                <tr><td><code>id</code></td><td>Número</td><td>ID del registro de talla</td><td>1</td></tr>
+                <tr><td><code>talla</code></td><td>Texto</td><td>S, M, L, XL o número (2,4,6,8,10,12)</td><td>M</td></tr>
+                <tr><td><code>stock</code></td><td>Número</td><td>Cantidad en inventario</td><td>25</td></tr>
+                <tr><td><code>producto_id</code></td><td>Número</td><td>ID del producto al que pertenece</td><td>3</td></tr>
+              </tbody>
+            </table>
+            <p style="margin-top:12px;font-size:12px;color:#888;">
+              <strong>Tallas válidas adulto:</strong> S · M · L · XL &nbsp;|&nbsp;
+              <strong>Tallas válidas niño:</strong> 2 · 4 · 6 · 8 · 10 · 12
+            </p>
+          </div>
 
         </form>
+      </div>
     </div>
-</section>
-
-<!-- CARGA MASIVA -->
-<section class="productos" id="carga-masiva">
-    <h2>Carga Masiva</h2>
-
-    <!-- Mensajes -->
-    {% if messages %}
-        {% for message in messages %}
-            <p class="mensaje {{ message.tags }}">{{ message }}</p>
-        {% endfor %}
-    {% endif %}
-
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-
-        <!-- Selector de tipo de carga -->
-        <div class="campo">
-            <label>Tipo de carga</label>
-            <select name="tipo_carga" class="campo-input" required>
-                <option value="">Seleccionar</option>
-                <option value="productos">Productos</option>
-                <option value="stock">Stock por talla</option>
-            </select>
-        </div>
-
-        <!-- Archivo -->
-        <div class="campo">
-            <label>Archivo (CSV o Excel)</label>
-            <input type="file" name="archivo" accept=".csv,.xlsx" required>
-        </div>
-
-        <!-- Botón -->
-        <button type="submit" class="btn-submit">Subir Archivo</button>
-    </form>
-</section>
-
-
-<section class="productos" id="reportes">
-    <h2>Reportes de Ventas</h2>
-
-    <!-- Filtros por fecha -->
-    <form method="GET" action="{% url 'panel_admin' %}" class="filtros-reportes" style="margin-bottom:20px;">
-        <label>Desde:</label>
-        <input type="date" name="fecha_inicio" value="{{ request.GET.fecha_inicio }}">
-        
-        <label>Hasta:</label>
-        <input type="date" name="fecha_fin" value="{{ request.GET.fecha_fin }}">
-        
-        <button type="submit">Filtrar</button>
-    </form>
-
-    <!-- Resumen -->
-    <div class="resumen-reportes" style="background:white; padding:15px; border-radius:8px; margin-bottom:20px;">
-        <p><strong>Total de ventas:</strong> {{ cantidad_ventas }}</p>
-        <p><strong>Valor total vendido:</strong> ${{ total_general }}</p>
-    </div>
-
-    <!-- Gráfico de Ventas por Fecha -->
-    <div style="background:white; padding:20px; border-radius:12px; margin-bottom:25px;">
-        <canvas id="graficoVentas" height="90"></canvas>
-    </div>
-
-    <!-- Gráfico de Total Vendido por Producto -->
-    <div style="background:white; padding:20px; border-radius:12px; margin-bottom:25px;">
-        <canvas id="graficoProductos" height="90"></canvas>
-    </div>
-
-    <!-- Tabla de Ventas -->
-    <table class="tabla-productos">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Cliente</th>
-                <th>Método de Pago</th>
-                <th>Total</th>
-                <th>Fecha</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for venta in ventas %}
-            <tr>
-                <td>{{ venta.id }}</td>
-                <td>{{ venta.cliente.usuario.username }}</td>
-                <td>{{ venta.metodo_de_pago }}</td>
-                <td>${{ venta.totalVenta }}</td>
-                <td>{{ venta.fecha_venta|date:"d/m/Y H:i" }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" style="text-align:center;">No hay ventas registradas</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</section>
-
-<!-- MOVIMIENTOS -->
-<section class="productos" id="movimientos">
-    <h2>Movimientos de Inventario</h2>
-
-    <a href="{% url 'movimiento_nuevo' %}" 
-       class="btn" 
-       style="background:#007bff; color:white; padding:10px 20px; border-radius:6px; text-decoration:none; font-weight:bold; display:inline-block; margin-bottom:15px;">
-       ➕ Realizar Movimiento
-    </a>
-
-    <table class="tabla-productos">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Producto</th>
-                <th>Tipo</th>
-                <th>Cantidad</th>
-                <th>Fecha</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for m in movimientos %}
-            <tr>
-                <td>{{ m.id }}</td>
-                <td>{{ m.producto.nombre }}</td>
-                <td>{{ m.tipo_movimiento }}</td>
-                <td>{{ m.cantidad }}</td>
-                <td>{{ m.fecha|date:"d/m/Y H:i" }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="5" style="text-align:center;">No hay movimientos registrados</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</section>
-
-<!-- SUGERENCIAS -->
-<section class="productos" id="panel_sugerencias">
-    <h2>Sugerencias de Usuarios</h2>
-    <table class="tabla-productos">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Mensaje</th>
-                <th>Fecha</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for s in sugerencias %}
-            <tr>
-                <td>{{ s.id }}</td>
-                <td>{{ s.nombre|default:"Anónimo" }}</td>
-                <td>{{ s.texto }}</td>
-                <td>{{ s.fecha|date:"d/m/Y H:i" }}</td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="4" style="text-align:center;">No hay sugerencias registradas.</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</section>
+  </div>
 
 </main>
 
-<!-- ================= GRÁFICOS ================= -->
 <script>
-const labels = JSON.parse('{{ fechas_ventas|escapejs }}');
-const data = JSON.parse('{{ totales_ventas|escapejs }}');
+/* ── Navegación — guarda sección en URL para no perderla ── */
+function show(id, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+  document.querySelectorAll('.nav-item').forEach(a => a.classList.remove('active'));
+  document.getElementById('sec-' + id).classList.add('visible');
+  if (el) el.classList.add('active');
+  /* Guarda en sessionStorage para sobrevivir recargas */
+  sessionStorage.setItem('adminSec', id);
+}
 
-const nombres_productos = JSON.parse('{{ nombres_productos|escapejs }}');
-const totales_productos = JSON.parse('{{ totales_productos|escapejs }}');
+/* Al cargar: restaurar sección desde URL o sessionStorage */
+(function(){
+  var params  = new URLSearchParams(window.location.search);
+  var secUrl  = params.get('seccion');
+  var secSS   = sessionStorage.getItem('adminSec');
+  var chatP   = params.get('chat');
+  var target  = secUrl || secSS || 'inicio';
 
-// Gráfico de Ventas por Fecha
-const ctxVentas = document.getElementById('graficoVentas').getContext('2d');
-new Chart(ctxVentas, {
-    type: 'line',
-    data: {
-        labels: labels,
-        datasets: [{
-            label: 'Ventas',
-            data: data,
-            borderColor: '#d40000',
-            backgroundColor: 'rgba(212,0,0,0.2)',
-            fill: true,
-            tension: 0.4
-        }]
-    },
-    options: { responsive: true }
+  var elNav = document.querySelector('.nav-item[onclick*="show(\'' + target + '\'"]');
+  show(target, elNav);
+
+  /* Si viene con parámetros de fecha, marcar preset activo */
+  if(params.get('fecha_inicio') || params.get('fecha_fin')){
+    /* ya está en reportes por sessionStorage, marcar botón personalizado */
+    var btnCustom = document.querySelector('.rp-preset[data-period="custom"]');
+    if(btnCustom) btnCustom.classList.add('active');
+  }
+
+  if(chatP){
+    var elSug = document.querySelector('.nav-item[onclick*="sugerencias"]');
+    show('sugerencias', elSug);
+    abrirChat(chatP);
+  }
+})();
+
+function updateFileName(input) {
+  if (input.files && input.files[0])
+    document.getElementById('upload-text').textContent = 'Archivo: ' + input.files[0].name;
+}
+
+/* Carga masiva — mostrar tabla de columnas según tipo */
+function mostrarColumnas(tipo) {
+  document.getElementById('cols-productos').style.display = tipo === 'productos' ? 'block' : 'none';
+  document.getElementById('cols-stock').style.display     = tipo === 'stock'     ? 'block' : 'none';
+}
+
+/* ── Chat ── */
+function abrirChat(id) {
+  document.getElementById('empty-state').style.display = 'none';
+  document.querySelectorAll('.sug-item').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.chat-content').forEach(el => el.classList.remove('visible'));
+  var chat = document.getElementById('chat-' + id);
+  var item = document.getElementById('item-' + id);
+  if (chat) { chat.classList.add('visible'); var msgs = document.getElementById('msgs-' + id); if (msgs) setTimeout(function(){ msgs.scrollTop = msgs.scrollHeight; }, 50); }
+  if (item) item.classList.add('active');
+}
+
+/* ══ REPORTES ══ */
+const RP_FECHAS  = JSON.parse('{{ fechas_ventas|escapejs }}');
+const RP_TOTALES = JSON.parse('{{ totales_ventas|escapejs }}');
+const RP_CANT    = JSON.parse('{{ cant_ventas|escapejs }}');
+const RP_NOMBRES = JSON.parse('{{ nombres_productos|escapejs }}');
+const RP_PRODTOT = JSON.parse('{{ totales_productos|escapejs }}');
+const RP_PSE     = parseInt('{{ ventas_pse|default:"0" }}') || 0;
+const RP_CE      = parseInt('{{ ventas_ce|default:"0" }}')  || 0;
+const RP_MESES   = JSON.parse('{{ meses_data|escapejs }}');
+
+document.querySelectorAll('.rp-preset').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    document.querySelectorAll('.rp-preset').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    var hoy = new Date(), fin = hoy.toISOString().split('T')[0], ini;
+    var p = this.getAttribute('data-period');
+    if(p==='mes'){ ini=new Date(hoy.getFullYear(),hoy.getMonth(),1).toISOString().split('T')[0]; }
+    else if(p==='3meses'){ var d=new Date(hoy); d.setMonth(d.getMonth()-3); ini=d.toISOString().split('T')[0]; }
+    else if(p==='6meses'){ var d=new Date(hoy); d.setMonth(d.getMonth()-6); ini=d.toISOString().split('T')[0]; }
+    else if(p==='anio'){ ini=new Date(hoy.getFullYear(),0,1).toISOString().split('T')[0]; }
+    else { return; }
+    document.getElementById('rp-fi').value = ini;
+    document.getElementById('rp-ff').value = fin;
+    rpAplicar();
+  });
 });
 
-// Gráfico de Total Vendido por Producto
-const ctxProductos = document.getElementById('graficoProductos').getContext('2d');
-new Chart(ctxProductos, {
-    type: 'bar',
-    data: {
-        labels: nombres_productos,
-        datasets: [{
-            label: 'Total Vendido',
-            data: totales_productos,
-            backgroundColor: 'rgba(0,123,255,0.6)',
-            borderColor: '#007bff',
-            borderWidth: 1
-        }]
-    },
-    options: { responsive: true }
+function rpAplicar(){
+  var fi = document.getElementById('rp-fi').value;
+  var ff = document.getElementById('rp-ff').value;
+  /* Guardar sección reportes antes de recargar */
+  sessionStorage.setItem('adminSec', 'reportes');
+  var url = new URL(window.location.href);
+  url.searchParams.set('fecha_inicio', fi);
+  url.searchParams.set('fecha_fin', ff);
+  url.searchParams.set('seccion', 'reportes');
+  document.getElementById('rpExcelLink').href = "{% url 'exportar_excel' %}?fecha_inicio="+fi+"&fecha_fin="+ff;
+  document.getElementById('rpPdfLink').href   = "{% url 'generar_pdf' %}?fecha_inicio="+fi+"&fecha_fin="+ff;
+  window.location.href = url.toString();
+}
+
+document.querySelectorAll('.rp-tab-btn').forEach(function(tab){
+  tab.addEventListener('click', function(){
+    document.querySelectorAll('.rp-tab-btn').forEach(t => t.classList.remove('active'));
+    this.classList.add('active');
+    var tipo = this.getAttribute('data-tipo');
+    document.querySelectorAll('#rpVentasBody tr').forEach(function(row){
+      if(tipo==='TODAS'){ row.style.display=''; return; }
+      var m = row.getAttribute('data-metodo')||'';
+      row.style.display=(tipo==='PSE'?(m==='PSE'||m==='PAGO_EN_LINEA'):(m!=='PSE'&&m!=='PAGO_EN_LINEA'))?'':'none';
+    });
+  });
 });
+
+new Chart(document.getElementById('rpEvolucion').getContext('2d'),{type:'line',data:{labels:RP_FECHAS,datasets:[{label:'Total ($)',data:RP_TOTALES,borderColor:'#d40000',backgroundColor:'rgba(212,0,0,.1)',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:'#d40000',yAxisID:'y'},{label:'Cantidad',data:RP_CANT,borderColor:'#3b82f6',backgroundColor:'transparent',fill:false,tension:.4,pointRadius:4,pointBackgroundColor:'#3b82f6',yAxisID:'y1',borderDash:[5,4]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,position:'left',grid:{color:'#f5f5f5'}},y1:{beginAtZero:true,position:'right',grid:{display:false}}}}});
+new Chart(document.getElementById('rpMetodo').getContext('2d'),{type:'doughnut',data:{labels:['PSE / En línea','Contra entrega'],datasets:[{data:[RP_PSE,RP_CE],backgroundColor:['#3b82f6','#f59e0b'],borderWidth:0}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{font:{size:12}}}}}});
+new Chart(document.getElementById('rpProductos').getContext('2d'),{type:'bar',data:{labels:RP_NOMBRES,datasets:[{label:'Total vendido ($)',data:RP_PRODTOT,backgroundColor:'rgba(212,0,0,.85)',borderRadius:6}]},options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false}},scales:{x:{beginAtZero:true,grid:{color:'#f5f5f5'}},y:{grid:{display:false}}}}});
+
+var rpMesIdx = RP_MESES.length - 1;
+function rpRenderMes(idx){
+  if(!RP_MESES.length) return;
+  idx=Math.max(0,Math.min(idx,RP_MESES.length-1)); rpMesIdx=idx;
+  var m=RP_MESES[idx];
+  document.getElementById('rpMesLabel').textContent=m.label;
+  document.getElementById('rpMVentas').textContent=m.cantidad+' ventas';
+  document.getElementById('rpMTotal').textContent='$'+m.total.toLocaleString('es-CO');
+  document.getElementById('rpMTicket').textContent='$'+Math.round(m.ticket).toLocaleString('es-CO');
+  document.getElementById('rpMClientes').textContent=m.clientes+' clientes';
+}
+document.getElementById('rpMesAnt').addEventListener('click',function(){ rpRenderMes(rpMesIdx-1); });
+document.getElementById('rpMesSig').addEventListener('click',function(){ rpRenderMes(rpMesIdx+1); });
+rpRenderMes(rpMesIdx);
+
+/* ══ MOVIMIENTOS ══ */
+function cargarTallas(sel){
+  var opt=sel.options[sel.selectedIndex], raw=opt.getAttribute('data-tallas')||'';
+  var selT=document.getElementById('sel-talla');
+  selT.innerHTML='<option value="">Seleccione talla</option>';
+  var adulto=[], nino=[];
+  raw.split(',').forEach(function(par){
+    if(!par.trim()) return;
+    var p=par.split(':'), talla=p[0], stock=p[1]||'0';
+    if(['S','M','L','XL'].indexOf(talla)!==-1){ adulto.push({talla:talla,stock:stock}); }
+    else { nino.push({talla:talla,stock:stock}); }
+  });
+  if(adulto.length){
+    var grpA=document.createElement('optgroup'); grpA.label='👕 Adulto';
+    adulto.forEach(function(t){ var o=document.createElement('option'); o.value=t.talla; o.textContent=t.talla+' (stock: '+t.stock+')'; grpA.appendChild(o); });
+    selT.appendChild(grpA);
+  }
+  if(nino.length){
+    var grpN=document.createElement('optgroup'); grpN.label='👦 Niño';
+    nino.forEach(function(t){ var o=document.createElement('option'); o.value=t.talla; o.textContent='Talla '+t.talla+' años (stock: '+t.stock+')'; grpN.appendChild(o); });
+    selT.appendChild(grpN);
+  }
+}
+
+var _tipoFiltro='todos';
+function filtrarTipo(tipo,el){
+  _tipoFiltro=tipo;
+  document.querySelectorAll('.mov-filtro').forEach(b=>b.classList.remove('mov-filtro--active'));
+  el.classList.add('mov-filtro--active');
+  filtrarMovimientos();
+}
+function filtrarMovimientos(){
+  var texto=document.getElementById('buscador-mov').value.toLowerCase();
+  var cards=document.querySelectorAll('#lista-movimientos .mov-card'), visibles=0;
+  cards.forEach(function(card){
+    var ok=(_tipoFiltro==='todos'||card.getAttribute('data-tipo')===_tipoFiltro)&&(texto===''||card.getAttribute('data-busq').includes(texto));
+    card.style.display=ok?'':'none'; if(ok) visibles++;
+  });
+  document.getElementById('mov-sin-resultados').style.display=visibles===0?'block':'none';
+}
+
+/* ── CSRF + Chat ── */
+function getCsrfToken(){ var v=document.cookie.match('(^|;) ?csrftoken=([^;]*)(;|$)'); return v?v[2]:null; }
+
+function enviarRespuesta(e,sugId,url){
+  e.preventDefault();
+  var input=document.getElementById('input-admin-'+sugId), texto=input.value.trim();
+  if(!texto) return;
+  var form=document.getElementById('form-admin-'+sugId);
+  form.style.opacity='0.6'; form.style.pointerEvents='none';
+  fetch(url,{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded','X-CSRFToken':getCsrfToken()},body:'mensaje='+encodeURIComponent(texto)})
+  .then(function(res){ return res.json(); })
+  .then(function(data){
+    if(data.ok){
+      var msgs=document.getElementById('msgs-'+sugId);
+      var ahora=new Date(), fecha=ahora.toLocaleDateString('es-CO',{day:'2-digit',month:'2-digit',year:'numeric'})+' '+ahora.toLocaleTimeString('es-CO',{hour:'2-digit',minute:'2-digit'});
+      var label=document.createElement('div'); label.className='label-burbuja right'; label.textContent='Tú (Soporte)'; msgs.appendChild(label);
+      var burbuja=document.createElement('div'); burbuja.className='burbuja admin';
+      burbuja.innerHTML=escapeHtml(data.mensaje)+'<span class="fecha">'+fecha+'</span>'; msgs.appendChild(burbuja);
+      msgs.scrollTop=msgs.scrollHeight; input.value='';
+      var preview=document.querySelector('#item-'+sugId+' .sug-item-preview'); if(preview) preview.textContent=texto.substring(0,50);
+    }
+  })
+  .catch(function(){ alert('Error al enviar.'); })
+  .finally(function(){ form.style.opacity=''; form.style.pointerEvents=''; });
+}
+function escapeHtml(str){ return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 </script>
-
 </body>
 </html>

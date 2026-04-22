@@ -1,0 +1,76 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catálogo - Deportes 360</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/Logo.png' %}">
+    <link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
+</head>
+
+<body>
+
+<header class="header">
+    <div class="container menu">
+
+        <a href="{% url 'index' %}" class="logo">DEPORTES 360</a>
+
+        <nav class="navbar">
+            <ul>
+                <li><a href="{% url 'index' %}">volver</a></li>
+                <li><a href="{% url 'menu' %}">Crear Cuenta</a></li>
+            </ul>
+        </nav>
+
+    </div>
+</header>
+
+<main class="Prodcts container">
+    <h2>Catálogo de Productos</h2>
+
+    <div class="Prodcts-content">
+
+        {% for producto in productos %}
+
+        <div class="Prodcts-1">
+
+            <!-- IMAGEN -->
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"/>
+
+            <!-- NOMBRE -->
+            <h4>{{ producto.nombre }}</h4>
+
+            <!-- PRECIO -->
+            <p>${{ producto.precio }}</p>
+
+            <!-- BOTÓN DETALLE -->
+            <a href="{% url 'login' %}?next={% url 'detalle_producto' producto.id %}" class="btn-1">
+                Más Información
+            </a>
+
+        </div>
+
+        {% empty %}
+
+        <p>No hay productos disponibles</p>
+
+        {% endfor %}
+
+    </div>
+</main>
+
+<footer class="footer">
+    <div class="container footer-content">
+
+        <a href="#" class="logo">DEPORTES 360</a>
+
+        <ul>
+            <li><a href="{% url 'index' %}">Inicio</a></li>
+        </ul>
+
+    </div>
+</footer>
+
+</body>
+</html>

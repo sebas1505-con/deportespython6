@@ -9,9 +9,14 @@
 </head>
 <body>
 
+<a href="{% url 'menu' %}" class="btn-volver-home">← Volver</a>
+
 <div class="login-container">
     <div class="login-header">
         <h2>Registro de Cliente</h2>
+        <p style="color:#666;font-size:14px;margin-top:6px;">
+            Solo necesitas lo básico · Completa tu perfil después
+        </p>
     </div>
 
     {% if messages %}
@@ -28,118 +33,45 @@
     <form method="POST" class="login-form">
     {% csrf_token %}
 
-    <label>Nombre Completo:</label>
-    <input type="text" name="first_name" required>
+        <div>
+            <label>Nombre Completo</label>
+            <input type="text" name="first_name" placeholder="Ej: Juan Pérez" required>
+        </div>
 
-    <label>Tipo de Documento:</label>
-    <select name="tipo_documento" id="tipo_documento" required>
-        <option value="">Seleccione</option>
-        <option value="CC">Cédula de Ciudadanía</option>
-        <option value="TI">Tarjeta de Identidad</option>
-        <option value="CE">Cédula de Extranjería</option>
-        <option value="PAS">Pasaporte</option>
-    </select>
+        <div>
+            <label>Correo Electrónico</label>
+            <input type="email" name="email" placeholder="correo@ejemplo.com" required>
+        </div>
 
-    <label>Cédula:</label>
-    <input type="text" name="cedula" required>
+        <div>
+            <label>Usuario</label>
+            <input type="text" name="username" placeholder="nombre_usuario" required autocomplete="off">
+        </div>
 
-    <label>Correo Electrónico:</label>
-    <input type="email" name="email" required>
+        <div>
+            <label>Teléfono</label>
+            <input type="text" name="telefono" placeholder="3001234567">
+        </div>
 
-    <label>Usuario:</label>
-    <input type="text" name="username" required>
+        <div>
+            <label>Contraseña</label>
+            <input type="password" name="password" placeholder="Mínimo 8 caracteres" required>
+        </div>
 
-    <label>Contraseña:</label>
-    <input type="password" name="password" required>
+        <div>
+            <label>Confirmar Contraseña</label>
+            <input type="password" name="confirmar_password" placeholder="Repite la contraseña" required>
+        </div>
 
-    <label>Confirmar Contraseña:</label>
-    <input type="password" name="confirmar_password" required>
+        <button type="submit" class="btn-login">Registrarse</button>
 
-    <label>Teléfono:</label>
-    <input type="text" name="telefono">
-
-    <label>Dirección:</label>
-    <input type="text" name="direccion">
-
-    <label>Fecha de nacimiento:</label>
-    <input type="date" name="fecha_nacimiento">
-
-    <label>Localidad:</label>
-    <select name="localidad" id="localidad">
-        <option value="">Seleccione localidad</option>
-        <option value="Usaquen">Usaquén</option>
-        <option value="Chapinero">Chapinero</option>
-        <option value="Santa Fe">Santa Fe</option>
-        <option value="San Cristobal">San Cristóbal</option>
-        <option value="Usme">Usme</option>
-        <option value="Tunjuelito">Tunjuelito</option>
-        <option value="Bosa">Bosa</option>
-        <option value="Kennedy">Kennedy</option>
-        <option value="Fontibon">Fontibón</option>
-        <option value="Engativa">Engativá</option>
-        <option value="Suba">Suba</option>
-        <option value="Barrios Unidos">Barrios Unidos</option>
-        <option value="Teusaquillo">Teusaquillo</option>
-        <option value="Los Martires">Los Mártires</option>
-        <option value="Antonio Nariño">Antonio Nariño</option>
-        <option value="Puente Aranda">Puente Aranda</option>
-        <option value="La Candelaria">La Candelaria</option>
-        <option value="Rafael Uribe Uribe">Rafael Uribe Uribe</option>
-        <option value="Ciudad Bolivar">Ciudad Bolívar</option>
-        <option value="Sumapaz">Sumapaz</option>
-    </select>
-
-    <label>Barrio:</label>
-    <select name="barrio" id="barrio" disabled>
-        <option value="">Seleccione primero una localidad</option>
-    </select>
-
-    <button type="submit" class="btn-login">Registrarse</button>
-
-    <script>
-    document.getElementById("localidad").addEventListener("change", function () {
-        const localidad = this.value;
-        const barrioSelect = document.getElementById("barrio");
-
-        // Resetear barrio
-        barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
-        barrioSelect.disabled = true;
-
-        if (!localidad) return;
-
-        // Indicador de carga
-        barrioSelect.innerHTML = '<option value="">Cargando barrios...</option>';
-
-        fetch(`/api/barrios-bogota/?localidad=${encodeURIComponent(localidad)}`)
-            .then(response => response.json())
-            .then(data => {
-                barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
-
-                if (data.length === 0) {
-                    barrioSelect.innerHTML = '<option value="">No se encontraron barrios</option>';
-                    return;
-                }
-
-                data.forEach(b => {
-                    const option = document.createElement("option");
-                    option.value = b.nombre;
-                    option.textContent = b.nombre;
-                    barrioSelect.appendChild(option);
-                });
-
-                barrioSelect.disabled = false;
-            })
-            .catch(error => {
-                console.error("Error al cargar barrios:", error);
-                barrioSelect.innerHTML = '<option value="">Error al cargar barrios</option>';
-            });
-    });
-    </script>
+        <p style="grid-column:span 2;text-align:center;font-size:13px;color:#666;margin-top:4px;">
+            ¿Ya tienes cuenta?
+            <a href="{% url 'login' %}" style="color:#007bff;font-weight:bold;">Inicia sesión</a>
+        </p>
 
     </form>
 </div>
-
-<a href="{% url 'menu' %}" class="btn-volver-home">Volver</a>
 
 </body>
 </html>

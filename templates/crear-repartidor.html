@@ -3,167 +3,88 @@
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Formulario de Registro Repartidor</title>
+    <title>Registro Repartidor — Deportes 360</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/alerts.css' %}">
     <link rel="stylesheet" href="{% static 'css/crear.repartidor.css' %}">
 </head>
 <body>
-    
-    <a href="{% url 'menu' %}" class="btn-volver-home">Volver</a>
 
-    <div class="login-container">
-        <div class="login-header">
-            <img src="{% static 'images/logo-deporte.png' %}" alt="Logo" class="logo"/>
-            <h2>Registro Repartidor</h2>
+<a href="{% url 'menu' %}" class="btn-volver-home">← Volver</a>
+
+<div class="login-container">
+    <div class="login-header">
+        <img src="{% static 'images/logo-deporte.png' %}" alt="Logo" class="logo"/>
+        <h2>Registro Repartidor</h2>
+        <p style="color:#666;font-size:14px;margin-top:6px;">
+            Completa los datos básicos para empezar
+        </p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" class="login-form">
+        {% csrf_token %}
+
+        <div>
+            <label>Nombre Completo</label>
+            <input type="text" name="first_name" placeholder="Ej: Juan Pérez" required>
         </div>
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+        <div>
+            <label>Correo Electrónico</label>
+            <input type="email" name="email" placeholder="correo@ejemplo.com" required>
+        </div>
 
-        {% if form.errors %}
-        <ul class="form-errors">
-            {% for field in form %}
-                {% for error in field.errors %}
-                    <li>{{ field.label }}: {{ error }}</li>
-                {% endfor %}
-            {% endfor %}
-            {% for error in form.non_field_errors %}
-                <li>{{ error }}</li>
-            {% endfor %}
-        </ul>
-        {% endif %}
+        <div>
+            <label>Usuario</label>
+            <input type="text" name="username" placeholder="nombre_usuario" required autocomplete="off">
+        </div>
 
-        <form method="POST" class="login-form">
-            {% csrf_token %}
-            
-            <label>Nombre Completo:</label>
-            {{ form.first_name }}
+        <div>
+            <label>Teléfono</label>
+            <input type="text" name="telefono" placeholder="3001234567" required>
+        </div>
 
-            <label>Tipo de Documento:</label>
-            <select name="tipo_documento" id="tipo_documento" required>
+        <div>
+            <label>Contraseña</label>
+            <input type="password" name="password" placeholder="Mínimo 8 caracteres" required>
+        </div>
+
+        <div>
+            <label>Confirmar Contraseña</label>
+            <input type="password" name="confirmar" placeholder="Repite la contraseña" required>
+        </div>
+
+        <div>
+            <label>Tipo de Vehículo</label>
+            <select name="vehiculo" required>
                 <option value="">Seleccione</option>
-                <option value="CC">Cédula de Ciudadanía</option>
-                <option value="TI">Tarjeta de Identidad</option>
-                <option value="CE">Cédula de Extranjería</option>
-                <option value="PAS">Pasaporte</option>
+                <option value="Moto">Moto</option>
+                <option value="Bicicleta">Bicicleta</option>
+                <option value="Carro">Carro</option>
+                <option value="Patineta">Patineta eléctrica</option>
             </select>
+        </div>
 
-            <label>Número de Documento:</label>
-            <input type="text" name="cedula" id="cedula" placeholder="Ingrese su documento" required>
+        <div>
+            <label>Número de Placa</label>
+            <input type="text" name="placa" placeholder="Ej: ABC123" required>
+        </div>
 
-            <label>Correo Electrónico:</label>
-            {{ form.email }}
+        <button type="submit" class="btn-login">Registrarse como Repartidor</button>
 
-            <label>Usuario:</label>
-            {{ form.username }}
+        <p style="grid-column:span 2;text-align:center;font-size:13px;color:#666;margin-top:4px;">
+            ¿Ya tienes cuenta?
+            <a href="{% url 'login' %}" style="color:#007bff;font-weight:bold;">Inicia sesión</a>
+        </p>
 
-            <label>Contraseña:</label>
-            {{ form.password }}
+    </form>
+</div>
 
-            <label>Confirmar Contraseña:</label>
-            {{ form.confirmar }}
-
-            <label>Número de Placa:</label>
-            {{ form.placa }}
-
-            <label>Teléfono:</label>
-            {{ form.telefono }}
-
-            <label>Tipo de Vehículo:</label>
-            {{ form.vehiculo }}
-
-            <label>Localidad:</label>
-            <select name="localidad" id="localidad">
-                <option value="">Seleccione localidad</option>
-                <option value="Usaquen">Usaquén</option>
-                <option value="Chapinero">Chapinero</option>
-                <option value="Santa Fe">Santa Fe</option>
-                <option value="San Cristobal">San Cristóbal</option>
-                <option value="Usme">Usme</option>
-                <option value="Tunjuelito">Tunjuelito</option>
-                <option value="Bosa">Bosa</option>
-                <option value="Kennedy">Kennedy</option>
-                <option value="Fontibon">Fontibón</option>
-                <option value="Engativa">Engativá</option>
-                <option value="Suba">Suba</option>
-                <option value="Barrios Unidos">Barrios Unidos</option>
-                <option value="Teusaquillo">Teusaquillo</option>
-                <option value="Los Martires">Los Mártires</option>
-                <option value="Antonio Nariño">Antonio Nariño</option>
-                <option value="Puente Aranda">Puente Aranda</option>
-                <option value="La Candelaria">La Candelaria</option>
-                <option value="Rafael Uribe Uribe">Rafael Uribe Uribe</option>
-                <option value="Ciudad Bolivar">Ciudad Bolívar</option>
-                <option value="Sumapaz">Sumapaz</option>
-            </select>
-
-            <label>Barrio:</label>
-            <select name="barrio" id="barrio" disabled>
-                <option value="">Seleccione primero una localidad</option>
-            </select>
-
-            <label>Fecha de nacimiento:</label>
-            {{ form.fecha_nacimiento }}
-
-            <button type="submit" class="btn-login">Registrarse</button>
-
-            <script>
-            // Placeholder dinámico según tipo de documento
-            document.getElementById("tipo_documento").addEventListener("change", function () {
-                const placeholders = {
-                    "CC":  "Ej: 1234567890",
-                    "TI":  "Ej: 1001234567",
-                    "CE":  "Ej: CE123456",
-                    "PAS": "Ej: AB123456"
-                };
-                document.getElementById("cedula").placeholder = placeholders[this.value] || "Ingrese su documento";
-            });
-
-            // Barrios según localidad
-            document.getElementById("localidad").addEventListener("change", function () {
-                const localidad = this.value;
-                const barrioSelect = document.getElementById("barrio");
-
-                barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
-                barrioSelect.disabled = true;
-
-                if (!localidad) return;
-
-                barrioSelect.innerHTML = '<option value="">Cargando barrios...</option>';
-
-                fetch(`/api/barrios-bogota/?localidad=${encodeURIComponent(localidad)}`)
-                    .then(response => {
-                        if (!response.ok) throw new Error("Error de red");
-                        return response.json();
-                    })
-                    .then(data => {
-                        barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
-
-                        if (!data || data.length === 0) {
-                            barrioSelect.innerHTML = '<option value="">No hay barrios disponibles</option>';
-                            return;
-                        }
-
-                        data.forEach(b => {
-                            const option = document.createElement("option");
-                            option.value = b.nombre;
-                            option.textContent = b.nombre;
-                            barrioSelect.appendChild(option);
-                        });
-
-                        barrioSelect.disabled = false;
-                    })
-                    .catch(() => {
-                        barrioSelect.innerHTML = '<option value="">Sin conexión, intenta de nuevo</option>';
-                        barrioSelect.disabled = false;
-                    });
-            });
-            </script>
-        </form>
-    </div>
 </body>
 </html>

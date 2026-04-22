@@ -1,94 +1,234 @@
 {% load static %}
 <!DOCTYPE html>
-<html>
+<html lang="es">
 <head>
     <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>{{ producto.nombre }} - Deportes 360</title>
+    <title>{{ producto.nombre }} — Deportes 360</title>
     <link rel="icon" href="{% static 'images/producto.png' %}">
-    <link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
-    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+    <link rel="stylesheet" href="{% static 'css/usuario.css' %}">
+    <style>
+    /* ── Detalle ── */
+    .detalle-wrap {
+        max-width: 1000px; margin: 40px auto 60px; padding: 0 24px;
+        display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: start;
+    }
+
+    /* Imagen */
+    .detalle-img {
+        border-radius: 16px; overflow: hidden;
+        box-shadow: 0 8px 28px rgba(0,0,0,.12);
+        background: #f7f7f7;
+    }
+    .detalle-img img { width: 100%; display: block; object-fit: cover; max-height: 480px; }
+    .detalle-img .no-img { height: 360px; display: flex; align-items: center; justify-content: center; font-size: 72px; color: #ddd; }
+
+    /* Info */
+    .detalle-info h1 { font-size: 26px; font-weight: 800; color: #111; margin-bottom: 8px; line-height: 1.3; }
+
+    .detalle-precio { font-size: 30px; font-weight: 800; color: #d40000; margin-bottom: 16px; }
+
+    .detalle-desc { font-size: 14px; color: #555; line-height: 1.7; margin-bottom: 20px; }
+
+    .detalle-badge {
+        display: inline-block; padding: 4px 12px; border-radius: 20px;
+        font-size: 12px; font-weight: 700; margin-bottom: 16px;
+        background: #f0f0f0; color: #555;
+    }
+
+    /* Stock */
+    .detalle-stock { font-size: 13px; color: #888; margin-bottom: 20px; }
+    .detalle-stock strong { color: #111; }
+
+    /* Tallas */
+    .tallas-titulo { font-size: 13px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 12px; }
+
+    .tallas-grid { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 24px; }
+
+    .talla-label { position: relative; }
+    .talla-label input[type="radio"] { position: absolute; opacity: 0; width: 0; height: 0; }
+    .talla-label .talla-btn {
+        display: flex; flex-direction: column; align-items: center;
+        width: 64px; padding: 10px 8px; border-radius: 10px;
+        border: 2px solid #e5e7eb; cursor: pointer;
+        font-size: 14px; font-weight: 700; color: #111;
+        transition: .15s; background: #fff; text-align: center;
+        line-height: 1.3;
+    }
+    .talla-btn small { font-size: 10px; font-weight: 500; color: #888; margin-top: 2px; }
+    .talla-label input:checked + .talla-btn {
+        border-color: #d40000; background: #d40000; color: #fff;
+        box-shadow: 0 2px 10px rgba(212,0,0,.3);
+    }
+    .talla-label input:checked + .talla-btn small { color: rgba(255,255,255,.8); }
+    .talla-label .talla-btn:hover { border-color: #d40000; }
+
+    .talla-agotada {
+        display: flex; flex-direction: column; align-items: center;
+        width: 64px; padding: 10px 8px; border-radius: 10px;
+        border: 2px dashed #e5e7eb; color: #ccc;
+        font-size: 14px; font-weight: 700; text-align: center;
+        position: relative; line-height: 1.3;
+    }
+    .talla-agotada small { font-size: 10px; margin-top: 2px; }
+    .talla-agotada::after {
+        content: ''; position: absolute; top: 50%; left: 10%; right: 10%;
+        height: 2px; background: #ddd; transform: rotate(-15deg);
+    }
+
+    /* Botones */
+    .detalle-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn-carrito {
+        flex: 1; padding: 13px 20px;
+        background: linear-gradient(180deg, #d40000, #8b0000);
+        color: #fff; border: none; border-radius: 10px;
+        font-size: 15px; font-weight: 700; cursor: pointer;
+        transition: .2s; font-family: inherit; min-width: 160px;
+    }
+    .btn-carrito:hover { opacity: .9; transform: translateY(-1px); }
+
+    .btn-volver-det {
+        padding: 13px 20px; background: #f3f4f6; color: #555;
+        border: 1px solid #e5e7eb; border-radius: 10px;
+        font-size: 15px; font-weight: 700; cursor: pointer;
+        text-decoration: none; display: inline-block; transition: .2s;
+        font-family: inherit;
+    }
+    .btn-volver-det:hover { background: #e5e7eb; }
+
+    /* Alerta talla */
+    .alerta-talla {
+        display: none; background: #fff1f2; border: 1px solid #fca5a5;
+        color: #be123c; padding: 10px 14px; border-radius: 8px;
+        font-size: 13px; font-weight: 600; margin-bottom: 14px;
+    }
+
+    /* Responsive */
+    @media(max-width: 700px) {
+        .detalle-wrap { grid-template-columns: 1fr; gap: 24px; }
+        .detalle-info h1 { font-size: 22px; }
+        .detalle-precio { font-size: 26px; }
+    }
+    </style>
 </head>
 <body>
 
-
-    
+<!-- Header igual al usuario.html -->
 <header class="header">
-    <div class="container menu">
-        <a href="{% url 'usuario' %}" class="logo">DEPORTES 360</a>
-
-        <nav class="navbar">
-            <ul>
-                <li><a href="{% url 'usuario' %}">Inicio</a></li>
-                <li><a href="{% url 'catalogo' %}">Productos</a></li>
-                <li><a href="{% url 'carrito' %}">Carrito ({{ carrito_cantidad }})</a></li>
-            </ul>
-        </nav>
+    <div class="container">
+        <div class="menu">
+            <a href="{% url 'index' %}" class="logo-wrapper">
+                <div class="logo-icon"><span>360</span></div>
+                <div class="logo-text">
+                    <strong>Deportes</strong>
+                    <small>360</small>
+                </div>
+            </a>
+            <input type="checkbox" id="menu" />
+            <label for="menu" class="menu-btn">
+                <span></span><span></span><span></span>
+            </label>
+            <div class="nav-overlay"></div>
+            <nav class="navbar">
+                <ul>
+                    <li><a href="{% url 'perfil' %}">Perfil</a></li>
+                    <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
+                    <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                    <li><a href="{% url 'carrito' %}">🛒 {% if carrito_cantidad %}({{ carrito_cantidad }}){% endif %}</a></li>
+                </ul>
+            </nav>
+        </div>
     </div>
 </header>
 
-<main class="container">
+<div class="detalle-wrap">
 
-    <div class="producto-detalle">
+    <!-- Imagen -->
+    <div class="detalle-img">
+        {% if producto.imagen %}
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        {% else %}
+            <div class="no-img">👟</div>
+        {% endif %}
+    </div>
 
-        <!-- IMAGEN -->
-        <div class="producto-galeria">
-            <div class="imagen-principal">
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-            </div>
-        </div>
+    <!-- Info -->
+    <div class="detalle-info">
 
-        <!-- INFO -->
-        <div class="producto-info">
+        <span class="detalle-badge">{{ producto.get_categoria_display }}</span>
 
-            <h2>{{ producto.nombre }}</h2>
+        <h1>{{ producto.nombre }}</h1>
 
-            <p>{{ producto.descripcion }}</p>
+        <div class="detalle-precio">${{ producto.precio }}</div>
 
-            <p><strong>Precio:</strong> ${{ producto.precio }}</p>
+        <p class="detalle-desc">{{ producto.descripcion }}</p>
 
-            <p><strong>Stock total:</strong> {{ stock_total }}</p>
+        <p class="detalle-stock">Stock disponible: <strong>{{ stock_total }} unidades</strong></p>
 
-<form method="post" action="{% url 'agregar_carrito' producto.id %}">
-    {% csrf_token %}
+        <form method="POST" action="{% url 'agregar_carrito' producto.id %}" onsubmit="return validarTalla()">
+            {% csrf_token %}
 
-    <div style="margin-top: 20px;">
-        <h3>Tallas disponibles</h3>
+            <p class="tallas-titulo">Selecciona tu talla</p>
 
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+            <div id="alerta-talla" class="alerta-talla">⚠️ Por favor selecciona una talla antes de continuar.</div>
 
-            {% for t in tallas %}
-                
-                {% if t.stock > 0 %}
-                    <label style="border:1px solid #000; padding:10px; cursor:pointer;">
+            <div class="tallas-grid">
+                {% for t in tallas %}
+                    {% if t.stock > 0 %}
+                    <label class="talla-label">
                         <input type="radio" name="talla" value="{{ t.talla }}" required>
-                        {{ t.talla }} ({{ t.stock }})
+                        <div class="talla-btn">
+                            {{ t.talla }}
+                            <small>{{ t.stock }} uds</small>
+                        </div>
                     </label>
-                {% else %}
-                    <span style="border:1px solid #ccc; padding:10px; color:#999;">
-                        {{ t.talla }} (Agotado)
-                    </span>
-                {% endif %}
+                    {% else %}
+                    <div class="talla-agotada">
+                        {{ t.talla }}
+                        <small>Agotado</small>
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
 
-            {% endfor %}
-
-        </div>
-    </div>
-
-                <div style="margin-top: 20px;">
-                    <a href="{% url 'usuario' %}" class="btn-1">Volver</a>
-                    <button type="submit" class="btn-1">
-                        Agregar al carrito
-                    </button>
-                </div>
-
-            </form>
-
-        </div>
+            <div class="detalle-btns">
+                <a href="{% url 'catalogo' %}" class="btn-volver-det">← Volver</a>
+                <button type="submit" class="btn-carrito"> Agregar al carrito</button>
+            </div>
+        </form>
 
     </div>
+</div>
 
-</main>
+<!-- Footer -->
+<footer class="footer container">
+    <div class="footer-content">
+        <a href="{% url 'index' %}" class="logo">Deportes 360</a>
+        <ul>
+            <li><a href="{% url 'usuario' %}">Inicio</a></li>
+            <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+            <li><a href="{% url 'contactousu' %}">Contacto</a></li>
+        </ul>
+    </div>
+</footer>
 
+<script>
+function validarTalla() {
+    var seleccionada = document.querySelector('input[name="talla"]:checked');
+    if (!seleccionada) {
+        document.getElementById('alerta-talla').style.display = 'block';
+        return false;
+    }
+    return true;
+}
+/* Ocultar alerta al seleccionar talla */
+document.querySelectorAll('input[name="talla"]').forEach(function(r){
+    r.addEventListener('change', function(){
+        document.getElementById('alerta-talla').style.display = 'none';
+    });
+});
+</script>
 </body>
 </html>

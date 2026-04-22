@@ -6,74 +6,467 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Productos - Deportes 360</title>
     <link rel="icon" type="image/x-icon" href="{% static 'images/Logo.png' %}" />
-    <link rel="stylesheet" href="{% static 'css/productos.css' %}">
-</head>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #f2f3f5; font-family: 'Segoe UI', sans-serif; }
 
+        /* ── Header ── */
+        .adm-header {
+            background: linear-gradient(90deg,#000,#111);
+            color: #fff; padding: 18px 30px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 3px solid #d40000; position: sticky; top: 0; z-index: 100;
+        }
+        .adm-header .logo { font-size: 18px; font-weight: 800; letter-spacing: 1px; color: #fff; text-decoration: none; }
+        .adm-nav { display: flex; gap: 10px; }
+        .adm-nav a { padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; text-decoration: none; transition: .2s; }
+        .adm-nav a.back { background: rgba(255,255,255,.1); color: #fff; border: 1px solid rgba(255,255,255,.2); }
+        .adm-nav a.back:hover { background: rgba(255,255,255,.2); }
+        .adm-nav a.add { background: #d40000; color: #fff; border: 1px solid #b00; }
+        .adm-nav a.add:hover { background: #b00000; }
+
+        /* ── Mensajes ── */
+        .msg-box { max-width: 1200px; margin: 16px auto 0; padding: 0 24px; }
+        .msg { padding: 12px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+        .msg.success { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+        .msg.error   { background: #fff1f2; color: #be123c; border: 1px solid #fca5a5; }
+
+        /* ── Barra búsqueda ── */
+        .search-bar { max-width: 1200px; margin: 24px auto 0; padding: 0 24px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+        .search-bar input { flex: 1; min-width: 200px; padding: 10px 16px; border: 1px solid #ddd; border-radius: 10px; font-size: 14px; outline: none; background: #fff; }
+        .search-bar input:focus { border-color: #d40000; box-shadow: 0 0 0 3px rgba(212,0,0,.1); }
+        .filter-btn { padding: 9px 16px; border-radius: 8px; border: 1px solid #ddd; background: #fff; font-size: 13px; font-weight: 600; cursor: pointer; transition: .15s; }
+        .filter-btn:hover, .filter-btn.active { background: #d40000; color: #fff; border-color: #d40000; }
+
+        /* ── Grid ── */
+        .prod-grid { max-width: 1200px; margin: 20px auto 40px; padding: 0 24px; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; }
+
+        /* ── Card ── */
+        .prod-card { background: #fff; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,.08); transition: transform .2s, box-shadow .2s; position: relative; display: flex; flex-direction: column; }
+        .prod-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.13); }
+        .prod-card.descontinuado { opacity: .6; border: 2px dashed #ccc; }
+        .prod-img-wrap { position: relative; height: 200px; overflow: hidden; background: #f7f7f7; }
+        .prod-img-wrap img { width: 100%; height: 100%; object-fit: cover; }
+        .prod-img-wrap .no-img { display: flex; align-items: center; justify-content: center; height: 100%; font-size: 48px; color: #ddd; }
+        .badge-top { position: absolute; top: 10px; left: 10px; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+        .badge-top.disc       { background: #fff3e0; color: #e65100; }
+        .badge-top.sin-stock  { background: #ffebee; color: #c62828; }
+        .badge-top.poco-stock { background: #fff8e1; color: #f57f17; }
+        .badge-top.ventas     { background: #e3f2fd; color: #1565c0; }
+        .prod-body { padding: 16px; flex: 1; }
+        .prod-body h4  { font-size: 15px; font-weight: 700; color: #111; margin-bottom: 4px; }
+        .prod-precio   { font-size: 18px; font-weight: 800; color: #d40000; margin-bottom: 6px; }
+        .prod-cat      { font-size: 12px; color: #888; margin-bottom: 10px; }
+        .prod-desc     { font-size: 12px; color: #666; line-height: 1.5; margin-bottom: 12px; }
+        .stock-bar-wrap { margin-bottom: 8px; }
+        .stock-bar { background: #f0f0f0; border-radius: 4px; height: 5px; }
+        .stock-bar-fill { height: 5px; border-radius: 4px; background: #d40000; transition: width .4s; }
+        .stock-bar-fill.ok-color   { background: #22c55e; }
+        .stock-bar-fill.warn-color { background: #f59e0b; }
+
+        /* Tallas */
+        .btn-ver-tallas { width: 100%; padding: 9px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #333; cursor: pointer; transition: .15s; text-align: center; margin-bottom: 10px; }
+        .btn-ver-tallas:hover, .btn-ver-tallas.open { background: #111; color: #fff; border-color: #111; }
+        .tallas-panel { display: none; padding: 12px; background: #fafafa; border: 1px solid #eee; border-radius: 10px; margin-bottom: 10px; }
+        .tallas-panel.open { display: block; }
+        .tallas-panel-title { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+        .tallas-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
+        .talla-chip { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 8px; border: 1.5px solid; }
+        .talla-chip.ok   { background: #f0fdf4; border-color: #86efac; color: #15803d; }
+        .talla-chip.poco { background: #fffbeb; border-color: #fcd34d; color: #b45309; }
+        .talla-chip.cero { background: #fff1f2; border-color: #fca5a5; color: #b91c1c; }
+        .talla-nombre { font-size: 13px; font-weight: 800; }
+        .talla-cant   { font-size: 10px; font-weight: 500; margin-top: 1px; }
+        .talla-estado { font-size: 9px; margin-top: 1px; }
+        .btn-del-talla { background: none; border: none; cursor: pointer; font-size: 12px; padding: 2px; margin-top: 3px; opacity: .4; transition: .15s; display: block; line-height: 1; }
+        .btn-del-talla:hover { opacity: 1; transform: scale(1.3); }
+
+        /* Acciones */
+        .prod-actions { display: flex; flex-direction: column; gap: 6px; padding: 0 16px 16px; }
+        .prod-actions .row { display: flex; gap: 6px; }
+        .action-btn { flex: 1; padding: 8px 10px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; transition: .15s; text-decoration: none; text-align: center; display: inline-block; }
+        .action-btn:active { transform: scale(.97); }
+        .btn-editar    { background: #111; color: #fff; }
+        .btn-editar:hover { background: #333; }
+        .btn-disc      { background: #fff3e0; color: #e65100; border: 1px solid #fcd9b1; }
+        .btn-disc:hover { background: #e65100; color: #fff; }
+        .btn-reactivar { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+        .btn-reactivar:hover { background: #15803d; color: #fff; }
+        .btn-eliminar  { background: #fff1f2; color: #be123c; border: 1px solid #fca5a5; }
+        .btn-eliminar:hover { background: #be123c; color: #fff; }
+        .btn-eliminar[disabled] { background: #f3f4f6; color: #9ca3af; border-color: #e5e7eb; cursor: not-allowed; }
+        .btn-eliminar[disabled]:hover { background: #f3f4f6; color: #9ca3af; }
+
+        /* ── Modals ── */
+        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,.55); z-index: 9000; align-items: center; justify-content: center; }
+        .modal-overlay.open { display: flex; }
+        .modal-box { background: #fff; border-radius: 18px; padding: 36px 28px; max-width: 420px; width: 90%; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,.2); }
+        .modal-icon { font-size: 48px; margin-bottom: 12px; }
+        .modal-box h3 { font-size: 19px; font-weight: 700; color: #111; margin-bottom: 8px; }
+        .modal-box p  { font-size: 14px; color: #666; margin-bottom: 20px; line-height: 1.6; }
+        .modal-btns   { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+        .modal-cancel  { padding: 10px 28px; border-radius: 8px; border: 1px solid #ddd; background: #f5f5f5; color: #555; font-weight: 700; font-size: 14px; cursor: pointer; }
+        .modal-cancel:hover { background: #e0e0e0; }
+        .modal-confirm { padding: 10px 28px; border-radius: 8px; border: none; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity .2s; }
+        .modal-confirm:hover { opacity: .88; }
+
+        /* Modal tallas con checkboxes */
+        .modal-tallas-box { background: #fff; border-radius: 18px; padding: 32px 28px; max-width: 500px; width: 95%; text-align: left; box-shadow: 0 10px 40px rgba(0,0,0,.2); }
+        .modal-tallas-box h3 { font-size: 18px; font-weight: 700; color: #111; margin-bottom: 6px; }
+        .mt-sub { font-size: 13px; color: #888; margin-bottom: 16px; }
+        .lista-tallas-scroll { max-height: 260px; overflow-y: auto; margin-bottom: 12px; padding-right: 4px; }
+        .lista-tallas-scroll::-webkit-scrollbar { width: 4px; }
+        .lista-tallas-scroll::-webkit-scrollbar-thumb { background: #ddd; border-radius: 4px; }
+        .talla-check-item { background: #f9f9f9; border: 1px solid #eee; border-radius: 10px; padding: 11px 14px; margin-bottom: 8px; display: flex; align-items: center; gap: 12px; cursor: pointer; transition: .15s; }
+        .talla-check-item:hover { background: #f0f0f0; }
+        .talla-check-item input[type="checkbox"] { width: 17px; height: 17px; accent-color: #d40000; cursor: pointer; flex-shrink: 0; }
+        .tci-nombre { font-size: 14px; font-weight: 700; color: #111; }
+        .tci-stock  { font-size: 12px; color: #888; margin-left: auto; white-space: nowrap; }
+        .todo-wrap { background: #fff1f2; border: 1px solid #fca5a5; border-radius: 10px; padding: 12px 14px; margin-bottom: 20px; }
+        .todo-wrap label { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .todo-titulo { font-size: 13px; font-weight: 700; color: #be123c; }
+        .todo-sub    { font-size: 12px; color: #888; margin-top: 3px; margin-left: 27px; }
+
+        /* Toast */
+        .toast { position: fixed; bottom: 24px; right: 24px; z-index: 9999; padding: 14px 22px; border-radius: 10px; font-size: 14px; font-weight: 600; box-shadow: 0 4px 16px rgba(0,0,0,.2); display: none; max-width: 340px; line-height: 1.5; }
+        .toast.error   { background: #be123c; color: #fff; }
+        .toast.success { background: #15803d; color: #fff; }
+        .toast.show    { display: block; animation: fadeUp .3s; }
+        @keyframes fadeUp { from { opacity:0; transform: translateY(8px); } to { opacity:1; } }
+
+        @media(max-width:600px) {
+            .prod-grid { grid-template-columns: 1fr; }
+            .tallas-grid { grid-template-columns: repeat(3,1fr); }
+        }
+    </style>
+</head>
 <body>
 
-<header class="header">
-    <div class="container menu">
-
-        <a href="#" class="logo">DEPORTES 360</a>
-
-        <nav class="navbar">
-            <ul>
-                <li><a href="{% url 'panel_admin' %}">Volver</a></li>
-                <li><a href="{% url 'producto_nuevo' %}">Agregar Producto</a></li>
-            </ul>
-        </nav>
-
-    </div>
+<header class="adm-header">
+    <a href="#" class="logo">DEPORTES 360</a>
+    <nav class="adm-nav">
+        <a href="{% url 'panel_admin' %}" class="back">← Volver al panel</a>
+        <a href="{% url 'panel_admin' %}?seccion=productos" class="add">+ Nuevo producto</a>
+    </nav>
 </header>
 
-<main class="Prodcts container" id="productos">
-    <h2>Productos</h2>
+{% if messages %}
+<div class="msg-box">
+    {% for message in messages %}
+    <div class="msg {{ message.tags }}">{{ message }}</div>
+    {% endfor %}
+</div>
+{% endif %}
 
-    <div class="Prodcts-content">
+<div class="search-bar">
+    <input type="text" id="buscador" placeholder="Buscar producto..." oninput="filtrar()">
+    <button class="filter-btn active" onclick="setFiltro('todos',this)">Todos</button>
+    <button class="filter-btn" onclick="setFiltro('activo',this)">Activos</button>
+    <button class="filter-btn" onclick="setFiltro('descontinuado',this)">Descontinuados</button>
+    <button class="filter-btn" onclick="setFiltro('sin-stock',this)">Sin stock</button>
+</div>
 
-        {% for producto in productos %}
-        <div class="Prodcts-1">
-            {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
-            {% else %}
-                <img src="{% static 'images/producto_default.png' %}" alt="Sin imagen">
-            {% endif %}
+<div class="prod-grid" id="prod-grid">
+{% for producto in productos %}
+<div class="prod-card {% if producto.descontinuado %}descontinuado{% endif %}"
+     data-nombre="{{ producto.nombre|lower }}"
+     data-estado="{% if producto.descontinuado %}descontinuado{% else %}activo{% endif %}"
+     data-stock="{{ producto.stock_total|default:0 }}">
 
-            <h4>{{ producto.nombre }}</h4>
-            <p>Precio: ${{ producto.precio }}</p>
-            <p>Stock disponible: {{ producto.stock_total }}</p>
+    <div class="prod-img-wrap">
+        {% if producto.imagen %}
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+        {% else %}
+            <div class="no-img">👟</div>
+        {% endif %}
+        {% if producto.descontinuado %}
+            <span class="badge-top disc">⚠ Descontinuado</span>
+        {% elif producto.stock_total == 0 %}
+            <span class="badge-top sin-stock">Sin stock</span>
+        {% elif producto.stock_total <= 10 %}
+            <span class="badge-top poco-stock">Poco stock</span>
+        {% endif %}
+        {% if producto.tiene_ventas %}
+            <span class="badge-top ventas" style="left:auto;right:10px;">📦 {{ producto.num_ventas }} ventas</span>
+        {% endif %}
+    </div>
 
-            {% if producto.stock_total == 0 %}
-                <p style="color:red; font-weight:bold;">⚠ ¡Sin stock!</p>
-            {% elif producto.stock_total <= 10 %}
-                <p style="color:orange; font-weight:bold;">⚠ ¡Poco stock!</p>
-            {% endif %}
+    <div class="prod-body">
+        <h4>{{ producto.nombre }}</h4>
+        <div class="prod-precio">${{ producto.precio|floatformat:0 }}</div>
+        <div class="prod-cat">{{ producto.get_categoria_display }} · Stock total: <strong>{{ producto.stock_total|default:0 }}</strong></div>
 
-            <p>Categoría: {{ producto.get_categoria_display }}</p>
-            <p>{{ producto.descripcion }}</p>
-
-            <a href="{% url 'producto_editar' producto.id %}" class="btn">Editar</a>
-            <a href="{% url 'producto_eliminar' producto.id %}" class="btn btn-danger">Eliminar</a>
+        <div class="stock-bar-wrap">
+            <div class="stock-bar">
+                {% with pct=producto.stock_total|default:0 %}
+                <div class="stock-bar-fill {% if pct > 20 %}ok-color{% elif pct > 5 %}warn-color{% endif %}"
+                     style="width:{% if pct > 100 %}100{% else %}{{ pct }}{% endif %}%"></div>
+                {% endwith %}
+            </div>
         </div>
-        {% empty %}
-            <p>No hay productos registrados</p>
-        {% endfor %}
 
+        <div class="prod-desc">{{ producto.descripcion|truncatechars:70 }}</div>
+
+        <button class="btn-ver-tallas" onclick="toggleTallas(this, {{ producto.id }})">
+            Ver tallas y stock ▾
+        </button>
+
+        <div class="tallas-panel" id="tallas-{{ producto.id }}">
+            <div class="tallas-panel-title">Stock por talla — 🗑 elimina talla individual</div>
+            <div class="tallas-grid">
+                {% for t in producto.tallas.all %}
+                <div class="talla-chip {% if t.stock == 0 %}cero{% elif t.stock <= 5 %}poco{% else %}ok{% endif %}"
+                     data-talla-id="{{ t.id }}">
+                    <span class="talla-nombre">{{ t.talla }}</span>
+                    <span class="talla-cant">{{ t.stock }} uds</span>
+                    <span class="talla-estado">
+                        {% if t.talla == 'S' or t.talla == 'M' or t.talla == 'L' or t.talla == 'XL' %}👕{% else %}👦{% endif %}
+                    </span>
+                    <button class="btn-del-talla"
+                        onclick="abrirModalUnaTalla('{{ producto.nombre|escapejs }}','{{ t.talla }}','{{ t.stock }}','{{ t.id }}')"
+                        title="Eliminar talla {{ t.talla }}">🗑</button>
+                </div>
+                {% empty %}
+                <div style="grid-column:1/-1;text-align:center;color:#aaa;font-size:12px;padding:8px;">Sin tallas registradas</div>
+                {% endfor %}
+            </div>
+        </div>
     </div>
-</main>
 
-
-<footer class="footer">
-    <div class="container footer-content">
-
-        <a href="#" class="logo">DEPORTES 360</a>
-
-        <ul>
-            <li><a href="{% url 'pedidos_disponibles' %}">Pedidos</a></li>
-        </ul>
-
+    <div class="prod-actions">
+        <div class="row">
+            <a href="{% url 'producto_editar' producto.id %}" class="action-btn btn-editar">✏ Editar</a>
+            {% if producto.descontinuado %}
+                <button class="action-btn btn-reactivar"
+                    data-url="{% url 'producto_reactivar' producto.id %}"
+                    data-titulo="¿Reactivar {{ producto.nombre }}?"
+                    data-msg="El producto volverá a aparecer en el catálogo."
+                    data-tipo="reactivar"
+                    onclick="abrirModal(this)">✅ Reactivar</button>
+            {% else %}
+                <button class="action-btn btn-disc"
+                    data-url="{% url 'producto_descontinuar' producto.id %}"
+                    data-titulo="¿Descontinuar {{ producto.nombre }}?"
+                    data-msg="El producto dejará de aparecer en el catálogo pero no se eliminará."
+                    data-tipo="disc"
+                    onclick="abrirModal(this)">⊘ Descontinuar</button>
+            {% endif %}
+        </div>
+        <div class="row">
+            {% if producto.tiene_ventas %}
+                <button class="action-btn btn-eliminar" disabled
+                    onclick="mostrarToast('{{ producto.nombre }} tiene {{ producto.num_ventas }} venta(s). No se puede eliminar. Usa Descontinuar.','error')">
+                     Eliminar
+                </button>
+            {% else %}
+                <button class="action-btn btn-eliminar"
+                    onclick="abrirModalTallas('{{ producto.id }}','{{ producto.nombre|escapejs }}')">
+                     Eliminar
+                </button>
+            {% endif %}
+        </div>
     </div>
-</footer>
 
+</div>
+{% empty %}
+<div style="grid-column:1/-1;text-align:center;color:#aaa;padding:60px 20px;font-size:16px;">No hay productos registrados.</div>
+{% endfor %}
+</div>
+
+<!-- Modal descontinuar / reactivar -->
+<div class="modal-overlay" id="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-icon" id="modal-icon"></div>
+        <h3 id="modal-titulo">Confirmar</h3>
+        <p id="modal-msg"></p>
+        <div class="modal-btns">
+            <button class="modal-cancel" onclick="cerrarModal()">Cancelar</button>
+            <form id="modal-form" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="modal-confirm" id="modal-confirm">Confirmar</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal selección de tallas a eliminar -->
+<div class="modal-overlay" id="modal-tallas-overlay">
+    <div class="modal-tallas-box">
+        <div style="text-align:center;font-size:44px;margin-bottom:10px;">🗑️</div>
+        <h3 id="mt-titulo" style="text-align:center;">Eliminar tallas</h3>
+        <p class="mt-sub" style="text-align:center;">Selecciona las tallas que quieres eliminar. El resto quedará intacto.</p>
+        <div class="lista-tallas-scroll" id="mt-lista"></div>
+        <div class="todo-wrap">
+            <label>
+                <input type="checkbox" id="mt-check-todo" onchange="toggleTodo(this)">
+                <span class="todo-titulo">Eliminar el producto completo (todas las tallas)</span>
+            </label>
+            <p class="todo-sub">Esta acción es permanente e irreversible.</p>
+        </div>
+        <div class="modal-btns">
+            <button class="modal-cancel" onclick="cerrarModalTallas()">Cancelar</button>
+            <button class="modal-confirm" style="background:#be123c;" onclick="confirmarEliminarTallas()">Eliminar seleccionadas</button>
+        </div>
+    </div>
+</div>
+
+<!-- Modal eliminar una sola talla -->
+<div class="modal-overlay" id="modal-una-talla-overlay">
+    <div class="modal-box">
+        <div class="modal-icon">🗑️</div>
+        <h3 id="mut-titulo">Eliminar talla</h3>
+        <div id="mut-alerta" style="background:#fff1f2;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:13px;color:#be123c;font-weight:600;"></div>
+        <div class="modal-btns">
+            <button class="modal-cancel" onclick="cerrarModalUnaTalla()">Cancelar</button>
+            <form id="mut-form" method="POST" style="display:inline;">
+                {% csrf_token %}
+                <button type="submit" class="modal-confirm" style="background:#be123c;">Sí, eliminar talla</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── Toggle tallas ── */
+function toggleTallas(btn, id) {
+    var panel = document.getElementById('tallas-' + id);
+    var isOpen = panel.classList.toggle('open');
+    btn.classList.toggle('open', isOpen);
+    btn.textContent = isOpen ? 'Ocultar tallas ▴' : 'Ver tallas y stock ▾';
+}
+
+/* ── Modal descontinuar/reactivar ── */
+function abrirModal(btn) {
+    var tipo = btn.getAttribute('data-tipo');
+    document.getElementById('modal-titulo').textContent = btn.getAttribute('data-titulo');
+    var msgEl = document.getElementById('modal-msg');
+    msgEl.textContent = btn.getAttribute('data-msg');
+    msgEl.style.color = ''; msgEl.style.fontWeight = ''; msgEl.style.background = '';
+    msgEl.style.padding = ''; msgEl.style.borderRadius = ''; msgEl.style.border = '';
+    document.getElementById('modal-form').action = btn.getAttribute('data-url');
+    var confirm = document.getElementById('modal-confirm');
+    var icon    = document.getElementById('modal-icon');
+    if (tipo === 'disc') { icon.textContent='⊘';  confirm.textContent='Descontinuar'; confirm.style.background='#e65100'; }
+    else                 { icon.textContent='✅'; confirm.textContent='Reactivar';    confirm.style.background='#15803d'; }
+    document.getElementById('modal-overlay').classList.add('open');
+}
+function cerrarModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+document.getElementById('modal-overlay').addEventListener('click', function(e){ if(e.target===this) cerrarModal(); });
+
+/* ── Modal una talla ── */
+function abrirModalUnaTalla(nombre, talla, stock, tallaId) {
+    document.getElementById('mut-titulo').textContent  = 'Eliminar Talla ' + talla + ' — ' + nombre;
+    document.getElementById('mut-alerta').textContent  = '⚠️ Se perderán ' + stock + ' unidades de la talla ' + talla + '. Esta acción no se puede deshacer.';
+    document.getElementById('mut-form').action         = '/producto-talla-eliminar/' + tallaId + '/';
+    document.getElementById('modal-una-talla-overlay').classList.add('open');
+}
+function cerrarModalUnaTalla() { document.getElementById('modal-una-talla-overlay').classList.remove('open'); }
+document.getElementById('modal-una-talla-overlay').addEventListener('click', function(e){ if(e.target===this) cerrarModalUnaTalla(); });
+
+/* ── Modal selección tallas ── */
+var _mtProductoId = null;
+
+function abrirModalTallas(productoId, nombre) {
+    _mtProductoId = productoId;
+    var panel = document.getElementById('tallas-' + productoId);
+    var lista = document.getElementById('mt-lista');
+    lista.innerHTML = '';
+
+    if (panel) {
+        panel.querySelectorAll('.talla-chip').forEach(function(chip) {
+            var tallaId  = chip.getAttribute('data-talla-id');
+            var nombre_t = chip.querySelector('.talla-nombre').textContent.trim();
+            var stock_t  = chip.querySelector('.talla-cant').textContent.replace(' uds','').trim();
+            var div = document.createElement('div');
+            div.className = 'talla-check-item';
+            div.innerHTML =
+                '<input type="checkbox" class="mt-check-talla" id="mtc-'+tallaId+'" data-talla-id="'+tallaId+'">'
+                + '<label for="mtc-'+tallaId+'" style="flex:1;cursor:pointer;"><span class="tci-nombre">Talla '+nombre_t+'</span></label>'
+                + '<span class="tci-stock">'+stock_t+' unidades</span>';
+            lista.appendChild(div);
+        });
+    }
+
+    if (!lista.children.length) {
+        lista.innerHTML = '<p style="color:#aaa;font-size:13px;padding:10px 0;">No hay tallas registradas.</p>';
+    }
+
+    document.getElementById('mt-titulo').textContent   = 'Eliminar — ' + nombre;
+    document.getElementById('mt-check-todo').checked   = false;
+    document.querySelectorAll('.mt-check-talla').forEach(function(c){ c.disabled = false; });
+    document.getElementById('modal-tallas-overlay').classList.add('open');
+}
+
+function toggleTodo(cb) {
+    document.querySelectorAll('.mt-check-talla').forEach(function(c){
+        c.checked = cb.checked; c.disabled = cb.checked;
+    });
+}
+
+function cerrarModalTallas() { document.getElementById('modal-tallas-overlay').classList.remove('open'); }
+document.getElementById('modal-tallas-overlay').addEventListener('click', function(e){ if(e.target===this) cerrarModalTallas(); });
+
+function confirmarEliminarTallas() {
+    var eliminarTodo  = document.getElementById('mt-check-todo').checked;
+    var seleccionadas = [];
+
+    if (!eliminarTodo) {
+        document.querySelectorAll('.mt-check-talla:checked').forEach(function(c){
+            seleccionadas.push(c.getAttribute('data-talla-id'));
+        });
+        if (!seleccionadas.length) {
+            mostrarToast('Selecciona al menos una talla o marca "eliminar todo".', 'error');
+            return;
+        }
+    }
+
+    var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+    var form = document.createElement('form');
+    form.method  = 'POST';
+    form.innerHTML = '<input type="hidden" name="csrfmiddlewaretoken" value="'+csrf+'">';
+
+    if (eliminarTodo) {
+        form.action = '/producto-eliminar/' + _mtProductoId + '/';
+    } else {
+        form.action = '/producto-tallas-eliminar/';
+        seleccionadas.forEach(function(id){
+            form.innerHTML += '<input type="hidden" name="talla_ids" value="'+id+'">';
+        });
+        form.innerHTML += '<input type="hidden" name="producto_id" value="'+_mtProductoId+'">';
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+}
+
+/* ── Toast ── */
+function mostrarToast(msg, tipo) {
+    var t = document.getElementById('toast');
+    t.textContent = msg; t.className = 'toast '+(tipo||'error')+' show';
+    setTimeout(function(){ t.classList.remove('show'); }, 4500);
+}
+
+/* ── Filtros ── */
+var filtroActual = 'todos';
+function setFiltro(f, el) {
+    filtroActual = f;
+    document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+    el.classList.add('active'); filtrar();
+}
+function filtrar() {
+    var texto = document.getElementById('buscador').value.toLowerCase();
+    document.querySelectorAll('#prod-grid .prod-card').forEach(function(card){
+        var ok = (card.getAttribute('data-nombre')||'').includes(texto) && (
+            filtroActual === 'todos'
+            || (filtroActual === 'activo'        && card.getAttribute('data-estado') === 'activo')
+            || (filtroActual === 'descontinuado' && card.getAttribute('data-estado') === 'descontinuado')
+            || (filtroActual === 'sin-stock'     && parseInt(card.getAttribute('data-stock')||0) === 0)
+        );
+        card.style.display = ok ? '' : 'none';
+    });
+}
+</script>
 </body>
 </html>

@@ -1,0 +1,331 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mi Perfil — Repartidor Deportes 360</title>
+<link rel="icon" type="image/png" href="{% static 'images/repar.png' %}">
+<link rel="stylesheet" href="{% static 'css/repartidor.css' %}">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+body { background: #f2f3f5; color: #222; }
+
+.header {
+    background: linear-gradient(90deg, #0d1a26, #1a2f45);
+    color: #fff; padding: 18px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+    border-bottom: 3px solid #d40000;
+}
+.header h1 { font-size: 18px; font-weight: 700; letter-spacing: .5px; }
+.header nav { display: flex; gap: 10px; }
+.btn {
+    display: inline-block; padding: 8px 18px;
+    background: #0d1a26; color: #fff; border: none;
+    border-radius: 8px; font-size: 13px; font-weight: 600;
+    cursor: pointer; text-decoration: none; transition: .2s;
+}
+.btn:hover { background: #1a2f45; }
+.btn-logout { background: #d40000; }
+.btn-logout:hover { background: #8b0000; }
+
+.container { max-width: 860px; margin: 28px auto; padding: 0 20px 60px; }
+
+/* ── Mensajes ── */
+.pf-msg { padding: 12px 18px; border-radius: 10px; font-weight: 600; font-size: 14px; margin-bottom: 16px; }
+.pf-msg.success { background: #f0fdf4; color: #16a34a; border: 1px solid #86efac; }
+.pf-msg.error   { background: #fff0f0; color: #d40000; border: 1px solid #fca5a5; }
+
+/* ── Hero perfil ── */
+.perfil-card {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.09);
+    padding: 24px 28px; margin-bottom: 24px;
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+}
+.perfil-avatar {
+    width: 80px; height: 80px; border-radius: 50%;
+    background: linear-gradient(135deg, #0d1a26, #d40000);
+    color: #fff; font-size: 32px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.perfil-info h2 { font-size: 22px; font-weight: 700; color: #0d1a26; margin-bottom: 6px; }
+.perfil-info p  { font-size: 14px; color: #555; margin-bottom: 4px; }
+.perfil-badge {
+    display: inline-block; background: #e3f2fd; color: #1565c0;
+    font-size: 12px; font-weight: 700; padding: 4px 12px;
+    border-radius: 20px; margin-top: 6px;
+}
+
+/* Progreso */
+.prog-lbl { font-size: 12px; color: #888; margin: 10px 0 4px; }
+.prog-bar  { background: #f0f0f0; border-radius: 4px; height: 6px; width: 220px; }
+.prog-fill { height: 6px; border-radius: 4px; background: #d40000; }
+
+/* Aviso */
+.pf-incomplete {
+    background: #fffbeb; border: 1px solid #fde68a;
+    border-radius: 10px; padding: 12px 16px;
+    font-size: 13px; color: #92400e;
+    display: flex; align-items: center; gap: 10px; margin-bottom: 18px;
+}
+
+/* ── Card ── */
+.pf-card {
+    background: #fff; border-radius: 16px;
+    box-shadow: 0 4px 14px rgba(0,0,0,.08);
+    margin-bottom: 20px; overflow: hidden;
+}
+.pf-card-head {
+    padding: 14px 24px; border-bottom: 1px solid #f0f0f0;
+    display: flex; align-items: center; gap: 10px;
+    background: #0d1a26;
+}
+.pf-card-head h3 { font-size: 14px; font-weight: 700; color: #fff; margin: 0; }
+.pf-card-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; font-size: 14px;
+    background: rgba(255,255,255,.1);
+}
+.pf-card-body { padding: 22px 24px; }
+
+/* ── Grid ── */
+.pf-grid   { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.pf-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.pf-full   { grid-column: 1 / -1; }
+
+/* ── Campos ── */
+.pf-campo { display: flex; flex-direction: column; }
+.pf-campo label {
+    font-size: 11px; font-weight: 700; color: #888;
+    text-transform: uppercase; letter-spacing: .5px; margin-bottom: 5px;
+}
+.pf-campo input, .pf-campo select {
+    padding: 10px 13px; border: 1.5px solid #e0e0e0;
+    border-radius: 9px; font-size: 14px; color: #111;
+    font-family: inherit; outline: none; transition: .2s; background: #f9f9f9;
+}
+.pf-campo input:focus, .pf-campo select:focus {
+    border-color: #0d1a26; background: #fff;
+    box-shadow: 0 0 0 3px rgba(13,26,38,.07);
+}
+.pf-campo input[readonly] { background: #f3f4f6; color: #aaa; cursor: not-allowed; }
+
+.pf-sep {
+    font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .5px; color: #bbb;
+    display: flex; align-items: center; gap: 10px; margin: 18px 0 12px;
+}
+.pf-sep::after { content: ''; flex: 1; height: 1px; background: #f0f0f0; }
+
+/* Contraseña */
+.pwd-wrap { position: relative; }
+.pwd-wrap input { padding-right: 42px; width: 100%; }
+.pwd-eye {
+    position: absolute; right: 11px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer; font-size: 16px; color: #bbb;
+}
+
+/* ── Botones ── */
+.pf-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 18px; flex-wrap: wrap; }
+.pf-btn-save {
+    padding: 10px 26px;
+    background: linear-gradient(180deg, #0d1a26, #1a2f45);
+    color: #fff; border: none; border-radius: 9px;
+    font-size: 14px; font-weight: 700; cursor: pointer;
+    font-family: inherit; transition: .15s;
+}
+.pf-btn-save:hover { opacity: .88; }
+.pf-btn-save.rojo { background: linear-gradient(180deg, #d40000, #8b0000); }
+
+@media(max-width:700px){
+    .pf-grid, .pf-grid-3 { grid-template-columns: 1fr; }
+    .perfil-card { flex-direction: column; text-align: center; }
+    .prog-bar { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>Mi Perfil — Repartidor</h1>
+    <nav>
+        <a href="{% url 'repartidor' %}" class="btn">← Volver al panel</a>
+        <a href="{% url 'logout' %}" class="btn btn-logout">Cerrar Sesión</a>
+    </nav>
+</div>
+
+<div class="container">
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="pf-msg {{ message.tags }}">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Hero -->
+    <div class="perfil-card">
+        <div class="perfil-avatar">{{ usuario.first_name|slice:":1"|upper|default:"R" }}</div>
+        <div class="perfil-info">
+            <h2>{{ usuario.first_name|default:usuario.username }}</h2>
+            <p><strong>Usuario:</strong> {{ usuario.username }}</p>
+            <p><strong>Correo:</strong> {{ usuario.email }}</p>
+            <p><strong>Teléfono:</strong> {{ usuario.telefono|default:"No registrado" }}</p>
+            {% if repartidor %}
+            <p><strong>Vehículo:</strong> {{ repartidor.vehiculo|default:"—" }} &nbsp;·&nbsp; <strong>Placa:</strong> {{ repartidor.placa|default:"—" }}</p>
+            {% endif %}
+            <span class="perfil-badge">Repartidor activo</span>
+            <div>
+                <p class="prog-lbl">Perfil {{ progreso }}% completo</p>
+                <div class="prog-bar">
+                    <div class="prog-fill" style="width:{{ progreso }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if progreso < 80 %}
+    <div class="pf-incomplete">
+        ⚠️ <span>Completa tu perfil para que los clientes y el sistema puedan contactarte correctamente.</span>
+    </div>
+    {% endif %}
+
+    <!-- ── Información personal ── -->
+    <div class="pf-card">
+        <div class="pf-card-head">
+            <div class="pf-card-icon">👤</div>
+            <h3>Información Personal</h3>
+        </div>
+        <div class="pf-card-body">
+            <form method="POST" action="{% url 'perfil_repartidor' %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="perfil">
+
+                <div class="pf-grid">
+                    <div class="pf-campo">
+                        <label>Nombre completo</label>
+                        <input type="text" name="first_name" value="{{ usuario.first_name }}" placeholder="Tu nombre" required>
+                    </div>
+                    <div class="pf-campo">
+                        <label>Usuario</label>
+                        <input type="text" value="{{ usuario.username }}" readonly>
+                    </div>
+                    <div class="pf-campo">
+                        <label>Correo electrónico</label>
+                        <input type="email" name="email" value="{{ usuario.email }}" placeholder="correo@ejemplo.com" required>
+                    </div>
+                    <div class="pf-campo">
+                        <label>Teléfono</label>
+                        <input type="text" name="telefono" value="{{ usuario.telefono }}" placeholder="3001234567" required>
+                    </div>
+                    <div class="pf-campo">
+                        <label>Fecha de nacimiento</label>
+                        <input type="date" name="fecha_nacimiento" value="{{ usuario.fecha_nacimiento|date:'Y-m-d' }}">
+                    </div>
+                </div>
+
+                <div class="pf-sep">Documento de identidad</div>
+                <div class="pf-grid-3">
+                    <div class="pf-campo">
+                        <label>Tipo de documento</label>
+                        <select name="tipo_documento">
+                            <option value="">Seleccionar</option>
+                            <option value="CC"  {% if usuario.tipo_documento == 'CC'  %}selected{% endif %}>Cédula de ciudadanía</option>
+                            <option value="TI"  {% if usuario.tipo_documento == 'TI'  %}selected{% endif %}>Tarjeta de identidad</option>
+                            <option value="CE"  {% if usuario.tipo_documento == 'CE'  %}selected{% endif %}>Cédula de extranjería</option>
+                            <option value="PAS" {% if usuario.tipo_documento == 'PAS' %}selected{% endif %}>Pasaporte</option>
+                        </select>
+                    </div>
+                    <div class="pf-campo">
+                        <label>Número de documento</label>
+                        <input type="text" name="cedula" value="{{ usuario.cedula }}" placeholder="123456789">
+                    </div>
+                    <div class="pf-campo">
+                        <label>Localidad</label>
+                        <select name="localidad" id="localidad">
+                            <option value="">Seleccione</option>
+                            {% for loc in localidades %}
+                            <option value="{{ loc }}" {% if usuario.localidad == loc %}selected{% endif %}>{{ loc }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="pf-sep">Vehículo</div>
+                <div class="pf-grid">
+                    <div class="pf-campo">
+                        <label>Tipo de vehículo</label>
+                        <select name="vehiculo">
+                            <option value="">Seleccionar</option>
+                            <option value="Moto"      {% if repartidor.vehiculo == 'Moto'      %}selected{% endif %}>Moto</option>
+                            <option value="Bicicleta" {% if repartidor.vehiculo == 'Bicicleta' %}selected{% endif %}>Bicicleta</option>
+                            <option value="Carro"     {% if repartidor.vehiculo == 'Carro'     %}selected{% endif %}>Carro</option>
+                            <option value="Patineta"  {% if repartidor.vehiculo == 'Patineta'  %}selected{% endif %}>Patineta eléctrica</option>
+                        </select>
+                    </div>
+                    <div class="pf-campo">
+                        <label>Número de placa</label>
+                        <input type="text" name="placa" value="{{ repartidor.placa }}" placeholder="Ej: ABC123">
+                    </div>
+                </div>
+
+                <div class="pf-actions">
+                    <button type="submit" class="pf-btn-save">Guardar cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ── Cambiar contraseña ── -->
+    <div class="pf-card">
+        <div class="pf-card-head">
+            <div class="pf-card-icon">🔒</div>
+            <h3>Cambiar Contraseña</h3>
+        </div>
+        <div class="pf-card-body">
+            <form method="POST" action="{% url 'perfil_repartidor' %}">
+                {% csrf_token %}
+                <input type="hidden" name="accion" value="password">
+                <div class="pf-grid">
+                    <div class="pf-campo pf-full">
+                        <label>Contraseña actual</label>
+                        <div class="pwd-wrap">
+                            <input type="password" name="password_actual" id="pa" placeholder="Tu contraseña actual" required>
+                            <button type="button" class="pwd-eye" onclick="togglePwd('pa',this)">👁</button>
+                        </div>
+                    </div>
+                    <div class="pf-campo">
+                        <label>Nueva contraseña</label>
+                        <div class="pwd-wrap">
+                            <input type="password" name="password_nueva" id="pn" placeholder="Mínimo 8 caracteres" required>
+                            <button type="button" class="pwd-eye" onclick="togglePwd('pn',this)">👁</button>
+                        </div>
+                    </div>
+                    <div class="pf-campo">
+                        <label>Confirmar contraseña</label>
+                        <div class="pwd-wrap">
+                            <input type="password" name="password_confirmar" id="pc" placeholder="Repite la nueva" required>
+                            <button type="button" class="pwd-eye" onclick="togglePwd('pc',this)">👁</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="pf-actions">
+                    <button type="submit" class="pf-btn-save rojo">🔑 Cambiar contraseña</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script>
+function togglePwd(id, btn) {
+    var inp = document.getElementById(id);
+    if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+    else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+</script>
+</body>
+</html>

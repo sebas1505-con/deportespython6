@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/x-icon" href="{% static 'images/usu.png' %}">
-    <link rel="stylesheet" href="{% static 'css/index.css' %}">
+     <link rel="stylesheet" href="{% static 'css/usuario.css' %}">
     <title>Deportes 360</title>
 </head>
 
@@ -23,6 +23,7 @@
                 <ul>
                     <li><a href="{% url 'quienes' %}">Quiénes Somos</a></li>
                     <li><a href="{% url 'contacto' %}">Contacto</a></li>
+                    <li><a href="{% url 'catalogoindex' %}">Catálogo</a></li>
                     <li><a href="{% url 'menu' %}">Crear Cuenta</a></li>
                     <li><a href="{% url 'login' %}">Iniciar Sesión</a></li>
                 </ul>
@@ -64,8 +65,22 @@
     </div>
 </section>
 
+<main class="Prodcts container">
+    <h2>Prendas Destacadas</h2>
 
-
+    <div class="Prodcts-content">
+        {% for producto in productos %}
+        <div class="Prodcts-1">
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+            <h4>{{ producto.nombre }}</h4>
+            <p>${{ producto.precio }}</p>
+            <a href="{% url 'catalogoindex' %}" class="btn-1">Mas Informacion</a>
+        </div>
+        {% empty %}
+            <p>No hay productos disponibles</p>
+        {% endfor %}
+    </div>
+</main>
 
 <footer class="footer container">
     <div class="footer-content">

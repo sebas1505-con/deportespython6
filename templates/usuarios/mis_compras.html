@@ -4,40 +4,233 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mis Compras - Deportes 360</title>
-    <link rel="stylesheet" href="{% static 'css/mis_compras.css' %}">
+    <title>Mis Compras — Deportes 360</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/usu.png' %}">
+    <link rel="stylesheet" href="{% static 'css/usuario.css' %}">
+    <style>
+    /* ── Wrap ── */
+    .compras-wrap {
+        max-width: 1000px;
+        margin: 36px auto 60px;
+        padding: 0 24px;
+        font-family: 'Segoe UI', sans-serif;
+    }
+
+    /* ── Cabecera de página ── */
+    .compras-hero {
+        display: flex; align-items: center; justify-content: space-between;
+        flex-wrap: wrap; gap: 14px; margin-bottom: 28px;
+    }
+    .compras-hero h1 {
+        font-size: 24px; font-weight: 800; color: #111;
+    }
+    .compras-hero h1 span { color: #d40000; }
+
+    .btn-volver-compras {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 10px 20px; background: #0d0d0d; color: #fff;
+        border-radius: 10px; font-size: 13px; font-weight: 700;
+        text-decoration: none; transition: .2s;
+        border: 2px solid #0d0d0d;
+    }
+    .btn-volver-compras:hover { background: #d40000; border-color: #d40000; }
+
+    /* ── Grid ── */
+    .compras-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    /* ── Card ── */
+    .compra-card {
+        background: #fff; border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        overflow: hidden; transition: transform .2s, box-shadow .2s;
+        display: flex; flex-direction: column;
+        border-top: 4px solid #d40000;
+    }
+    .compra-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.13); }
+
+    .compra-card-head {
+        padding: 16px 18px 12px;
+        border-bottom: 1px solid #f5f5f5;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .compra-id {
+        font-family: monospace; font-size: 13px; color: #888;
+        background: #f3f4f6; padding: 3px 10px; border-radius: 6px;
+    }
+    .compra-estado {
+        padding: 4px 12px; border-radius: 20px;
+        font-size: 11px; font-weight: 700;
+    }
+    .estado-entregado { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+    .estado-camino    { background: #eff6ff; color: #2563eb; border: 1px solid #93c5fd; }
+    .estado-pendiente { background: #fffbeb; color: #b45309; border: 1px solid #fcd34d; }
+    .estado-cancelada { background: #fff1f2; color: #be123c; border: 1px solid #fca5a5; }
+
+    .compra-card-body { padding: 16px 18px; flex: 1; }
+
+    .compra-row {
+        display: flex; align-items: center; justify-content: space-between;
+        font-size: 13px; color: #555; margin-bottom: 8px;
+    }
+    .compra-row strong { color: #111; }
+    .compra-total-val {
+        font-size: 22px; font-weight: 800; color: #d40000; margin: 10px 0 4px;
+    }
+    .compra-metodo {
+        font-size: 12px; color: #888;
+        display: inline-flex; align-items: center; gap: 5px;
+    }
+
+    .compra-card-foot {
+        padding: 12px 18px;
+        border-top: 1px solid #f5f5f5;
+        display: flex; gap: 8px;
+    }
+    .btn-factura {
+        flex: 1; padding: 10px; background: linear-gradient(180deg, #d40000, #8b0000);
+        color: #fff; border: none; border-radius: 9px;
+        font-size: 13px; font-weight: 700; text-align: center;
+        text-decoration: none; transition: .15s; cursor: pointer;
+        display: inline-block;
+    }
+    .btn-factura:hover { opacity: .88; }
+
+    /* ── Empty state ── */
+    .compras-empty {
+        text-align: center; padding: 60px 20px; color: #aaa;
+    }
+    .compras-empty div { font-size: 56px; margin-bottom: 16px; }
+    .compras-empty h3 { font-size: 18px; color: #111; margin-bottom: 8px; }
+    .compras-empty p  { font-size: 13px; }
+    .compras-empty a  {
+        display: inline-block; margin-top: 20px;
+        padding: 11px 28px; background: #d40000; color: #fff;
+        border-radius: 10px; font-weight: 700; text-decoration: none;
+        font-size: 14px; transition: .2s;
+    }
+    .compras-empty a:hover { background: #8b0000; }
+
+    @media(max-width:600px){
+        .compras-grid { grid-template-columns: 1fr; }
+    }
+    </style>
 </head>
 <body>
-    <div class="compras-container">
-        <h1 class="titulo-compras">Mis Compras</h1>
-         <a href="{% url 'usuario' %}" class="btn-volver">
-         Volver
-        </a>
-        {% if compras %}
-            <div class="compras-grid">
 
-                {% for compra in compras %}
-                    <div class="compra-card">
-                        
-                        <div class="compra-info">
-                            <p><strong>ID:</strong> {{ compra.id }}</p>
-                            <p><strong>Total:</strong> ${{ compra.totalVenta }}</p>
-                        </div>
-
-                        <div class="compra-footer">
-                            <a href="{% url 'factura1' compra.id %}" class="btn-ver">
-                                Ver factura
-                            </a>
-                        </div>
-
-                    </div>
-                {% endfor %}
-
-            </div>
-        {% else %}
-            <p class="sin-compras">No tienes compras registradas todavía.</p>
-        {% endif %}
+<!-- Header igual a usuario.html -->
+<header class="header">
+    <div class="container">
+        <div class="menu">
+            <a href="{% url 'index' %}" class="logo-wrapper">
+                <div class="logo-icon"><span>360</span></div>
+                <div class="logo-text">
+                    <strong>Deportes</strong>
+                    <small>360</small>
+                </div>
+            </a>
+            <input type="checkbox" id="menu" />
+            <label for="menu" class="menu-btn">
+                <span></span><span></span><span></span>
+            </label>
+            <div class="nav-overlay"></div>
+            <nav class="navbar">
+                <ul>
+                    <li><a href="{% url 'perfil' %}">Perfil</a></li>
+                    <li><a href="{% url 'mis_compras' %}" style="color:#d40000;font-weight:700;">Mis Compras</a></li>
+                    <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+                    <li><a href="{% url 'sugerencias' %}">Sugerencias</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                    <li><a href="{% url 'carrito' %}">🛒</a></li>
+                </ul>
+            </nav>
+        </div>
     </div>
+</header>
+
+<div class="compras-wrap">
+
+    <!-- Cabecera -->
+    <div class="compras-hero">
+        <h1>Mis <span>Compras</span></h1>
+        <a href="{% url 'usuario' %}" class="btn-volver-compras">
+            ← Volver al inicio
+        </a>
+    </div>
+
+    {% if compras %}
+    <div class="compras-grid">
+        {% for compra in compras %}
+        <div class="compra-card">
+
+            <div class="compra-card-head">
+                <span class="compra-id">#{{ compra.id }}</span>
+                {% if compra.estado == 'Entregado' or compra.estado == 'completada' %}
+                    <span class="compra-estado estado-entregado">✅ Entregado</span>
+                {% elif compra.estado == 'En camino' %}
+                    <span class="compra-estado estado-camino">🚚 En camino</span>
+                {% elif compra.estado == 'cancelada' %}
+                    <span class="compra-estado estado-cancelada">❌ Cancelada</span>
+                {% else %}
+                    <span class="compra-estado estado-pendiente">⏳ {{ compra.estado|default:"Pendiente" }}</span>
+                {% endif %}
+            </div>
+
+            <div class="compra-card-body">
+                <div class="compra-total-val">${{ compra.totalVenta|floatformat:0 }}</div>
+                <div class="compra-row">
+                    <span>Cantidad de productos</span>
+                    <strong>{{ compra.cantProducto }} uds</strong>
+                </div>
+                <div class="compra-row">
+                    <span>Método de pago</span>
+                    <strong>{% if compra.metodo_de_pago == 'PSE' or compra.metodo_de_pago == 'PAGO_EN_LINEA' %} PSE{% else %} Contra entrega{% endif %}</strong>
+                </div>
+                <div class="compra-row">
+                    <span>Fecha</span>
+                    <strong>{{ compra.fecha_venta|date:"d/m/Y" }}</strong>
+                </div>
+                {% if compra.direccionEnvio %}
+                <div class="compra-row">
+                    <span>Dirección</span>
+                    <strong style="font-size:12px;color:#888;">{{ compra.direccionEnvio|truncatechars:28 }}</strong>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="compra-card-foot">
+                <a href="{% url 'factura1' compra.id %}" class="btn-factura"> Ver factura</a>
+            </div>
+
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="compras-empty">
+        <div>🛍️</div>
+        <h3>Aún no tienes compras</h3>
+        <p>Explora nuestro catálogo y encuentra tu prenda deportiva favorita.</p>
+        <a href="{% url 'catalogo' %}">Ver catálogo →</a>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- Footer -->
+<footer class="footer container">
+    <div class="footer-content">
+        <a href="{% url 'index' %}" class="logo">Deportes 360</a>
+        <ul>
+            <li><a href="{% url 'usuario' %}">Inicio</a></li>
+            <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+            <li><a href="{% url 'contactousu' %}">Contacto</a></li>
+        </ul>
+    </div>
+</footer>
 
 </body>
 </html>
