@@ -45,7 +45,7 @@
                 {% for s in sugerencias %}
                 <tr>
                     <td>{{ s.nombre|default:"Anónimo" }}</td>
-                    <td>{{ s.texto }}</td>
+                    <td>{{ s.mensaje }}</td>
                     <td>{{ s.fecha|date:"d/m/Y H:i" }}</td>
                 </tr>
                 {% empty %}

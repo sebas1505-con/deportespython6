@@ -34,6 +34,7 @@ urlpatterns = [
     path('producto-reactivar/<int:id>/',    views.producto_reactivar,    name='producto_reactivar'),
     path('sugerencias/responder/<int:sugerencia_id>/', views.responder_sugerencia, name='responder_sugerencia'),
     path('sugerencias/respuestas/<int:sugerencia_id>/', views.sugerencia_respuestas, name='sugerencia_respuestas'),
+    path('sugerencias/lista/', views.sugerencias_lista, name='sugerencias_lista'),
     path('reportes-admin/', views.reportes_admin, name='reportes_admin'),
     path(
         'stock-insuficiente/<int:producto_id>/<str:talla>/<int:stock_disponible>/',

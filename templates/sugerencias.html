@@ -177,7 +177,7 @@ body {
         {% if mi_sugerencia %}
             <div class="wa-msg-wrap out">
                 <div class="wa-burbuja out">
-                    <p>{{ mi_sugerencia.texto }}</p>
+                    <p>{{ mi_sugerencia.mensaje }}</p>
                     <span class="wa-hora">{{ mi_sugerencia.fecha|date:"d/m/Y H:i" }} ✓✓</span>
                 </div>
             </div>
@@ -255,15 +255,22 @@ function enviarMensaje(e){
     var btn   = form.querySelector('button');
     btn.disabled = true;
 
-    var body = 'texto=' + encodeURIComponent(texto);
+    var csrf = form.querySelector('[name=csrfmiddlewaretoken]');
+    var csrfToken = csrf ? csrf.value : getCookie('csrftoken');
+
+    var body = 'texto=' + encodeURIComponent(texto)
+             + '&csrfmiddlewaretoken=' + encodeURIComponent(csrfToken);
     if (sugId) body += '&sugerencia_id=' + encodeURIComponent(sugId.value);
 
     fetch(window.location.href, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': getCookie('csrftoken') },
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded', 'X-CSRFToken': csrfToken },
         body: body
     })
-    .then(function(r){ return r.json(); })
+    .then(function(r){
+        if (!r.ok && r.status !== 200) throw new Error('HTTP ' + r.status);
+        return r.json();
+    })
     .then(function(data){
         if (data.ok) {
             var msgs = document.getElementById('wa-mensajes');
@@ -290,9 +297,11 @@ function enviarMensaje(e){
                 hidden.value = data.sugerencia_id;
                 form.appendChild(hidden);
             }
+        } else {
+            alert('Error: ' + (data.error || 'No se pudo enviar'));
         }
     })
-    .catch(function(){ alert('Error al enviar.'); })
+    .catch(function(err){ alert('Error al enviar: ' + err); })
     .finally(function(){ btn.disabled = false; });
 }
 
@@ -313,7 +322,7 @@ function checkRespuestas(){
         msgs.innerHTML = '';
         var w0 = document.createElement('div');
         w0.className = 'wa-msg-wrap out';
-        w0.innerHTML = '<div class="wa-burbuja out"><p>' + escapeHtml(data.texto)
+        w0.innerHTML = '<div class="wa-burbuja out"><p>' + escapeHtml(data.texto || '')
             + '</p><span class="wa-hora">' + data.fecha + ' ✓✓</span></div>';
         msgs.appendChild(w0);
 

@@ -893,10 +893,30 @@ def sugerencia_respuestas(request, sugerencia_id):
     fecha_sug = sug.fecha.astimezone(bogota)
     return JsonResponse({
         'ok':         True,
-        'texto':      sug.texto,
+        'nombre':     sug.nombre or 'Anónimo',
+        'texto':      sug.mensaje,
         'fecha':      fecha_sug.strftime('%d/%m/%Y %H:%M'),
         'respuestas': respuestas,
     })
+
+def sugerencias_lista(request):
+    import pytz
+    bogota = pytz.timezone('America/Bogota')
+    sugerencias = Sugerencia.objects.all().order_by('-fecha')
+    data = []
+    for s in sugerencias:
+        fecha_bogota = s.fecha.astimezone(bogota)
+        ultima = s.respuestas.order_by('-fecha').first()
+        last_msg   = ultima.mensaje if ultima else s.mensaje
+        last_fecha = ultima.fecha.astimezone(bogota).strftime('%d/%m/%Y %H:%M') if ultima else fecha_bogota.strftime('%d/%m/%Y %H:%M')
+        data.append({
+            'id':      s.id,
+            'nombre':  s.nombre or 'Anónimo',
+            'texto':   s.mensaje,
+            'preview': (last_msg or '')[:60],
+            'fecha':   fecha_bogota.strftime('%d/%m/%Y %H:%M'),
+        })
+    return JsonResponse({'sugerencias': data})
 
 def exportar_excel(request):
     from datetime import date

@@ -77,12 +77,12 @@ class Movimiento(models.Model):
         choices=[("entrada", "Entrada"), ("salida", "Salida")],
         default="entrada"
     )
-    cantidad = models.IntegerField()
-    motivo   = models.TextField(blank=True, null=True)
-    fecha    = models.DateTimeField(auto_now_add=True)
+    cantidad  = models.IntegerField()
+    motivo    = models.TextField(blank=True, null=True)
+    proveedor = models.CharField(max_length=100, blank=True, default='')
+    fecha     = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        # Guardar nombre del producto antes de que pueda eliminarse
         if self.producto and not self.nombre_producto:
             self.nombre_producto = self.producto.nombre
 
@@ -96,6 +96,14 @@ class Movimiento(models.Model):
         elif self.tipo_movimiento == "salida":
             talla_producto.stock -= self.cantidad
         talla_producto.save()
+
+        # Recalcular stock_total sumando todas las tallas
+        if self.producto:
+            total = self.producto.tallas.aggregate(
+                t=models.Sum('stock')
+            )['t'] or 0
+            Producto.objects.filter(pk=self.producto.pk).update(stock_total=total)
+
         super().save(*args, **kwargs)
 
 class Proveedor(models.Model):
@@ -147,10 +155,10 @@ class Envio(models.Model):
 
 class Sugerencia(models.Model):
 
-    nombre = models.CharField(max_length=100)
-    correo = models.EmailField()
+    nombre  = models.CharField(max_length=100)
+    correo  = models.EmailField(blank=True, default='')
     mensaje = models.TextField()
-    fecha = models.DateTimeField(auto_now_add=True)
+    fecha   = models.DateTimeField(auto_now_add=True)
 
 class RespuestaSugerencia(models.Model):
     sugerencia = models.ForeignKey(

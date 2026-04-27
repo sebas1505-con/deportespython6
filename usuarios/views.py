@@ -1,6 +1,6 @@
 from email.mime.image import MIMEImage
-from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto,DetalleVentaProductos, RespuestaSugerencia
-from .models import Usuario, Cliente, Repartidor, Sugerencia, Administrador, Pedido, DetalleVentaProductos 
+from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto, DetalleVentaProductos, RespuestaSugerencia, Sugerencia as SugerenciaInventario
+from .models import Usuario, Cliente, Repartidor, Administrador, Pedido, DetalleVentaProductos
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
 from .forms import RegistroClienteForm, RepartidorForm
@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from django.db.models.functions import TruncDate
 from django.db.models import Sum, Count
 from datetime import date, timedelta
-from django.db.models import Count, Avg, Sum
+from django.db.models import Count, Avg, Sum, Min
 from django.db.models.functions import TruncDate, TruncMonth
 import pandas as pd
 import requests
@@ -254,7 +254,6 @@ def admin(request):
     # ── Carga masiva ─────────────────────────────────────────────────────────
     if request.method == "POST" and request.FILES.get("archivo"):
         archivo = request.FILES["archivo"]
-        tipo_carga = request.POST.get("tipo_carga", "productos")
         try:
             if archivo.name.endswith(".csv"):
                 df = pd.read_csv(io.TextIOWrapper(archivo.file, encoding="utf-8"))
@@ -264,43 +263,51 @@ def admin(request):
                 messages.error(request, "Solo se permiten archivos CSV o Excel")
                 return redirect("panel_admin")
 
-            if tipo_carga == "productos":
-                columnas = ["id", "nombre", "slug", "precio", "descripcion", "imagen", "categoria"]
-                if not all(col in df.columns for col in columnas):
-                    messages.error(request, "El archivo no tiene las columnas requeridas para productos")
-                    return redirect("panel_admin")
-                for _, fila in df.iterrows():
-                    Producto.objects.update_or_create(
-                        id=int(fila["id"]),
-                        defaults={
-                            "nombre":      str(fila["nombre"]),
-                            "slug":        slugify(f"{fila['nombre']}-{fila['id']}"),
-                            "precio":      float(fila["precio"]),
-                            "descripcion": str(fila["descripcion"]),
-                            "categoria":   str(fila["categoria"]).upper(),
-                            "imagen":      fila["imagen"] if fila["imagen"] else None,
-                        }
-                    )
-                messages.success(request, "✅ Productos cargados correctamente")
+            columnas = ["nombre", "precio", "descripcion", "categoria", "talla", "stock"]
+            faltantes = [c for c in columnas if c not in df.columns]
+            if faltantes:
+                messages.error(request, f"Columnas faltantes en el archivo: {', '.join(faltantes)}")
+                return redirect("panel_admin")
 
-            elif tipo_carga == "stock":
-                columnas = ["id", "talla", "stock", "producto_id"]
-                if not all(col in df.columns for col in columnas):
-                    messages.error(request, "El archivo no tiene las columnas requeridas para stock")
-                    return redirect("panel_admin")
-                for _, fila in df.iterrows():
-                    if int(fila["stock"]) < 0:
-                        messages.warning(request, f"Stock negativo en producto {fila['producto_id']} - talla {fila['talla']}")
-                        continue
-                    TallaProducto.objects.update_or_create(
-                        id=int(fila["id"]),
-                        defaults={
-                            "talla":       str(fila["talla"]),
-                            "stock":       int(fila["stock"]),
-                            "producto_id": int(fila["producto_id"]),
-                        }
-                    )
-                messages.success(request, "✅ Stock cargado correctamente")
+            productos_actualizados = set()
+            filas_ok = 0
+            for _, fila in df.iterrows():
+                nombre    = str(fila["nombre"]).strip()
+                precio    = float(fila["precio"])
+                desc      = str(fila["descripcion"]).strip()
+                categoria = str(fila["categoria"]).strip().upper()
+                talla     = str(fila["talla"]).strip()
+                stock     = int(fila["stock"])
+
+                if stock < 0:
+                    messages.warning(request, f"Stock negativo en '{nombre}' talla {talla}, fila ignorada.")
+                    continue
+
+                producto, _ = Producto.objects.update_or_create(
+                    slug=slugify(nombre),
+                    defaults={
+                        "nombre":      nombre,
+                        "precio":      precio,
+                        "descripcion": desc,
+                        "categoria":   categoria,
+                    }
+                )
+
+                TallaProducto.objects.update_or_create(
+                    producto=producto,
+                    talla=talla,
+                    defaults={"stock": stock}
+                )
+
+                productos_actualizados.add(producto.pk)
+                filas_ok += 1
+
+            # Recalcular stock_total de todos los productos afectados
+            for pk in productos_actualizados:
+                total = TallaProducto.objects.filter(producto_id=pk).aggregate(t=Sum('stock'))['t'] or 0
+                Producto.objects.filter(pk=pk).update(stock_total=total)
+
+            messages.success(request, f"✅ Carga completada: {filas_ok} filas procesadas, {len(productos_actualizados)} producto(s) actualizados.")
 
         except Exception as e:
             messages.error(request, f"Error al procesar archivo: {e}")
@@ -414,7 +421,8 @@ def admin(request):
     ).order_by('-fecha_pedido')[:10]
 
     usuarios    = Usuario.objects.all()
-    sugerencias = Sugerencia.objects.all().order_by('-fecha')
+    primeras_ids = SugerenciaInventario.objects.values('nombre').annotate(pid=Min('id')).values_list('pid', flat=True)
+    sugerencias  = SugerenciaInventario.objects.filter(id__in=primeras_ids).prefetch_related('respuestas').order_by('-fecha')
     productos   = Producto.objects.prefetch_related('tallas').all()
 
     return render(request, 'productos/admin.html', {
@@ -805,40 +813,39 @@ def sugerencias(request):
     nombre = usuario.first_name or usuario.username
 
     if request.method == 'POST':
-        texto         = request.POST.get('texto', '').strip()
-        sugerencia_id = request.POST.get('sugerencia_id')
+        try:
+            texto         = request.POST.get('texto', '').strip()
+            sugerencia_id = request.POST.get('sugerencia_id')
 
-        if sugerencia_id:
-            # Respuesta a conversación existente
-            sug = get_object_or_404(Sugerencia, id=sugerencia_id)
-            RespuestaSugerencia.objects.create(
-                sugerencia = sug,
-                mensaje    = texto,
-                es_admin   = False
-            )
-            return JsonResponse({'ok': True, 'mensaje': texto})
+            if sugerencia_id:
+                sug = get_object_or_404(SugerenciaInventario, id=sugerencia_id)
+                RespuestaSugerencia.objects.create(
+                    sugerencia = sug,
+                    mensaje    = texto,
+                    es_admin   = False
+                )
+                return JsonResponse({'ok': True, 'mensaje': texto})
 
-        # Nueva sugerencia — reusar la existente si ya tiene una
-        if texto:
-            sug_existente = Sugerencia.objects.filter(nombre=nombre).first()
+            if not texto:
+                return JsonResponse({'ok': False, 'error': 'Mensaje vacío'})
+
+            sug_existente = SugerenciaInventario.objects.filter(nombre=nombre).first()
             if sug_existente:
-                # Agregar como respuesta a la conversación existente
                 RespuestaSugerencia.objects.create(
                     sugerencia = sug_existente,
                     mensaje    = texto,
                     es_admin   = False
                 )
+                return JsonResponse({'ok': True, 'sugerencia_id': sug_existente.id})
             else:
-                # Crear nueva solo si no existe ninguna
-                Sugerencia.objects.create(
-                    nombre  = nombre,
-                    texto   = texto,
-                )
-            messages.success(request, '✅ Mensaje enviado.')
-        return redirect('sugerencias')
+                nueva = SugerenciaInventario.objects.create(nombre=nombre, mensaje=texto)
+                return JsonResponse({'ok': True, 'sugerencia_id': nueva.id})
+
+        except Exception as e:
+            return JsonResponse({'ok': False, 'error': str(e)}, status=200)
 
     
-    mi_sugerencia = Sugerencia.objects.filter(
+    mi_sugerencia = SugerenciaInventario.objects.filter(
         nombre=nombre
     ).order_by('-fecha').first()
 
@@ -848,7 +855,7 @@ def sugerencias(request):
     })
 
 def panel_sugerencias(request):
-    sugerencias = Sugerencia.objects.all().order_by('-fecha')
+    sugerencias = SugerenciaInventario.objects.all().order_by('-fecha')
     return render(request, "panel_sugerencias.html", {"sugerencias": sugerencias})
 
 # ── Recuperación de contraseña ────────────────────────────────────────────────

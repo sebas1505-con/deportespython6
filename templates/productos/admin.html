@@ -466,7 +466,7 @@
               <div class="avatar">{{ sug.nombre|default:"A"|slice:":1"|upper }}</div>
               {{ sug.nombre|default:"Anónimo" }}<span class="badge-id">#{{ sug.id }}</span>
             </div>
-           <div class="sug-item-preview">{{ sug.texto|truncatechars:50 }}</div>
+           <div class="sug-item-preview">{{ sug.mensaje|truncatechars:50 }}</div>
             <div class="sug-item-fecha">{{ sug.fecha|date:"d/m/Y H:i" }}</div>
           </div>
           {% empty %}<div style="padding:30px;text-align:center;color:#bbb;font-size:14px;">No hay sugerencias.</div>{% endfor %}
@@ -482,7 +482,7 @@
           </div>
           <div class="chat-mensajes" id="msgs-{{ sug.id }}">
             <div class="label-burbuja">{{ sug.nombre|default:"Cliente" }}</div>
-            <div class="burbuja cliente">{{ sug.texto }}<span class="fecha">{{ sug.fecha|date:"d/m/Y H:i" }}</span></div>
+            <div class="burbuja cliente">{{ sug.mensaje }}<span class="fecha">{{ sug.fecha|date:"d/m/Y H:i" }}</span></div>
             {% for r in sug.respuestas.all %}
               {% if r.es_admin %}<div class="label-burbuja right">Tú (Soporte)</div><div class="burbuja admin">{{ r.mensaje }}<span class="fecha">{{ r.fecha|date:"d/m/Y H:i" }}</span></div>
               {% else %}<div class="label-burbuja">{{ sug.nombre|default:"Cliente" }}</div><div class="burbuja cliente">{{ r.mensaje }}<span class="fecha">{{ r.fecha|date:"d/m/Y H:i" }}</span></div>{% endif %}
@@ -509,14 +509,6 @@
       <div class="form-container">
         <form method="POST" action="{% url 'panel_admin' %}" enctype="multipart/form-data" class="formulario">
           {% csrf_token %}
-          <div class="campo"><label>Tipo de carga</label>
-            <select name="tipo_carga" id="tipo-carga-sel" class="campo-input" required onchange="mostrarColumnas(this.value)">
-              <option value="">Seleccionar tipo</option>
-              <option value="productos">Productos</option>
-              <option value="stock">Stock por talla</option>
-            </select>
-          </div>
-
           <div class="upload-zone" onclick="document.getElementById('file-input').click()">
             <div class="icon">&#8679;</div>
             <div id="upload-text">Haz clic o arrastra tu archivo aquí</div>
@@ -526,39 +518,21 @@
 
           <button type="submit" class="btn-submit" style="margin-top:10px;">Subir Archivo</button>
 
-          <!-- Columnas productos -->
-          <div class="carga-cols" id="cols-productos" style="display:none;">
-            <h4>📋 Columnas requeridas — Productos</h4>
+          <!-- Columnas formato unificado -->
+          <div class="carga-cols" style="display:block;margin-top:16px;">
+            <h4>📋 Columnas requeridas — Productos con tallas</h4>
             <table>
               <thead><tr><th>Columna</th><th>Tipo</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
               <tbody>
-                <tr><td><code>id</code></td><td>Número</td><td>ID único del producto</td><td>1</td></tr>
                 <tr><td><code>nombre</code></td><td>Texto</td><td>Nombre del producto</td><td>Guayos Nike</td></tr>
-                <tr><td><code>slug</code></td><td>Texto</td><td>URL amigable (sin espacios)</td><td>guayos-nike</td></tr>
                 <tr><td><code>precio</code></td><td>Número</td><td>Precio en pesos</td><td>120000</td></tr>
                 <tr><td><code>descripcion</code></td><td>Texto</td><td>Descripción del producto</td><td>Guayos de fútbol...</td></tr>
-                <tr><td><code>imagen</code></td><td>Texto</td><td>Nombre del archivo de imagen</td><td>guayos.jpg</td></tr>
                 <tr><td><code>categoria</code></td><td>Texto</td><td>HOMBRE, MUJER o MIXTO</td><td>HOMBRE</td></tr>
+                <tr><td><code>talla</code></td><td>Texto</td><td>S, M, L, XL · 6, 8, 10, 12, 14, 16, 18</td><td>M</td></tr>
+                <tr><td><code>stock</code></td><td>Número</td><td>Unidades disponibles para esa talla</td><td>25</td></tr>
               </tbody>
             </table>
-          </div>
-
-          <!-- Columnas stock -->
-          <div class="carga-cols" id="cols-stock" style="display:none;">
-            <h4>📋 Columnas requeridas — Stock por talla</h4>
-            <table>
-              <thead><tr><th>Columna</th><th>Tipo</th><th>Descripción</th><th>Ejemplo</th></tr></thead>
-              <tbody>
-                <tr><td><code>id</code></td><td>Número</td><td>ID del registro de talla</td><td>1</td></tr>
-                <tr><td><code>talla</code></td><td>Texto</td><td>S, M, L, XL o número (2,4,6,8,10,12)</td><td>M</td></tr>
-                <tr><td><code>stock</code></td><td>Número</td><td>Cantidad en inventario</td><td>25</td></tr>
-                <tr><td><code>producto_id</code></td><td>Número</td><td>ID del producto al que pertenece</td><td>3</td></tr>
-              </tbody>
-            </table>
-            <p style="margin-top:12px;font-size:12px;color:#888;">
-              <strong>Tallas válidas adulto:</strong> S · M · L · XL &nbsp;|&nbsp;
-              <strong>Tallas válidas niño:</strong> 2 · 4 · 6 · 8 · 10 · 12
-            </p>
+            <p style="margin-top:10px;font-size:12px;color:#888;">Una fila por cada combinación producto + talla. Si el producto ya existe se actualiza.</p>
           </div>
 
         </form>
@@ -609,22 +583,120 @@ function updateFileName(input) {
     document.getElementById('upload-text').textContent = 'Archivo: ' + input.files[0].name;
 }
 
-/* Carga masiva — mostrar tabla de columnas según tipo */
-function mostrarColumnas(tipo) {
-  document.getElementById('cols-productos').style.display = tipo === 'productos' ? 'block' : 'none';
-  document.getElementById('cols-stock').style.display     = tipo === 'stock'     ? 'block' : 'none';
-}
 
-/* ── Chat ── */
+/* ── Chat en vivo ── */
+var _chatAbierto = null;
+var _rendered    = {}; // { sugId: nº de respuestas ya renderizadas }
+
 function abrirChat(id) {
   document.getElementById('empty-state').style.display = 'none';
   document.querySelectorAll('.sug-item').forEach(el => el.classList.remove('active'));
   document.querySelectorAll('.chat-content').forEach(el => el.classList.remove('visible'));
   var chat = document.getElementById('chat-' + id);
   var item = document.getElementById('item-' + id);
-  if (chat) { chat.classList.add('visible'); var msgs = document.getElementById('msgs-' + id); if (msgs) setTimeout(function(){ msgs.scrollTop = msgs.scrollHeight; }, 50); }
+  if (chat) {
+    chat.classList.add('visible');
+    var msgs = document.getElementById('msgs-' + id);
+    if (msgs) {
+      setTimeout(function(){ msgs.scrollTop = msgs.scrollHeight; }, 50);
+      if (_rendered[id] === undefined) {
+        // Contar burbujas ya renderizadas menos la inicial del cliente
+        var burbujas = msgs.querySelectorAll('.burbuja');
+        _rendered[id] = Math.max(0, burbujas.length - 1);
+      }
+    }
+  }
   if (item) item.classList.add('active');
+  _chatAbierto = String(id);
 }
+
+/* Polling: mensajes nuevos en el chat abierto */
+function pollMensajes() {
+  if (!_chatAbierto) return;
+  var id = _chatAbierto;
+  fetch('/sugerencias/respuestas/' + id + '/')
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (!data.ok) return;
+    var total    = data.respuestas.length;
+    var rendered = _rendered[id] !== undefined ? _rendered[id] : 0;
+    if (total <= rendered) return;
+    var msgs  = document.getElementById('msgs-' + id);
+    if (!msgs) return;
+    var nuevas = data.respuestas.slice(rendered);
+    nuevas.forEach(function(r){
+      var cls    = r.es_admin ? 'admin' : 'cliente';
+      var label  = document.createElement('div');
+      label.className   = 'label-burbuja' + (r.es_admin ? ' right' : '');
+      label.textContent = r.es_admin ? 'Tú (Soporte)' : (data.nombre || 'Cliente');
+      var burbuja = document.createElement('div');
+      burbuja.className = 'burbuja ' + cls;
+      burbuja.innerHTML = escapeHtml(r.mensaje) + '<span class="fecha">' + r.hora + '</span>';
+      msgs.appendChild(label);
+      msgs.appendChild(burbuja);
+    });
+    _rendered[id] = total;
+    msgs.scrollTop = msgs.scrollHeight;
+  })
+  .catch(function(){});
+}
+setInterval(pollMensajes, 4000);
+
+/* Polling: nuevas conversaciones en la lista */
+function pollLista() {
+  fetch('/sugerencias/lista/')
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (!data.sugerencias) return;
+    var lista = document.querySelector('.lista-scroll');
+    if (!lista) return;
+    data.sugerencias.forEach(function(sug){
+      var existing = document.getElementById('item-' + sug.id);
+      if (existing) {
+        var prev = existing.querySelector('.sug-item-preview');
+        if (prev) prev.textContent = sug.preview;
+        return;
+      }
+      /* Nueva conversación — añadir a la lista */
+      var item = document.createElement('div');
+      item.className = 'sug-item';
+      item.id        = 'item-' + sug.id;
+      item.setAttribute('onclick', 'abrirChat("' + sug.id + '")');
+      item.innerHTML = '<div class="sug-item-nombre"><div class="avatar">'
+        + escapeHtml(sug.nombre.charAt(0).toUpperCase()) + '</div>'
+        + escapeHtml(sug.nombre) + '<span class="badge-id">#' + sug.id + '</span></div>'
+        + '<div class="sug-item-preview">' + escapeHtml(sug.preview) + '</div>'
+        + '<div class="sug-item-fecha">' + sug.fecha + '</div>';
+      lista.insertBefore(item, lista.firstChild);
+
+      /* Crear panel de chat para esa conversación */
+      var chatPanel = document.getElementById('chat-panel');
+      var cc = document.createElement('div');
+      cc.className = 'chat-content';
+      cc.id        = 'chat-' + sug.id;
+      cc.innerHTML = '<div class="chat-top">'
+        + '<div class="avatar-lg">' + escapeHtml(sug.nombre.charAt(0).toUpperCase()) + '</div>'
+        + '<div class="chat-top-info"><strong>' + escapeHtml(sug.nombre) + '</strong>'
+        + '<span>Sugerencia #' + sug.id + ' &nbsp;·&nbsp; ' + sug.fecha + '</span></div></div>'
+        + '<div class="chat-mensajes" id="msgs-' + sug.id + '">'
+        + '<div class="label-burbuja">' + escapeHtml(sug.nombre) + '</div>'
+        + '<div class="burbuja cliente">' + escapeHtml(sug.texto || '')
+        + '<span class="fecha">' + sug.fecha + '</span></div></div>'
+        + '<div class="chat-footer"><form class="chat-input-row" id="form-admin-' + sug.id + '"'
+        + ' data-url="/sugerencias/responder/' + sug.id + '/"'
+        + ' onsubmit="enviarRespuesta(event,\'' + sug.id + '\',this.getAttribute(\'data-url\'))">'
+        + '<input type="text" name="mensaje" id="input-admin-' + sug.id
+        + '" placeholder="Escribe tu respuesta..." required autocomplete="off">'
+        + '<button type="submit">Responder &#10148;</button></form></div>';
+      chatPanel.appendChild(cc);
+
+      var header = document.querySelector('.lista-header');
+      if (header) header.textContent = 'Conversaciones (' + document.querySelectorAll('.sug-item').length + ')';
+    });
+  })
+  .catch(function(){});
+}
+setInterval(pollLista, 8000);
 
 /* ══ REPORTES ══ */
 const RP_FECHAS  = JSON.parse('{{ fechas_ventas|escapejs }}');
@@ -759,6 +831,8 @@ function enviarRespuesta(e,sugId,url){
       var burbuja=document.createElement('div'); burbuja.className='burbuja admin';
       burbuja.innerHTML=escapeHtml(data.mensaje)+'<span class="fecha">'+fecha+'</span>'; msgs.appendChild(burbuja);
       msgs.scrollTop=msgs.scrollHeight; input.value='';
+      /* Evitar que el poll duplique este mensaje */
+      _rendered[sugId] = (_rendered[sugId] || 0) + 1;
       var preview=document.querySelector('#item-'+sugId+' .sug-item-preview'); if(preview) preview.textContent=texto.substring(0,50);
     }
   })
