@@ -56,6 +56,12 @@
       <span class="msg-error" id="e-telefono">Solo números, mínimo 8 dígitos.</span>
     </div>
 
+    <div id="c-cedula">
+      <label>Cédula</label>
+      <input type="text" name="cedula" placeholder="Número de cédula" inputmode="numeric">
+      <span class="msg-error" id="e-cedula">Solo números, mínimo 6 dígitos.</span>
+    </div>
+
     <div id="c-codigo">
       <label>Código administrador</label>
       <input type="text" name="codigo" placeholder="ADM-000">
@@ -102,6 +108,7 @@ document.getElementById('form-adm').addEventListener('submit', function(e) {
   var usuario   = this.usuario.value.trim();
   var correo    = this.correo.value.trim();
   var telefono  = this.telefono.value.trim();
+  var cedula    = this.cedula.value.trim();
   var codigo    = this.codigo.value.trim();
   var contrasena= this.contrasena.value;
   var confirmar = this.confirmar.value;
@@ -110,6 +117,7 @@ document.getElementById('form-adm').addEventListener('submit', function(e) {
   campo('c-usuario',   'e-usuario',   !usuario);
   campo('c-correo',    'e-correo',    !correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo));
   campo('c-telefono',  'e-telefono',  !telefono || !soloNums.test(telefono) || telefono.length < 8);
+  campo('c-cedula', 'e-cedula',!cedula || !soloNums.test(cedula) || cedula.length < 6);
   campo('c-codigo',    'e-codigo',    !codigo);
   campo('c-contrasena','e-contrasena',contrasena.length < 8);
   campo('c-confirmar', 'e-confirmar', contrasena !== confirmar);
@@ -118,6 +126,7 @@ document.getElementById('form-adm').addEventListener('submit', function(e) {
 });
 
 var telInput = document.querySelector('[name="telefono"]');
+var cedInput = document.querySelector('[name="cedula"]');
 telInput.addEventListener('keypress', function(e) {
   if (!/[0-9]/.test(e.key)) e.preventDefault();
 });
