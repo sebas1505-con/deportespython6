@@ -70,19 +70,23 @@ class Movimiento(models.Model):
         on_delete=models.SET_NULL,   # ← antes era CASCADE
         null=True, blank=True        # ← agregar esto
     )
-    talla           = models.CharField(max_length=5)
-    nombre_producto = models.CharField(max_length=100, blank=True)  # ← nuevo campo para guardar el nombre
+    talla           = models.CharField(max_length=5, blank=True, default='')
+    nombre_producto = models.CharField(max_length=100, blank=True)
     tipo_movimiento = models.CharField(
         max_length=10,
-        choices=[("entrada", "Entrada"), ("salida", "Salida")],
+        choices=[("entrada", "Entrada"), ("salida", "Salida"), ("evento", "Evento")],
         default="entrada"
     )
-    cantidad  = models.IntegerField()
+    cantidad  = models.IntegerField(default=0)
     motivo    = models.TextField(blank=True, null=True)
     proveedor = models.CharField(max_length=100, blank=True, default='')
     fecha     = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+        if self.tipo_movimiento == 'evento':
+            super().save(*args, **kwargs)
+            return
+
         if self.producto and not self.nombre_producto:
             self.nombre_producto = self.producto.nombre
 
@@ -97,7 +101,6 @@ class Movimiento(models.Model):
             talla_producto.stock -= self.cantidad
         talla_producto.save()
 
-        # Recalcular stock_total sumando todas las tallas
         if self.producto:
             total = self.producto.tallas.aggregate(
                 t=models.Sum('stock')

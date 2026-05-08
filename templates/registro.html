@@ -6,6 +6,14 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/registro.css' %}">
     <link rel="stylesheet" href="{% static 'css/alerts.css' %}">
+    <style>
+        .campo-error { border-color: #dc2626 !important; }
+        .msg-error {
+            color: #dc2626; font-size: 11px; margin-top: 3px;
+            display: none;
+        }
+        .msg-error.visible { display: block; }
+    </style>
 </head>
 <body>
 
@@ -30,37 +38,55 @@
     </div>
     {% endif %}
 
-    <form method="POST" class="login-form">
+    <form method="POST" class="login-form" id="form-registro" novalidate>
     {% csrf_token %}
 
         <div>
             <label>Nombre Completo</label>
-            <input type="text" name="first_name" placeholder="Ej: Juan Pérez" required>
+            <input type="text" name="first_name" id="first_name" placeholder="Ej: Juan Pérez" required>
+            <span class="msg-error" id="err-first_name">El nombre es obligatorio.</span>
         </div>
 
         <div>
             <label>Correo Electrónico</label>
-            <input type="email" name="email" placeholder="correo@ejemplo.com" required>
+            <input type="email" name="email" id="email" placeholder="correo@ejemplo.com" required>
+            <span class="msg-error" id="err-email">Ingresa un correo válido.</span>
         </div>
 
         <div>
             <label>Usuario</label>
-            <input type="text" name="username" placeholder="nombre_usuario" required autocomplete="off">
+            <input type="text" name="username" id="username" placeholder="nombre_usuario" required autocomplete="off">
+            <span class="msg-error" id="err-username">El usuario es obligatorio.</span>
+        </div>
+
+        <div>
+            <label>Número de Identificación</label>
+            <input type="text" name="cedula" id="cedula"
+                   inputmode="numeric" pattern="[0-9]+"
+                   placeholder="Ej: 12345678" required minlength="8">
+            <span class="msg-error" id="err-cedula">Solo números, mínimo 8 dígitos.</span>
         </div>
 
         <div>
             <label>Teléfono</label>
-            <input type="text" name="telefono" placeholder="3001234567">
+            <input type="text" name="telefono" id="telefono"
+                   inputmode="numeric" pattern="[0-9]+"
+                   placeholder="3001234567" required minlength="8">
+            <span class="msg-error" id="err-telefono">Solo números, mínimo 8 dígitos.</span>
         </div>
 
         <div>
             <label>Contraseña</label>
-            <input type="password" name="password" placeholder="Mínimo 8 caracteres" required>
+            <input type="password" name="password" id="password"
+                   placeholder="Mínimo 8 caracteres" required minlength="8">
+            <span class="msg-error" id="err-password">Mínimo 8 caracteres.</span>
         </div>
 
         <div>
             <label>Confirmar Contraseña</label>
-            <input type="password" name="confirmar_password" placeholder="Repite la contraseña" required>
+            <input type="password" name="confirmar_password" id="confirmar_password"
+                   placeholder="Repite la contraseña" required minlength="8">
+            <span class="msg-error" id="err-confirmar_password">Las contraseñas no coinciden.</span>
         </div>
 
         <button type="submit" class="btn-login">Registrarse</button>
@@ -72,6 +98,78 @@
 
     </form>
 </div>
+
+<script>
+/* Solo permitir dígitos en cedula y teléfono */
+['cedula', 'telefono'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+});
+
+function mostrarError(id, msg) {
+    var input = document.getElementById(id);
+    var span  = document.getElementById('err-' + id);
+    input.classList.add('campo-error');
+    if (msg) span.textContent = msg;
+    span.classList.add('visible');
+}
+
+function limpiarError(id) {
+    var input = document.getElementById(id);
+    var span  = document.getElementById('err-' + id);
+    input.classList.remove('campo-error');
+    span.classList.remove('visible');
+}
+
+document.getElementById('form-registro').addEventListener('submit', function(e) {
+    var ok = true;
+
+    /* Campos obligatorios simples */
+    ['first_name', 'email', 'username'].forEach(function(id) {
+        var val = document.getElementById(id).value.trim();
+        if (!val) { mostrarError(id); ok = false; }
+        else limpiarError(id);
+    });
+
+    /* Email válido */
+    var emailVal = document.getElementById('email').value.trim();
+    if (emailVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+        mostrarError('email', 'Ingresa un correo válido.');
+        ok = false;
+    }
+
+    /* Cédula: solo números, mínimo 8 */
+    var cedula = document.getElementById('cedula').value.trim();
+    if (!cedula || !/^[0-9]+$/.test(cedula) || cedula.length < 8) {
+        mostrarError('cedula', 'Solo números, mínimo 8 dígitos.');
+        ok = false;
+    } else limpiarError('cedula');
+
+    /* Teléfono: solo números, mínimo 8 */
+    var tel = document.getElementById('telefono').value.trim();
+    if (!tel || !/^[0-9]+$/.test(tel) || tel.length < 8) {
+        mostrarError('telefono', 'Solo números, mínimo 8 dígitos.');
+        ok = false;
+    } else limpiarError('telefono');
+
+    /* Contraseña mínimo 8 */
+    var pwd = document.getElementById('password').value;
+    if (pwd.length < 8) {
+        mostrarError('password', 'Mínimo 8 caracteres.');
+        ok = false;
+    } else limpiarError('password');
+
+    /* Confirmar contraseña */
+    var pwd2 = document.getElementById('confirmar_password').value;
+    if (!pwd2 || pwd2 !== pwd) {
+        mostrarError('confirmar_password', 'Las contraseñas no coinciden.');
+        ok = false;
+    } else limpiarError('confirmar_password');
+
+    if (!ok) e.preventDefault();
+});
+</script>
 
 </body>
 </html>

@@ -1,6 +1,6 @@
 from email.mime.image import MIMEImage
 from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto, DetalleVentaProductos, RespuestaSugerencia, Sugerencia as SugerenciaInventario
-from .models import Usuario, Cliente, Repartidor, Administrador, Pedido, DetalleVentaProductos
+from .models import Usuario, Cliente, Repartidor, Administrador
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
 from .forms import RegistroClienteForm, RepartidorForm
@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from django.db.models.functions import TruncDate
 from django.db.models import Sum, Count
 from datetime import date, timedelta
+import datetime as dt_mod
 from django.db.models import Count, Avg, Sum, Min
 from django.db.models.functions import TruncDate, TruncMonth
 import pandas as pd
@@ -93,6 +94,23 @@ def registro_cliente(request):
         password           = request.POST.get('password', '')
         confirmar_password = request.POST.get('confirmar_password', '')
         telefono           = request.POST.get('telefono', '').strip()
+        cedula             = request.POST.get('cedula', '').strip()
+
+        if not all([first_name, email, username, password, confirmar_password, telefono, cedula]):
+            messages.error(request, 'Todos los campos son obligatorios.')
+            return redirect('registro')
+
+        if not telefono.isdigit() or len(telefono) < 8:
+            messages.error(request, 'El teléfono debe contener solo números y mínimo 8 dígitos.')
+            return redirect('registro')
+
+        if not cedula.isdigit() or len(cedula) < 8:
+            messages.error(request, 'La cédula debe contener solo números y mínimo 8 dígitos.')
+            return redirect('registro')
+
+        if len(password) < 8:
+            messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
+            return redirect('registro')
 
         if password != confirmar_password:
             messages.error(request, 'Las contraseñas no coinciden.')
@@ -106,12 +124,17 @@ def registro_cliente(request):
             messages.error(request, 'Ese correo ya está registrado.')
             return redirect('registro')
 
+        if Usuario.objects.filter(cedula=cedula).exists():
+            messages.error(request, 'Esa cédula ya está registrada.')
+            return redirect('registro')
+
         Usuario.objects.create(
             first_name = first_name,
             email      = email,
             username   = username,
             password   = make_password(password),
             telefono   = telefono,
+            cedula     = cedula,
             rol        = 'CLIENTE',
         )
         messages.success(request, '✅ Cuenta creada. Ya puedes iniciar sesión.')
@@ -125,11 +148,13 @@ def crear_repartidor(request):
         first_name = request.POST.get('first_name', '').strip()
         email      = request.POST.get('email', '').strip()
         username   = request.POST.get('username', '').strip()
-        telefono   = request.POST.get('telefono', '').strip()
-        password   = request.POST.get('password', '')
-        confirmar  = request.POST.get('confirmar', '')
-        vehiculo   = request.POST.get('vehiculo', '').strip()
-        placa      = request.POST.get('placa', '').strip()
+        cedula       = request.POST.get('cedula', '').strip()
+        tipo_doc     = request.POST.get('tipo_documento', '').strip()
+        telefono     = request.POST.get('telefono', '').strip()
+        password     = request.POST.get('password', '')
+        confirmar    = request.POST.get('confirmar', '')
+        vehiculo     = request.POST.get('vehiculo', '').strip()
+        placa        = request.POST.get('placa', '').strip()
 
         if password != confirmar:
             messages.error(request, 'Las contraseñas no coinciden.')
@@ -148,12 +173,14 @@ def crear_repartidor(request):
             return redirect('crear_repartidor')
 
         usuario = Usuario.objects.create(
-            first_name = first_name,
-            email      = email,
-            username   = username,
-            password   = make_password(password),
-            telefono   = telefono,
-            rol        = 'REPARTIDOR',
+            first_name     = first_name,
+            email          = email,
+            username       = username,
+            cedula         = cedula or None,
+            tipo_documento = tipo_doc or None,
+            password       = make_password(password),
+            telefono       = telefono,
+            rol            = 'REPARTIDOR',
         )
 
         Repartidor.objects.create(
@@ -169,18 +196,18 @@ def crear_repartidor(request):
 
 def crear_admin(request):
     if request.method == "POST":
-        usuario_val    = request.POST.get("usuario")
-        correo         = request.POST.get("correo")
-        telefono       = request.POST.get("telefono")
-        codigo         = request.POST.get("codigo")
-        contrasena     = request.POST.get("contrasena")
-        confirmar      = request.POST.get("confirmar")
-        first_name     = request.POST.get("first_name")
-        fecha_nac      = request.POST.get("fecha_nacimiento")
-        barrio         = request.POST.get("barrio")
-        localidad      = request.POST.get("localidad")
-        tipo_documento = request.POST.get("tipo_documento")
-        cedula         = request.POST.get("cedula")
+        usuario_val    = request.POST.get("usuario", "").strip()
+        correo         = request.POST.get("correo", "").strip()
+        telefono       = request.POST.get("telefono", "").strip()
+        codigo         = request.POST.get("codigo", "").strip()
+        contrasena     = request.POST.get("contrasena", "")
+        confirmar      = request.POST.get("confirmar", "")
+        first_name     = request.POST.get("first_name", "").strip()
+        fecha_nac      = request.POST.get("fecha_nacimiento") or None
+        barrio         = request.POST.get("barrio") or None
+        localidad      = request.POST.get("localidad") or None
+        tipo_documento = request.POST.get("tipo_documento") or None
+        cedula         = request.POST.get("cedula") or None
 
         if contrasena != confirmar:
             return render(request, "crear_admin.html", {"error": "Las contraseñas no coinciden"})
@@ -314,8 +341,36 @@ def admin(request):
         return redirect("panel_admin")
 
     # ── Fechas con filtro GET ─────────────────────────────────────────────────
-    fecha_inicio = request.GET.get('fecha_inicio') or hoy.replace(day=1).strftime('%Y-%m-%d')
-    fecha_fin    = request.GET.get('fecha_fin')    or hoy.strftime('%Y-%m-%d')
+    def _dt(date_str, end_of_day=False):
+        d = dt_mod.datetime.strptime(date_str, '%Y-%m-%d')
+        return d.replace(hour=23, minute=59, second=59) if end_of_day else d
+
+    primera_venta = Venta.objects.order_by('fecha_venta').values_list('fecha_venta', flat=True).first()
+    default_inicio = primera_venta.strftime('%Y-%m-%d') if primera_venta else hoy.strftime('%Y-%m-%d')
+
+    hoy_str      = hoy.strftime('%Y-%m-%d')
+    fecha_inicio = request.GET.get('fecha_inicio') or default_inicio
+    if fecha_inicio < default_inicio:
+        fecha_inicio = default_inicio
+    if fecha_inicio > hoy_str:
+        fecha_inicio = hoy_str
+    fecha_fin    = request.GET.get('fecha_fin') or hoy_str
+    if fecha_fin > hoy_str:
+        fecha_fin = hoy_str
+    if fecha_fin < fecha_inicio:
+        fecha_fin = hoy_str
+
+    fi_aware = _dt(fecha_inicio)
+    ff_aware = _dt(fecha_fin, end_of_day=True)
+
+    # Períodos preset para el filtro de inicio
+    mes_act_ini  = hoy.replace(day=1).strftime('%Y-%m-%d')
+    mes_act_fin  = hoy.strftime('%Y-%m-%d')
+    primer_ant   = (hoy.replace(day=1) - timedelta(days=1)).replace(day=1)
+    mes_ant_ini  = primer_ant.strftime('%Y-%m-%d')
+    mes_ant_fin  = (hoy.replace(day=1) - timedelta(days=1)).strftime('%Y-%m-%d')
+    anio_ini     = hoy.replace(month=1, day=1).strftime('%Y-%m-%d')
+    anio_fin     = hoy.strftime('%Y-%m-%d')
 
     # ── Movimientos ───────────────────────────────────────────────────────────
     movimientos_qs   = Movimiento.objects.select_related('producto').prefetch_related('producto__tallas').order_by('-fecha')
@@ -326,10 +381,7 @@ def admin(request):
 
     # ── Ventas filtradas ──────────────────────────────────────────────────────
     ventas = Venta.objects.select_related('cliente__usuario').order_by('-fecha_venta')
-    if fecha_inicio:
-        ventas = ventas.filter(fecha_venta__date__gte=fecha_inicio)
-    if fecha_fin:
-        ventas = ventas.filter(fecha_venta__date__lte=fecha_fin)
+    ventas = ventas.filter(fecha_venta__gte=fi_aware, fecha_venta__lte=ff_aware)
 
     cantidad_ventas   = ventas.count()
     total_general     = ventas.aggregate(t=Sum('totalVenta'))['t'] or 0
@@ -353,10 +405,7 @@ def admin(request):
     # ── Gráfico top productos ─────────────────────────────────────────────────
     ventas_por_producto = (
         DetalleVentaProductos.objects
-        .filter(
-            venta__fecha_venta__date__gte=fecha_inicio,
-            venta__fecha_venta__date__lte=fecha_fin,
-        )
+        .filter(venta__fecha_venta__gte=fi_aware, venta__fecha_venta__lte=ff_aware)
         .values('producto__nombre')
         .annotate(total=Sum('subtotal'))
         .order_by('-total')[:10]
@@ -367,10 +416,7 @@ def admin(request):
     # ── Top productos para tabla ──────────────────────────────────────────────
     top_raw = (
         DetalleVentaProductos.objects
-        .filter(
-            venta__fecha_venta__date__gte=fecha_inicio,
-            venta__fecha_venta__date__lte=fecha_fin,
-        )
+        .filter(venta__fecha_venta__gte=fi_aware, venta__fecha_venta__lte=ff_aware)
         .values('producto__nombre')
         .annotate(total_unidades=Sum('cantidad'), total_ingresos=Sum('subtotal'))
         .order_by('-total_ingresos')[:10]
@@ -387,9 +433,9 @@ def admin(request):
     ]
 
     # ── Resumen mensual (últimos 12 meses) ────────────────────────────────────
-    desde_12 = hoy - timedelta(days=365)
+    desde_12 = dt_mod.datetime.combine(hoy - timedelta(days=365), dt_mod.time.min)
     por_mes = (
-        Venta.objects.filter(fecha_venta__date__gte=desde_12)
+        Venta.objects.filter(fecha_venta__gte=desde_12)
         .annotate(mes=TruncMonth('fecha_venta'))
         .values('mes')
         .annotate(
@@ -423,7 +469,8 @@ def admin(request):
     usuarios    = Usuario.objects.all()
     primeras_ids = SugerenciaInventario.objects.values('nombre').annotate(pid=Min('id')).values_list('pid', flat=True)
     sugerencias  = SugerenciaInventario.objects.filter(id__in=primeras_ids).prefetch_related('respuestas').order_by('-fecha')
-    productos   = Producto.objects.prefetch_related('tallas').all()
+    productos    = Producto.objects.prefetch_related('tallas').all()
+    bajo_stock   = Producto.objects.filter(stock_total__lte=5, descontinuado=False).order_by('stock_total')
 
     return render(request, 'productos/admin.html', {
         # generales
@@ -433,6 +480,7 @@ def admin(request):
         'movimientos':       movimientos_qs,
         'sugerencias':       sugerencias,
         'productos':         productos,
+        'bajo_stock':        bajo_stock,
         # métricas ventas
         'cantidad_ventas':   cantidad_ventas,
         'total_general':     total_general,
@@ -454,6 +502,16 @@ def admin(request):
         'nombres_productos': nombres_productos,
         'totales_productos': totales_productos,
         'meses_data':        meses_data,
+        # filtro de período
+        'fecha_inicio':    fecha_inicio,
+        'fecha_fin':       fecha_fin,
+        'default_inicio':  default_inicio,
+        'mes_act_ini':     mes_act_ini,
+        'mes_act_fin':     mes_act_fin,
+        'mes_ant_ini':     mes_ant_ini,
+        'mes_ant_fin':     mes_ant_fin,
+        'anio_ini':        anio_ini,
+        'anio_fin':        anio_fin,
     })
 
 def perfil_admin(request):
@@ -592,6 +650,13 @@ def perfil_usuario(request):
             usuario.localidad      = request.POST.get('localidad', '').strip() or None
             usuario.barrio         = request.POST.get('barrio', '').strip() or None
 
+            nuevo_username = request.POST.get('username', usuario.username).strip()
+            if nuevo_username and nuevo_username != usuario.username:
+                if Usuario.objects.filter(username=nuevo_username).exclude(id=usuario.id).exists():
+                    messages.error(request, 'Ese nombre de usuario ya está en uso.')
+                    return redirect('perfil')
+                usuario.username = nuevo_username
+
             fecha_nac = request.POST.get('fecha_nacimiento', '')
             if fecha_nac:
                 try:
@@ -602,7 +667,7 @@ def perfil_usuario(request):
 
             usuario.save()
             messages.success(request, '✅ Perfil actualizado correctamente.')
-            return redirect('perfil')          # ← antes: 'usuario.html'
+            return redirect('perfil')
 
         elif accion == 'password':
             pwd_actual    = request.POST.get('password_actual', '')
@@ -669,6 +734,13 @@ def perfil_repartidor(request):
             usuario.tipo_documento = request.POST.get('tipo_documento', '').strip() or None
             usuario.cedula         = request.POST.get('cedula', '').strip() or None
             usuario.localidad      = request.POST.get('localidad', '').strip() or None
+
+            nuevo_username = request.POST.get('username', usuario.username).strip()
+            if nuevo_username and nuevo_username != usuario.username:
+                if Usuario.objects.filter(username=nuevo_username).exclude(id=usuario.id).exists():
+                    messages.error(request, 'Ese nombre de usuario ya está en uso.')
+                    return redirect('perfil_repartidor')
+                usuario.username = nuevo_username
 
             fecha_nac = request.POST.get('fecha_nacimiento', '')
             if fecha_nac:
@@ -754,9 +826,34 @@ def actualizar_usuario(request):
     return render(request, 'usuarios/actualizar_usuario.html', {'form': form})
 
 def eliminar_usuario(request, id):
+    usuario_id_sesion = request.session.get('usuario_id')
+    rol = request.session.get('rol')
+
+    if not usuario_id_sesion or rol != 'ADMIN':
+        return redirect('sinacceso')
+
+    if request.method != 'POST':
+        return redirect('panel_admin')
+
     usuario = get_object_or_404(Usuario, id=id)
+
+    if usuario.id == usuario_id_sesion:
+        messages.error(request, 'No puedes eliminar tu propia cuenta.')
+        return redirect('panel_admin')
+
+    from inventario.models import Movimiento as MovimientoInv
+    nombre  = usuario.first_name or usuario.username
+    rol_usr = usuario.get_rol_display() if hasattr(usuario, 'get_rol_display') else usuario.rol
     usuario.delete()
-    return redirect('panel_admin')
+
+    MovimientoInv.objects.create(
+        tipo_movimiento = 'evento',
+        nombre_producto = f'Usuario eliminado: {nombre}',
+        motivo          = f'El administrador eliminó al usuario "{nombre}" (rol: {rol_usr}).',
+    )
+
+    messages.success(request, f'Usuario "{nombre}" eliminado correctamente.')
+    return redirect('/panel-admin/?seccion=usuarios')
 
 def pedidos_disponibles(request):
     pedidos = Pedido.objects.filter(estado__in=['disponible', 'Pendiente'] )

@@ -1,5 +1,4 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -7,125 +6,126 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Registro Administrador</title>
 <link rel="stylesheet" href="{% static 'css/crear-admin.css' %}">
-
+<style>
+  .msg-error { color:#b30000; font-size:12px; margin-top:3px; display:none; }
+  .campo-error input { border-color:#b30000 !important; }
+</style>
 </head>
 
 <body>
 
+<a href="{% url 'panel_admin' %}" class="btn-volver-home">⬅ Volver</a>
+
 <div class="login-container">
 
-```
-<div class="login-header">
+  <div class="login-header">
+    <img src="{% static 'images/logo-deporte.png' %}" alt="Logo" class="logo">
     <h2>Registro de Administrador</h2>
-    <img src="{% static 'images/logo-deporte.png' %}" alt="Logo">
-</div>
+  </div>
 
-<form class="login-form" method="POST" action="{% url 'crear_admin' %}">
+  {% if error %}
+  <div class="error" style="background:#ffdede;color:#b30000;padding:10px;border-radius:8px;text-align:center;font-size:13px;">
+    {{ error }}
+  </div>
+  {% endif %}
 
+  <form class="login-form" method="POST" action="{% url 'crear_admin' %}" novalidate id="form-adm">
     {% csrf_token %}
 
-    {% if error %}
-    <div class="error">
-        {{ error }}
+    <div id="c-nombre">
+      <label>Nombre</label>
+      <input type="text" name="first_name" placeholder="Tu nombre completo">
+      <span class="msg-error" id="e-nombre">El nombre es obligatorio.</span>
     </div>
-    {% endif %}
 
-    <label>Nombre</label>
-    <input type="text" name="first_name" placeholder="Tu nombre" required>
+    <div id="c-usuario">
+      <label>Usuario</label>
+      <input type="text" name="usuario" placeholder="Crea tu usuario" autocomplete="off">
+      <span class="msg-error" id="e-usuario">El usuario es obligatorio.</span>
+    </div>
 
-    <label>Usuario</label>
-    <input type="text" name="usuario" placeholder="Crea tu usuario" required>
+    <div id="c-correo">
+      <label>Correo</label>
+      <input type="email" name="correo" placeholder="ejemplo@correo.com">
+      <span class="msg-error" id="e-correo">Ingresa un correo válido.</span>
+    </div>
 
-    <label>Correo</label>
-    <input type="email" name="correo" placeholder="ejemplo@correo.com" required>
+    <div id="c-telefono">
+      <label>Teléfono</label>
+      <input type="text" name="telefono" placeholder="300 000 0000" inputmode="numeric">
+      <span class="msg-error" id="e-telefono">Solo números, mínimo 8 dígitos.</span>
+    </div>
 
-    <label>Teléfono</label>
-    <input type="text" name="telefono" placeholder="300 000 0000" required>
+    <div id="c-codigo">
+      <label>Código administrador</label>
+      <input type="text" name="codigo" placeholder="ADM-000">
+      <span class="msg-error" id="e-codigo">El código es obligatorio.</span>
+    </div>
 
-    <label>Código administrador</label>
-    <input type="text" name="codigo" placeholder="ADM-000" required>
+    <div id="c-contrasena">
+      <label>Contraseña</label>
+      <input type="password" name="contrasena" placeholder="Crea una contraseña">
+      <span class="msg-error" id="e-contrasena">Mínimo 8 caracteres.</span>
+    </div>
 
-    <label>Contraseña</label>
-    <input type="password" name="contrasena" placeholder="Crea una contraseña" required>
+    <div id="c-confirmar">
+      <label>Confirmar contraseña</label>
+      <input type="password" name="confirmar" placeholder="Repite la contraseña">
+      <span class="msg-error" id="e-confirmar">Las contraseñas no coinciden.</span>
+    </div>
 
-    <label>Confirmar contraseña</label>
-    <input type="password" name="confirmar" placeholder="Repite la contraseña" required>
+    <button type="submit">Registrarse</button>
 
-    <label>Fecha de nacimiento</label>
-    <input type="date" name="fecha_nacimiento">
+  </form>
 
-    <label>Tipo de Documento:</label>
-    <select name="tipo_documento" required>
-        <option value="">Seleccione</option>
-        <option value="CC">Cédula de Ciudadanía</option>
-        <option value="TI">Tarjeta de Identidad</option>
-        <option value="CE">Cédula de Extranjería</option>
-        <option value="PAS">Pasaporte</option>
-    </select>
+</div>
 
-    <label>Número de Documento:</label>
-    <input type="text" name="cedula" required>
-
-    <label>Localidad:</label>
-    <select name="localidad" id="localidad">
-        <option value="">Seleccione localidad</option>
-        <option value="Usaquen">Usaquén</option>
-        <option value="Chapinero">Chapinero</option>
-        <option value="Santa Fe">Santa Fe</option>
-        <option value="San Cristobal">San Cristóbal</option>
-        <option value="Usme">Usme</option>
-        <option value="Tunjuelito">Tunjuelito</option>
-        <option value="Bosa">Bosa</option>
-        <option value="Kennedy">Kennedy</option>
-        <option value="Fontibon">Fontibón</option>
-        <option value="Engativa">Engativá</option>
-        <option value="Suba">Suba</option>
-        <option value="Barrios Unidos">Barrios Unidos</option>
-        <option value="Teusaquillo">Teusaquillo</option>
-        <option value="Los Martires">Los Mártires</option>
-        <option value="Antonio Nariño">Antonio Nariño</option>
-        <option value="Puente Aranda">Puente Aranda</option>
-        <option value="La Candelaria">La Candelaria</option>
-        <option value="Rafael Uribe Uribe">Rafael Uribe Uribe</option>
-        <option value="Ciudad Bolivar">Ciudad Bolívar</option>
-        <option value="Sumapaz">Sumapaz</option>
-    </select>
-
-    <label>Barrio:</label>
-    <select name="barrio" id="barrio"></select>
-
-    <button type="submit">
-        Registrarse
-    </button>
 <script>
-document.getElementById("localidad").addEventListener("change", function() {
-    const localidad = this.value;
+document.getElementById('form-adm').addEventListener('submit', function(e) {
+  var ok = true;
+  var soloNums = /^[0-9]+$/;
 
-    fetch(`/api/barrios-bogota/?localidad=${localidad}`)
-        .then(response => response.json())
-        .then(data => {
-            const barrioSelect = document.getElementById("barrio");
-            barrioSelect.innerHTML = '<option value="">Seleccione barrio</option>';
+  function campo(id, errId, cond) {
+    var c   = document.getElementById(id);
+    var err = document.getElementById(errId);
+    if (cond) {
+      c.classList.add('campo-error');
+      err.style.display = 'block';
+      ok = false;
+    } else {
+      c.classList.remove('campo-error');
+      err.style.display = 'none';
+    }
+  }
 
-            data.forEach(b => {
-                const option = document.createElement("option");
-                option.value = b.nombre;
-                option.textContent = b.nombre;
-                barrioSelect.appendChild(option);
-            });
-        });
+  var nombre    = this.first_name.value.trim();
+  var usuario   = this.usuario.value.trim();
+  var correo    = this.correo.value.trim();
+  var telefono  = this.telefono.value.trim();
+  var codigo    = this.codigo.value.trim();
+  var contrasena= this.contrasena.value;
+  var confirmar = this.confirmar.value;
+
+  campo('c-nombre',    'e-nombre',    !nombre);
+  campo('c-usuario',   'e-usuario',   !usuario);
+  campo('c-correo',    'e-correo',    !correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo));
+  campo('c-telefono',  'e-telefono',  !telefono || !soloNums.test(telefono) || telefono.length < 8);
+  campo('c-codigo',    'e-codigo',    !codigo);
+  campo('c-contrasena','e-contrasena',contrasena.length < 8);
+  campo('c-confirmar', 'e-confirmar', contrasena !== confirmar);
+
+  if (!ok) e.preventDefault();
+});
+
+var telInput = document.querySelector('[name="telefono"]');
+telInput.addEventListener('keypress', function(e) {
+  if (!/[0-9]/.test(e.key)) e.preventDefault();
+});
+telInput.addEventListener('paste', function(e) {
+  var txt = (e.clipboardData || window.clipboardData).getData('text');
+  if (!/^[0-9]+$/.test(txt)) e.preventDefault();
 });
 </script>
 
-</form>
-
-<a href="{% url 'panel_admin' %}" class="btn-volver-home">
-    ⬅ Volver
-</a>
-```
-
-</div>
-
 </body>
-
 </html>

@@ -8,6 +8,9 @@
 <link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
 <link rel="stylesheet" href="{% static 'css/admin.css' %}">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://npmcdn.com/flatpickr/dist/l10n/es.js"></script>
 <style>
 .tallas-grupo-titulo {
   font-size: 12px; font-weight: 700; text-transform: uppercase;
@@ -24,6 +27,7 @@
 }
 .mov-card.entrada { border-left-color: #16a34a; }
 .mov-card.salida  { border-left-color: #d40000; }
+.mov-card.evento  { border-left-color: #6366f1; }
 .mov-card:hover   { box-shadow: 0 4px 18px rgba(0,0,0,.13); }
 .mov-card-head {
   display: flex; align-items: center; gap: 12px;
@@ -36,6 +40,7 @@
 }
 .mov-tipo-badge.entrada { background: #dcfce7; color: #15803d; }
 .mov-tipo-badge.salida  { background: #fee2e2; color: #b91c1c; }
+.mov-tipo-badge.evento  { background: #ede9fe; color: #4f46e5; }
 .mov-cant { font-size: 22px; font-weight: 800; margin-left: auto; }
 .mov-cant.entrada { color: #16a34a; }
 .mov-cant.salida  { color: #d40000; }
@@ -114,12 +119,84 @@
 
   <!-- ══ INICIO ══ -->
   <div class="section visible" id="sec-inicio">
+
+    <!-- Filtro de período -->
+    <style>
+      .periodo-bar { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:18px; }
+      .periodo-lbl { font-size:13px; font-weight:700; color:#555; margin-right:4px; }
+      .periodo-btn { padding:6px 14px; border-radius:20px; font-size:13px; font-weight:600;
+                     text-decoration:none; border:1px solid #ddd; background:#fff; color:#333; }
+      .periodo-btn.activo { background:#0d0d0d; color:#fff; border-color:#0d0d0d; }
+      .periodo-form { display:flex; align-items:center; gap:6px; margin-left:8px; }
+      .periodo-form input { padding:5px 10px; border:1px solid #ddd; border-radius:8px; font-size:13px; }
+      .periodo-form button { padding:6px 14px; background:#d40000; color:#fff; border:none;
+                             border-radius:8px; font-size:13px; font-weight:600; cursor:pointer; }
+      .flatpickr-calendar { font-family:inherit; border-radius:12px; box-shadow:0 4px 20px rgba(0,0,0,.15); }
+      .flatpickr-day.selected { background:#0d0d0d; border-color:#0d0d0d; }
+      .flatpickr-day.selected:hover { background:#333; border-color:#333; }
+      .flatpickr-day.disabled { color:#ccc !important; text-decoration:line-through; }
+      .flatpickr-months .flatpickr-month { background:#0d0d0d; border-radius:12px 12px 0 0; }
+      .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month { color:#fff !important; fill:#fff !important; }
+      .flatpickr-current-month .flatpickr-monthDropdown-months { background:#0d0d0d; color:#fff; }
+      .flatpickr-current-month input.cur-year { color:#fff; }
+    </style>
+    <div class="periodo-bar">
+      <span class="periodo-lbl">Período:</span>
+      <a href="?seccion=inicio&fecha_inicio={{ mes_act_ini }}&fecha_fin={{ mes_act_fin }}"
+         class="periodo-btn {% if fecha_inicio == mes_act_ini and fecha_fin == mes_act_fin %}activo{% endif %}">Este mes</a>
+      <a href="?seccion=inicio&fecha_inicio={{ mes_ant_ini }}&fecha_fin={{ mes_ant_fin }}"
+         class="periodo-btn {% if fecha_inicio == mes_ant_ini and fecha_fin == mes_ant_fin %}activo{% endif %}">Mes anterior</a>
+      <a href="?seccion=inicio&fecha_inicio={{ anio_ini }}&fecha_fin={{ anio_fin }}"
+         class="periodo-btn {% if fecha_inicio == anio_ini and fecha_fin == anio_fin %}activo{% endif %}">Este año</a>
+      <a href="?seccion=inicio"
+         class="periodo-btn {% if fecha_inicio == default_inicio %}activo{% endif %}">Todo</a>
+      <form method="GET" class="periodo-form" onsubmit="return validarFechasFiltro(this)">
+        <input type="hidden" name="seccion" value="inicio">
+        <input type="text" id="fp-inicio" name="fecha_inicio" value="{{ fecha_inicio }}" placeholder="Desde" readonly style="width:110px;cursor:pointer;">
+        <span style="color:#aaa;font-size:13px;">→</span>
+        <input type="text" id="fp-fin" name="fecha_fin" value="{{ fecha_fin }}" placeholder="Hasta" readonly style="width:110px;cursor:pointer;">
+        <button type="submit">Filtrar</button>
+      </form>
+    </div>
+
     <div class="stats">
       <div class="stat-box"><h3>Ventas totales</h3><p>{{ cantidad_ventas }}</p></div>
       <div class="stat-box"><h3>Total vendido</h3><p>${{ total_general|floatformat:0 }}</p></div>
       <div class="stat-box"><h3>Pedidos recientes</h3><p>{{ ultimos_pedidos|length }}</p></div>
       <div class="stat-box"><h3>Usuarios</h3><p>{{ usuarios|length }}</p></div>
     </div>
+    {% if bajo_stock %}
+    <div style="background:#fff8e1;border:1px solid #f59e0b;border-left:5px solid #f59e0b;border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:22px;">⚠️</span>
+          <strong style="font-size:15px;color:#92400e;">Alerta de bajo stock — {{ bajo_stock|length }} producto{{ bajo_stock|length|pluralize }} con 5 unidades o menos</strong>
+        </div>
+        <button onclick="show('movimientos', document.querySelector('.nav-item[onclick*=movimientos]'))"
+          style="background:#f59e0b;color:#fff;border:none;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;">
+          Actualizar Stock →
+        </button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;">
+        {% for p in bajo_stock %}
+        <div style="background:#fff;border:1px solid #fcd34d;border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:10px;min-width:200px;">
+          {% if p.imagen %}
+          <img src="{{ p.imagen.url }}" style="width:36px;height:36px;border-radius:6px;object-fit:cover;">
+          {% endif %}
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#111;">{{ p.nombre }}</div>
+            {% if p.stock_total == 0 %}
+            <div style="font-size:12px;font-weight:600;color:#dc2626;">Sin stock</div>
+            {% else %}
+            <div style="font-size:12px;font-weight:600;color:#d97706;">{{ p.stock_total }} ud{{ p.stock_total|pluralize }}</div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
     <div class="card-section">
       <h2>Últimos Pedidos</h2>
       <table class="tabla-admin">
@@ -161,7 +238,7 @@
           {% csrf_token %}
           <div class="form-row">
             <div class="campo"><label>Nombre del Producto</label><input type="text" name="nombre" class="campo-input" placeholder="Ej: Guayos Nike" required></div>
-            <div class="campo"><label>Precio</label><input type="number" name="precio" class="campo-input" placeholder="Ej: 120000" required></div>
+            <div class="campo"><label>Precio</label><input type="number" name="precio" class="campo-input" placeholder="Ej: 120000" min="1" required></div>
           </div>
           <div class="campo"><label>Descripción</label><textarea name="descripcion" class="campo-input" rows="3" placeholder="Descripción del producto..."></textarea></div>
           <div class="form-row">
@@ -320,7 +397,8 @@
   <!-- ══ MOVIMIENTOS ══ -->
   <div class="section" id="sec-movimientos">
     <div class="card-section">
-      <h2>Registrar Movimiento</h2>
+      <h2>Actualizar Stock — Registrar Movimiento</h2>
+      <p style="color:#888;font-size:13px;margin-bottom:16px;">Usa <strong>Entrada</strong> para agregar unidades al inventario y <strong>Salida</strong> para descontarlas.</p>
       {% if messages %}{% for message in messages %}<p class="mensaje {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
       <div class="form-container">
         <form method="POST" action="{% url 'movimiento_nuevo' %}" class="formulario">
@@ -381,21 +459,38 @@
       </div>
       <div id="lista-movimientos">
         {% for m in movimientos %}
-        <div class="mov-card {{ m.tipo_movimiento }}" data-tipo="{{ m.tipo_movimiento }}" data-busq="{{ m.producto.nombre|lower }} {{ m.talla|lower }} {{ m.motivo|lower }} {{ m.proveedor|lower }}">
+        <div class="mov-card {{ m.tipo_movimiento }}" data-tipo="{{ m.tipo_movimiento }}" data-busq="{{ m.nombre_producto|lower }} {{ m.talla|lower }} {{ m.motivo|lower }} {{ m.proveedor|lower }}">
           <div class="mov-card-head">
             <span class="mov-tipo-badge {{ m.tipo_movimiento }}">
-              {% if m.tipo_movimiento == 'entrada' %}↑ Entrada{% else %}↓ Salida{% endif %}
+              {% if m.tipo_movimiento == 'entrada' %}↑ Entrada
+              {% elif m.tipo_movimiento == 'salida' %}↓ Salida
+              {% else %}⚙ Evento
+              {% endif %}
             </span>
             <div>
               <div style="font-size:15px;font-weight:700;color:#111;">
-                {{ m.producto.nombre|default:m.nombre_producto|default:"Producto eliminado" }}
+                {% if m.tipo_movimiento == 'evento' %}
+                  {{ m.nombre_producto }}
+                {% else %}
+                  {{ m.producto.nombre|default:m.nombre_producto|default:"Producto eliminado" }}
+                {% endif %}
               </div>
               <div style="font-size:12px;color:#aaa;">{{ m.fecha|date:"d/m/Y H:i" }} &nbsp;·&nbsp; #{{ m.id }}</div>
             </div>
+            {% if m.tipo_movimiento != 'evento' %}
             <div class="mov-cant {{ m.tipo_movimiento }}">
               {% if m.tipo_movimiento == 'entrada' %}+{% else %}−{% endif %}{{ m.cantidad }} uds
             </div>
+            {% endif %}
           </div>
+          {% if m.tipo_movimiento == 'evento' %}
+          <div class="mov-card-body">
+            <div class="mov-dato" style="min-width:100%;">
+              <p class="mov-dato-lbl">Descripción</p>
+              <p class="mov-dato-val" style="color:#555;">{{ m.motivo|default:"—" }}</p>
+            </div>
+          </div>
+          {% else %}
           <div class="mov-card-body">
             <div class="mov-dato">
               <p class="mov-dato-lbl">Talla</p>
@@ -416,6 +511,7 @@
               <p class="mov-dato-val" style="color:#555;">{{ m.motivo|default:"—" }}</p>
             </div>
           </div>
+          {% endif %}
         </div>
         {% empty %}
         <div style="text-align:center;color:#aaa;padding:40px;font-style:italic;background:#fff;border-radius:14px;">
@@ -430,6 +526,7 @@
   <!-- ══ USUARIOS ══ -->
   <div class="section" id="sec-usuarios">
     <div class="card-section">
+      {% if messages %}{% for message in messages %}<p class="mensaje {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
         <h2 style="margin:0;">Gestión de Usuarios</h2>
         <a href="{% url 'crear_admin' %}" class="btn-dark">+ Crear Admin</a>
@@ -543,6 +640,58 @@
 </main>
 
 <script>
+var _fpInicio, _fpFin;
+document.addEventListener('DOMContentLoaded', function(){
+  var minDate = '{{ default_inicio }}';
+  var maxDate = '{{ mes_act_fin }}';
+
+  _fpInicio = flatpickr('#fp-inicio', {
+    locale: 'es',
+    dateFormat: 'Y-m-d',
+    minDate: minDate,
+    maxDate: maxDate,
+    defaultDate: '{{ fecha_inicio }}',
+    disableMobile: true,
+    onChange: function(sel, dateStr){
+      if(_fpFin && dateStr > _fpFin.selectedDates[0]){
+        _fpFin.setDate(dateStr);
+      }
+      if(_fpFin) _fpFin.set('minDate', dateStr);
+    }
+  });
+
+  _fpFin = flatpickr('#fp-fin', {
+    locale: 'es',
+    dateFormat: 'Y-m-d',
+    minDate: '{{ fecha_inicio }}',
+    maxDate: maxDate,
+    defaultDate: '{{ fecha_fin }}',
+    disableMobile: true,
+    onReady: function(){
+      this.set('minDate', _fpInicio ? (_fpInicio.selectedDates[0] || minDate) : minDate);
+    }
+  });
+});
+
+function validarFechasFiltro(form) {
+  var hoy = '{{ mes_act_fin }}';
+  var ini = form.querySelector('[name=fecha_inicio]').value;
+  var fin = form.querySelector('[name=fecha_fin]').value;
+  if (!ini || !fin) {
+    alert('Selecciona ambas fechas antes de filtrar.');
+    return false;
+  }
+  if (fin > hoy) {
+    alert('La fecha de fin no puede ser posterior al día de hoy (' + hoy + ').');
+    return false;
+  }
+  if (fin < ini) {
+    alert('La fecha de fin no puede ser anterior a la fecha de inicio.');
+    return false;
+  }
+  return true;
+}
+
 /* ── Navegación — guarda sección en URL para no perderla ── */
 function show(id, el) {
   document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
@@ -557,9 +706,10 @@ function show(id, el) {
 (function(){
   var params  = new URLSearchParams(window.location.search);
   var secUrl  = params.get('seccion');
-  var secSS   = sessionStorage.getItem('adminSec');
   var chatP   = params.get('chat');
-  var target  = secUrl || secSS || 'inicio';
+  /* Si no hay parámetro en la URL (carga limpia / login), arrancar siempre en inicio */
+  var secSS   = secUrl ? sessionStorage.getItem('adminSec') : null;
+  var target  = secUrl || secSS || 'productos';
 
   var elNav = document.querySelector('.nav-item[onclick*="show(\'' + target + '\'"]');
   show(target, elNav);

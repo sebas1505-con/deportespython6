@@ -230,13 +230,6 @@ def panel_sugerencias_chat(request):
     sugerencias = Sugerencia.objects.all().order_by('-fecha')
     return render(request, 'panel_sugerencias.html', {'sugerencias': sugerencias})
 
-def producto_eliminar(request, id):
-    producto = get_object_or_404(Producto, id=id)
-    producto.delete()
-    messages.success(request, "Producto eliminado correctamente")
-    return redirect('productos')  # <- usa el name de la URL de productos
-
-
 # ── Inventario y movimientos ──────────────────────────────────────────────────
 
 def inventario(request):
