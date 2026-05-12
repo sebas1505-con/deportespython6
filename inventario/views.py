@@ -490,8 +490,11 @@ def formulario_compra(request):
     total_venta    = sum(item['precio'] * item['cantidad'] for item in carrito.values())
 
     usuario_id = request.session.get('usuario_id')
-    usuario    = Usuario.objects.get(id=usuario_id) if usuario_id else None
-    cliente    = Cliente.objects.get(usuario=usuario) if usuario else None
+    usuario = Usuario.objects.filter(id=usuario_id).first() if usuario_id else None
+    cliente = Cliente.objects.filter(usuario=usuario).first() if usuario else None
+
+    if usuario and not cliente:
+        cliente = Cliente.objects.create(usuario=usuario)
 
     if request.method == 'POST':
         form = CompraForm(request.POST)

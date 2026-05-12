@@ -238,7 +238,7 @@
           {% csrf_token %}
           <div class="form-row">
             <div class="campo"><label>Nombre del Producto</label><input type="text" name="nombre" class="campo-input" placeholder="Ej: Guayos Nike" required></div>
-            <div class="campo"><label>Precio</label><input type="number" name="precio" class="campo-input" placeholder="Ej: 120000" min="1" required></div>
+            <div class="campo"><label>Precio</label><input type="number" name="precio" class="campo-input" placeholder="Ej: 120000" min="1" step="1" required></div>
           </div>
           <div class="campo"><label>Descripción</label><textarea name="descripcion" class="campo-input" rows="3" placeholder="Descripción del producto..."></textarea></div>
           <div class="form-row">
@@ -255,22 +255,22 @@
           <hr class="sep">
           <span class="tallas-grupo-titulo adulto">Tallas Adulto</span>
           <div class="form-row-4">
-            <div class="campo"><label>S</label><input type="number" name="stock_s" class="campo-input" min="0" value="0"></div>
-            <div class="campo"><label>M</label><input type="number" name="stock_m" class="campo-input" min="0" value="0"></div>
-            <div class="campo"><label>L</label><input type="number" name="stock_l" class="campo-input" min="0" value="0"></div>
-            <div class="campo"><label>XL</label><input type="number" name="stock_xl" class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>S</label><input type="number" name="stock_s" class="campo-input" min="0" step="1" value="0"></div>
+            <div class="campo"><label>M</label><input type="number" name="stock_m" class="campo-input" min="0" step="1" value="0"></div>
+            <div class="campo"><label>L</label><input type="number" name="stock_l" class="campo-input" min="0" step="1" value="0"></div>
+            <div class="campo"><label>XL</label><input type="number" name="stock_xl" class="campo-input" min="0" step="1" value="0"></div>
           </div>
           <span class="tallas-grupo-titulo nino">Tallas Pequeñas</span>
             <div class="form-row-4">
-            <div class="campo"><label>Talla 6</label><input type="number" name="stock_6"  class="campo-input" min="0" value="0"></div>
-            <div class="campo"><label>Talla 8</label><input type="number" name="stock_8"  class="campo-input" min="0" value="0"></div>
-            <div class="campo"><label>Talla 10</label><input type="number" name="stock_10" class="campo-input" min="0" value="0"></div>
-            <div class="campo"><label>Talla 12</label><input type="number" name="stock_12" class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>Talla 6</label><input type="number" name="stock_6"  class="campo-input" min="0" step="1" value="0"></div>
+            <div class="campo"><label>Talla 8</label><input type="number" name="stock_8"  class="campo-input" min="0" step="1" value="0"></div>
+            <div class="campo"><label>Talla 10</label><input type="number" name="stock_10" class="campo-input" min="0" step="1" value="0"></div>
+            <div class="campo"><label>Talla 12</label><input type="number" name="stock_12" class="campo-input" min="0" step="1" value="0"></div>
           </div>
             <div class="form-row-4">
-            <div class="campo"><label>Talla 14</label><input type="number" name="stock_14" class="campo-input" min="0" value="0"></div>
-            <div class="campo"><label>Talla 16</label><input type="number" name="stock_16" class="campo-input" min="0" value="0"></div>
-            <div class="campo"><label>Talla 18</label><input type="number" name="stock_18" class="campo-input" min="0" value="0"></div>
+            <div class="campo"><label>Talla 14</label><input type="number" name="stock_14" class="campo-input" min="0" step="1" value="0"></div>
+            <div class="campo"><label>Talla 16</label><input type="number" name="stock_16" class="campo-input" min="0" step="1" value="0"></div>
+            <div class="campo"><label>Talla 18</label><input type="number" name="stock_18" class="campo-input" min="0" step="1" value="0"></div>
             <div class="campo"></div>
           </div>
           <button type="submit" class="btn-submit">Guardar Producto</button>
@@ -990,6 +990,22 @@ function enviarRespuesta(e,sugId,url){
   .finally(function(){ form.style.opacity=''; form.style.pointerEvents=''; });
 }
 function escapeHtml(str){ return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+
+document.querySelectorAll('input[type="number"]').forEach(function(input) {
+
+    input.addEventListener('input', function () {
+
+        if (this.value < 0) {
+            this.value = 0;
+        }
+
+        // evitar decimales
+        this.value = this.value.replace('.', '');
+
+    });
+
+});
 </script>
 </body>
 </html>
