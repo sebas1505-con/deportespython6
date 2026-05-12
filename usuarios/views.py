@@ -6,6 +6,7 @@ from django.contrib.auth.hashers import make_password, check_password
 from .forms import RegistroClienteForm, RepartidorForm
 from .barrios import BARRIOS_BOGOTA
 from django.core.mail import EmailMessage
+import re
 from django.contrib import messages
 from django.http import HttpResponse
 from django.db.models import Sum, F
@@ -94,18 +95,27 @@ def registro_cliente(request):
         password           = request.POST.get('password', '')
         confirmar_password = request.POST.get('confirmar_password', '')
         telefono           = request.POST.get('telefono', '').strip()
+        tipo_documento     = request.POST.get('tipo_documento', '').strip()
         cedula             = request.POST.get('cedula', '').strip()
 
-        if not all([first_name, email, username, password, confirmar_password, telefono, cedula]):
+        if not all([first_name, email, username, password, confirmar_password, telefono, tipo_documento, cedula]):
             messages.error(request, 'Todos los campos son obligatorios.')
             return redirect('registro')
 
-        if not telefono.isdigit() or len(telefono) < 8:
-            messages.error(request, 'El teléfono debe contener solo números y mínimo 8 dígitos.')
+        if not telefono.isdigit() or len(telefono) < 10:
+            messages.error(request, 'El teléfono debe contener solo números y mínimo 10 dígitos.')
             return redirect('registro')
 
         if not cedula.isdigit() or len(cedula) < 8:
             messages.error(request, 'La cédula debe contener solo números y mínimo 8 dígitos.')
+            return redirect('registro')
+
+        if tipo_documento not in ['CC', 'TI', 'CE', 'PAS']:
+            messages.error(request, 'Selecciona un tipo de identificación válido.')
+            return redirect('registro')
+
+        if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$', first_name):
+            messages.error(request, 'El nombre completo solo puede contener letras y espacios.')
             return redirect('registro')
 
         if len(password) < 8:
@@ -129,13 +139,14 @@ def registro_cliente(request):
             return redirect('registro')
 
         Usuario.objects.create(
-            first_name = first_name,
-            email      = email,
-            username   = username,
-            password   = make_password(password),
-            telefono   = telefono,
-            cedula     = cedula,
-            rol        = 'CLIENTE',
+            first_name     = first_name,
+            email          = email,
+            username       = username,
+            password       = make_password(password),
+            telefono       = telefono,
+            tipo_documento = tipo_documento,
+            cedula         = cedula,
+            rol            = 'CLIENTE',
         )
         messages.success(request, '✅ Cuenta creada. Ya puedes iniciar sesión.')
         return redirect('login')
@@ -162,6 +173,22 @@ def crear_repartidor(request):
 
         if len(password) < 8:
             messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
+            return redirect('crear_repartidor')
+
+        if not telefono.isdigit() or len(telefono) < 10:
+            messages.error(request, 'El teléfono debe contener solo números y mínimo 10 dígitos.')
+            return redirect('crear_repartidor')
+
+        if tipo_doc not in ['CC', 'TI', 'CE', 'PAS']:
+            messages.error(request, 'Selecciona un tipo de identificación válido.')
+            return redirect('crear_repartidor')
+
+        if not re.match(r'^[A-Za-z0-9]{1,6}$', placa):
+            messages.error(request, 'La placa debe tener máximo 6 caracteres alfanuméricos.')
+            return redirect('crear_repartidor')
+
+        if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$', first_name):
+            messages.error(request, 'El nombre completo solo puede contener letras y espacios.')
             return redirect('crear_repartidor')
 
         if Usuario.objects.filter(username=username).exists():
@@ -211,8 +238,12 @@ def crear_admin(request):
 
         if contrasena != confirmar:
             return render(request, "crear_admin.html", {"error": "Las contraseñas no coinciden"})
+        if not telefono.isdigit() or len(telefono) < 10:
+            return render(request, "crear_admin.html", {"error": "El teléfono debe contener solo números y mínimo 10 dígitos"})
         if codigo not in ["ADM-123", "ADM-456"]:
             return render(request, "crear_admin.html", {"error": "Código incorrecto"})
+        if tipo_documento not in ["CC", "TI", "CE", "PAS"]:
+            return render(request, "crear_admin.html", {"error": "Selecciona un tipo de identificación válido"})
         if Usuario.objects.filter(username=usuario_val).exists():
             return render(request, "crear_admin.html", {"error": "El usuario ya existe"})
         if Usuario.objects.filter(cedula=cedula).exists():

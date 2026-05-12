@@ -38,6 +38,24 @@
       <span class="msg-error" id="e-nombre">El nombre es obligatorio.</span>
     </div>
 
+    <div id="c-tipo-doc">
+      <label>Tipo de Identificación</label>
+      <select name="tipo_documento">
+        <option value="">Seleccione</option>
+        <option value="CC">Cédula de ciudadanía</option>
+        <option value="TI">Tarjeta de identidad</option>
+        <option value="CE">Cédula de extranjería</option>
+        <option value="PAS">Pasaporte</option>
+      </select>
+      <span class="msg-error" id="e-tipo-doc">Selecciona un tipo de identificación.</span>
+    </div>
+
+    <div id="c-cedula">
+      <label>Número de Identificación</label>
+      <input type="text" name="cedula" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+">
+      <span class="msg-error" id="e-cedula">La cédula debe contener solo números.</span>
+    </div>
+
     <div id="c-usuario">
       <label>Usuario</label>
       <input type="text" name="usuario" placeholder="Crea tu usuario" autocomplete="off">
@@ -52,8 +70,8 @@
 
     <div id="c-telefono">
       <label>Teléfono</label>
-      <input type="text" name="telefono" placeholder="300 000 0000" inputmode="numeric">
-      <span class="msg-error" id="e-telefono">Solo números, mínimo 8 dígitos.</span>
+      <input type="text" name="telefono" placeholder="300 000 0000" inputmode="numeric" pattern="[0-9]{10,}" minlength="10">
+      <span class="msg-error" id="e-telefono">Solo números, mínimo 10 dígitos.</span>
     </div>
 
     <div id="c-codigo">
@@ -98,18 +116,22 @@ document.getElementById('form-adm').addEventListener('submit', function(e) {
     }
   }
 
-  var nombre    = this.first_name.value.trim();
-  var usuario   = this.usuario.value.trim();
-  var correo    = this.correo.value.trim();
-  var telefono  = this.telefono.value.trim();
-  var codigo    = this.codigo.value.trim();
-  var contrasena= this.contrasena.value;
-  var confirmar = this.confirmar.value;
+  var nombre        = this.first_name.value.trim();
+  var tipo_documento = this.tipo_documento.value.trim();
+  var cedula        = this.cedula.value.trim();
+  var usuario       = this.usuario.value.trim();
+  var correo        = this.correo.value.trim();
+  var telefono      = this.telefono.value.trim();
+  var codigo        = this.codigo.value.trim();
+  var contrasena    = this.contrasena.value;
+  var confirmar     = this.confirmar.value;
 
   campo('c-nombre',    'e-nombre',    !nombre);
+  campo('c-tipo-doc',  'e-tipo-doc',  !tipo_documento);
+  campo('c-cedula',    'e-cedula',    !cedula || !soloNums.test(cedula));
   campo('c-usuario',   'e-usuario',   !usuario);
   campo('c-correo',    'e-correo',    !correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo));
-  campo('c-telefono',  'e-telefono',  !telefono || !soloNums.test(telefono) || telefono.length < 8);
+  campo('c-telefono',  'e-telefono',  !telefono || !soloNums.test(telefono) || telefono.length < 10);
   campo('c-codigo',    'e-codigo',    !codigo);
   campo('c-contrasena','e-contrasena',contrasena.length < 8);
   campo('c-confirmar', 'e-confirmar', contrasena !== confirmar);
@@ -122,6 +144,15 @@ telInput.addEventListener('keypress', function(e) {
   if (!/[0-9]/.test(e.key)) e.preventDefault();
 });
 telInput.addEventListener('paste', function(e) {
+  var txt = (e.clipboardData || window.clipboardData).getData('text');
+  if (!/^[0-9]+$/.test(txt)) e.preventDefault();
+});
+
+var cedulaInput = document.querySelector('[name="cedula"]');
+cedulaInput.addEventListener('keypress', function(e) {
+  if (!/[0-9]/.test(e.key)) e.preventDefault();
+});
+cedulaInput.addEventListener('paste', function(e) {
   var txt = (e.clipboardData || window.clipboardData).getData('text');
   if (!/^[0-9]+$/.test(txt)) e.preventDefault();
 });

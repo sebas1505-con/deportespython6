@@ -44,7 +44,27 @@
         <div>
             <label>Nombre Completo</label>
             <input type="text" name="first_name" id="first_name" placeholder="Ej: Juan Pérez" required>
-            <span class="msg-error" id="err-first_name">El nombre es obligatorio.</span>
+            <span class="msg-error" id="err-first_name">El nombre solo puede contener letras y espacios.</span>
+        </div>
+
+        <div>
+            <label>Tipo de Identificación</label>
+            <select name="tipo_documento" id="tipo_documento" required>
+                <option value="">Seleccione</option>
+                <option value="CC">Cédula de ciudadanía</option>
+                <option value="TI">Tarjeta de identidad</option>
+                <option value="CE">Cédula de extranjería</option>
+                <option value="PAS">Pasaporte</option>
+            </select>
+            <span class="msg-error" id="err-tipo_documento">Selecciona un tipo de identificación.</span>
+        </div>
+
+        <div>
+            <label>Número de Identificación</label>
+            <input type="text" name="cedula" id="cedula"
+                   inputmode="numeric" pattern="[0-9]+"
+                   placeholder="Ej: 12345678" required minlength="8">
+            <span class="msg-error" id="err-cedula">Solo números, mínimo 8 dígitos.</span>
         </div>
 
         <div>
@@ -60,19 +80,11 @@
         </div>
 
         <div>
-            <label>Número de Identificación</label>
-            <input type="text" name="cedula" id="cedula"
-                   inputmode="numeric" pattern="[0-9]+"
-                   placeholder="Ej: 12345678" required minlength="8">
-            <span class="msg-error" id="err-cedula">Solo números, mínimo 8 dígitos.</span>
-        </div>
-
-        <div>
             <label>Teléfono</label>
             <input type="text" name="telefono" id="telefono"
-                   inputmode="numeric" pattern="[0-9]+"
-                   placeholder="3001234567" required minlength="8">
-            <span class="msg-error" id="err-telefono">Solo números, mínimo 8 dígitos.</span>
+                   inputmode="numeric" pattern="[0-9]{10,}"
+                   placeholder="3001234567" required minlength="10">
+            <span class="msg-error" id="err-telefono">Solo números, mínimo 10 dígitos.</span>
         </div>
 
         <div>
@@ -100,7 +112,10 @@
 </div>
 
 <script>
-/* Solo permitir dígitos en cedula y teléfono */
+/* Solo permitir letras y espacios en el nombre completo y dígitos en cédula y teléfono */
+document.getElementById('first_name').addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '');
+});
 ['cedula', 'telefono'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
@@ -126,11 +141,18 @@ document.getElementById('form-registro').addEventListener('submit', function(e) 
     var ok = true;
 
     /* Campos obligatorios simples */
-    ['first_name', 'email', 'username'].forEach(function(id) {
+    ['first_name', 'tipo_documento', 'email', 'username'].forEach(function(id) {
         var val = document.getElementById(id).value.trim();
         if (!val) { mostrarError(id); ok = false; }
         else limpiarError(id);
     });
+
+    /* Nombre completo solo letras y espacios */
+    var nameVal = document.getElementById('first_name').value.trim();
+    if (nameVal && !/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/.test(nameVal)) {
+        mostrarError('first_name', 'El nombre solo puede contener letras y espacios.');
+        ok = false;
+    }
 
     /* Email válido */
     var emailVal = document.getElementById('email').value.trim();
@@ -146,10 +168,10 @@ document.getElementById('form-registro').addEventListener('submit', function(e) 
         ok = false;
     } else limpiarError('cedula');
 
-    /* Teléfono: solo números, mínimo 8 */
+    /* Teléfono: solo números, mínimo 10 */
     var tel = document.getElementById('telefono').value.trim();
-    if (!tel || !/^[0-9]+$/.test(tel) || tel.length < 8) {
-        mostrarError('telefono', 'Solo números, mínimo 8 dígitos.');
+    if (!tel || !/^[0-9]+$/.test(tel) || tel.length < 10) {
+        mostrarError('telefono', 'Solo números, mínimo 10 dígitos.');
         ok = false;
     } else limpiarError('telefono');
 

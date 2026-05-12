@@ -32,7 +32,23 @@
 
         <div>
             <label>Nombre Completo</label>
-            <input type="text" name="first_name" placeholder="Ej: Juan Pérez" required>
+            <input type="text" name="first_name" placeholder="Ej: Juan Pérez" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+">
+        </div>
+
+        <div>
+            <label>Tipo de Identificación</label>
+            <select name="tipo_documento" required>
+                <option value="">Seleccione</option>
+                <option value="CC">Cédula de ciudadanía</option>
+                <option value="TI">Tarjeta de identidad</option>
+                <option value="CE">Cédula de extranjería</option>
+                <option value="PAS">Pasaporte</option>
+            </select>
+        </div>
+
+        <div>
+            <label>Número de Identificación</label>
+            <input type="text" name="cedula" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+" required>
         </div>
 
         <div>
@@ -47,7 +63,7 @@
 
         <div>
             <label>Teléfono</label>
-            <input type="text" name="telefono" placeholder="3001234567" required>
+            <input type="text" name="telefono" placeholder="3001234567" inputmode="numeric" pattern="[0-9]{10,}" minlength="10" required>
         </div>
 
         <div>
@@ -73,7 +89,8 @@
 
         <div>
             <label>Número de Placa</label>
-            <input type="text" name="placa" placeholder="Ej: ABC123" required>
+            <input type="text" name="placa" placeholder="Ej: ABC123" required maxlength="6" pattern="[A-Za-z0-9]{1,6}">
+            <small style="font-size:12px;color:#666;">Máximo 6 caracteres, solo letras y números.</small>
         </div>
 
         <button type="submit" class="btn-login">Registrarse como Repartidor</button>
