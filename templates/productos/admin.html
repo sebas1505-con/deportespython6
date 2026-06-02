@@ -25,9 +25,12 @@
   box-shadow: 0 2px 10px rgba(0,0,0,.08); margin-bottom: 16px;
   overflow: hidden; border-left: 5px solid transparent; transition: .15s;
 }
-.mov-card.entrada { border-left-color: #16a34a; }
-.mov-card.salida  { border-left-color: #d40000; }
-.mov-card.evento  { border-left-color: #6366f1; }
+.mov-card.entrada          { border-left-color: #16a34a; }
+.mov-card.salida           { border-left-color: #d40000; }
+.mov-card.evento           { border-left-color: #6366f1; }
+.mov-card.evento-aprobado  { border-left-color: #059669; }
+.mov-card.evento-rechazado { border-left-color: #f59e0b; }
+.mov-card.evento-eliminado { border-left-color: #dc2626; }
 .mov-card:hover   { box-shadow: 0 4px 18px rgba(0,0,0,.13); }
 .mov-card-head {
   display: flex; align-items: center; gap: 12px;
@@ -38,9 +41,12 @@
   display: flex; align-items: center; gap: 6px;
   padding: 5px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;
 }
-.mov-tipo-badge.entrada { background: #dcfce7; color: #15803d; }
-.mov-tipo-badge.salida  { background: #fee2e2; color: #b91c1c; }
-.mov-tipo-badge.evento  { background: #ede9fe; color: #4f46e5; }
+.mov-tipo-badge.entrada          { background: #dcfce7; color: #15803d; }
+.mov-tipo-badge.salida           { background: #fee2e2; color: #b91c1c; }
+.mov-tipo-badge.evento           { background: #ede9fe; color: #4f46e5; }
+.mov-tipo-badge.evento-aprobado  { background: #d1fae5; color: #065f46; }
+.mov-tipo-badge.evento-rechazado { background: #fef3c7; color: #92400e; }
+.mov-tipo-badge.evento-eliminado { background: #fee2e2; color: #991b1b; }
 .mov-cant { font-size: 22px; font-weight: 800; margin-left: auto; }
 .mov-cant.entrada { color: #16a34a; }
 .mov-cant.salida  { color: #d40000; }
@@ -462,14 +468,29 @@
       </div>
       <div id="lista-movimientos">
         {% for m in movimientos %}
+        {% if m.tipo_movimiento == 'evento' and 'aprobado' in m.nombre_producto|lower %}
+        <div class="mov-card evento-aprobado" data-tipo="evento" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
+          <div class="mov-card-head">
+            <span class="mov-tipo-badge evento-aprobado">✓ Aprobado</span>
+        {% elif m.tipo_movimiento == 'evento' and 'rechazado' in m.nombre_producto|lower %}
+        <div class="mov-card evento-rechazado" data-tipo="evento" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
+          <div class="mov-card-head">
+            <span class="mov-tipo-badge evento-rechazado">✕ Rechazado</span>
+        {% elif m.tipo_movimiento == 'evento' and 'eliminado' in m.nombre_producto|lower %}
+        <div class="mov-card evento-eliminado" data-tipo="evento" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
+          <div class="mov-card-head">
+            <span class="mov-tipo-badge evento-eliminado">🗑 Eliminado</span>
+        {% elif m.tipo_movimiento == 'evento' %}
+        <div class="mov-card evento" data-tipo="evento" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
+          <div class="mov-card-head">
+            <span class="mov-tipo-badge evento">⚙ Evento</span>
+        {% else %}
         <div class="mov-card {{ m.tipo_movimiento }}" data-tipo="{{ m.tipo_movimiento }}" data-busq="{{ m.nombre_producto|lower }} {{ m.talla|lower }} {{ m.motivo|lower }} {{ m.proveedor|lower }}">
           <div class="mov-card-head">
             <span class="mov-tipo-badge {{ m.tipo_movimiento }}">
-              {% if m.tipo_movimiento == 'entrada' %}↑ Entrada
-              {% elif m.tipo_movimiento == 'salida' %}↓ Salida
-              {% else %}⚙ Evento
-              {% endif %}
+              {% if m.tipo_movimiento == 'entrada' %}↑ Entrada{% else %}↓ Salida{% endif %}
             </span>
+        {% endif %}
             <div>
               <div style="font-size:15px;font-weight:700;color:#111;">
                 {% if m.tipo_movimiento == 'evento' %}

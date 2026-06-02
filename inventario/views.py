@@ -250,7 +250,15 @@ def producto_eliminar(request, id):
                 motivo          = f'Producto "{producto.nombre}" eliminado del sistema',
             )
 
+    nombre_prod = producto.nombre
     producto.delete()
+
+    Movimiento.objects.create(
+        tipo_movimiento='evento',
+        nombre_producto=f'Producto eliminado: {nombre_prod}',
+        motivo=f'El producto "{nombre_prod}" fue eliminado del sistema.',
+    )
+
     messages.success(request, "Producto eliminado correctamente.")
     return redirect('productos')
 

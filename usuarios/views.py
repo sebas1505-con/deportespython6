@@ -393,12 +393,19 @@ def aprobar_repartidor(request, notificacion_id):
             print(f"Error enviando email de aprobación: {e}")
         
         messages.success(request, f'✅ Repartidor {usuario.first_name} aprobado exitosamente.')
-        
+
+        from inventario.models import Movimiento as MovimientoInv
+        MovimientoInv.objects.create(
+            tipo_movimiento='evento',
+            nombre_producto=f'Repartidor aprobado: {usuario.first_name}',
+            motivo=f'El administrador aprobó al repartidor "{usuario.first_name}" (usuario: {usuario.username}).',
+        )
+
     except NotificacionRepartidor.DoesNotExist:
         messages.error(request, 'Notificación no encontrada.')
     except Exception as e:
         messages.error(request, f'Error al aprobar repartidor: {e}')
-    
+
     return redirect('panel_admin')
 
 
@@ -454,7 +461,14 @@ def rechazar_repartidor(request, notificacion_id):
             usuario.delete()
             
             messages.success(request, f'❌ Solicitud de {nombre_usuario} rechazada.')
-            
+
+            from inventario.models import Movimiento as MovimientoInv
+            MovimientoInv.objects.create(
+                tipo_movimiento='evento',
+                nombre_producto=f'Repartidor rechazado: {nombre_usuario}',
+                motivo=f'El administrador rechazó la solicitud de "{nombre_usuario}". Motivo: {motivo}',
+            )
+
         except NotificacionRepartidor.DoesNotExist:
             messages.error(request, 'Notificación no encontrada.')
         except Exception as e:
