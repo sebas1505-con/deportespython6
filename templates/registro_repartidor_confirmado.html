@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro Exitoso — Deportes 360</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/alerts.css' %}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .confirmation-container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 500px;
+            padding: 50px 40px;
+            text-align: center;
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            font-size: 40px;
+            color: white;
+            animation: scaleIn 0.6s ease-out 0.3s both;
+        }
+        
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+            }
+            to {
+                transform: scale(1);
+            }
+        }
+        
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 15px;
+            font-weight: 700;
+        }
+        
+        .main-message {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+        
+        .highlight {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .details-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin: 25px 0;
+            text-align: left;
+            border-radius: 5px;
+        }
+        
+        .details-box p {
+            margin: 8px 0;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .details-box strong {
+            color: #333;
+        }
+        
+        .status-message {
+            background: #fffbea;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 35px;
+        }
+        
+        .btn {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #dfea66 0%, #a2a04b 100%);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #e9ecef;
+            color: #495057;
+        }
+        
+        .btn-secondary:hover {
+            background: #dee2e6;
+        }
+        
+        .footer-text {
+            margin-top: 25px;
+            font-size: 13px;
+            color: #999;
+        }
+        
+        .footer-text a {
+            color: #e3ea66;
+            text-decoration: none;
+        }
+        
+        .footer-text a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="confirmation-container">
+        <div class="success-icon">✓</div>
+        
+        <h1>¡Registro Exitoso!</h1>
+        
+        <div class="main-message">
+            Muchas gracias por registrarte como repartidor, <span class="highlight">{{ nombre }}</span>.
+            <br><br>
+            Te estaremos comunicando pronto.
+        </div>
+        
+        <div class="status-message">
+            ⏳ Tu solicitud está siendo revisada por nuestro equipo de administración. 
+            Recibirás un correo de confirmación una vez que sea procesada.
+        </div>
+        
+        <div class="details-box">
+            <p><strong>Email de confirmación:</strong> {{ email }}</p>
+            <p style="margin-top: 10px; font-size: 12px; color: #999;">
+                Revisa tu bandeja de entrada y carpeta de spam
+            </p>
+        </div>
+        
+        <div class="action-buttons">
+            <a href="{% url 'login' %}" class="btn btn-primary">Ir a Login</a>
+            <a href="{% url 'menu' %}" class="btn btn-secondary">Volver al Inicio</a>
+        </div>
+        
+        <div class="footer-text">
+            <p>¿Tienes preguntas? <a href="{% url 'contacto' %}">Contáctanos</a></p>
+        </div>
+    </div>
+</body>
+</html>

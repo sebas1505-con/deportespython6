@@ -1,0 +1,9 @@
+<h1>Pedidos Disponibles</h1>
+
+{% for pedido in pedidos %}
+    <p>
+        Pedido #{{ pedido.id }}
+    </p>
+{% empty %}
+    <p>No hay pedidos disponibles</p>
+{% endfor %}

@@ -83,6 +83,7 @@ class Movimiento(models.Model):
     fecha     = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
+
         if self.tipo_movimiento == 'evento':
             super().save(*args, **kwargs)
             return
@@ -95,17 +96,29 @@ class Movimiento(models.Model):
             talla=self.talla,
             defaults={'stock': 0}
         )
+
         if self.tipo_movimiento == "entrada":
+
             talla_producto.stock += self.cantidad
+
         elif self.tipo_movimiento == "salida":
-            talla_producto.stock -= self.cantidad
+
+            # evitar stock negativo
+            if talla_producto.stock >= self.cantidad:
+                talla_producto.stock -= self.cantidad
+            else:
+                talla_producto.stock = 0
+
         talla_producto.save()
 
         if self.producto:
             total = self.producto.tallas.aggregate(
-                t=models.Sum('stock')
+            t=models.Sum('stock')
             )['t'] or 0
-            Producto.objects.filter(pk=self.producto.pk).update(stock_total=total)
+
+            Producto.objects.filter(
+                pk=self.producto.pk
+            ).update(stock_total=total)
 
         super().save(*args, **kwargs)
 

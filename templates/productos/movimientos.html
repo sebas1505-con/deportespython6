@@ -1,0 +1,13 @@
+<h1>Movimientos</h1>
+
+<h2>{{ producto.nombre }}</h2>
+
+{% for movimiento in movimientos %}
+    <p>
+        {{ movimiento.tipo }}
+        -
+        {{ movimiento.cantidad }}
+    </p>
+{% empty %}
+    <p>No hay movimientos</p>
+{% endfor %}

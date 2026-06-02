@@ -85,6 +85,9 @@
       <a class="nav-item" onclick="show('usuarios', this)">
         <span class="material-symbols-outlined">group</span><span>Usuarios</span>
       </a>
+      <a class="nav-item" onclick="show('repartidores-pendientes', this)">
+        <span class="material-symbols-outlined">delivery_dining</span><span>Repartidores {% if cantidad_repartidores_pendientes > 0 %}<span style="background:#f59e0b;color:white;border-radius:50%;width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;">{{ cantidad_repartidores_pendientes }}</span>{% endif %}</span>
+      </a>
       <a class="nav-item" onclick="show('productos', this)">
         <span class="material-symbols-outlined">add_box</span><span>Nuevo Producto</span>
       </a>
@@ -548,6 +551,64 @@
           {% empty %}<tr><td colspan="5" style="text-align:center;color:#aaa;padding:20px;">Sin usuarios</td></tr>{% endfor %}
         </tbody>
       </table>
+    </div>
+  </div>
+
+  <!-- ══ REPARTIDORES PENDIENTES ══ -->
+  <div class="section" id="sec-repartidores-pendientes">
+    <div class="card-section">
+      {% if messages %}{% for message in messages %}<p class="mensaje {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+        <h2 style="margin:0;">Repartidores Pendientes de Aprobación</h2>
+        {% if cantidad_repartidores_pendientes > 0 %}
+        <span class="badge badge-red" style="font-size:14px;padding:6px 12px;">{{ cantidad_repartidores_pendientes }} pendiente(s)</span>
+        {% endif %}
+      </div>
+      
+      {% if repartidores_pendientes %}
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:16px;">
+          {% for notif in repartidores_pendientes %}
+          <div style="background:#fff;border-radius:10px;box-shadow:0 2px 8px rgba(0,0,0,0.08);overflow:hidden;border-left:5px solid #f59e0b;">
+            <div style="padding:16px;background:#fef3c7;border-bottom:1px solid #fde68a;">
+              <h3 style="margin:0 0 4px;color:#d97706;font-size:16px;">{{ notif.usuario.first_name }}</h3>
+              <p style="margin:0;color:#92400e;font-size:13px;">@{{ notif.usuario.username }}</p>
+            </div>
+            
+            <div style="padding:16px;">
+              <div style="margin-bottom:12px;">
+                <label style="display:block;font-size:12px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:4px;">Email</label>
+                <p style="margin:0;font-size:14px;color:#333;">{{ notif.usuario.email }}</p>
+              </div>
+              
+              <div style="margin-bottom:12px;">
+                <label style="display:block;font-size:12px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:4px;">Teléfono</label>
+                <p style="margin:0;font-size:14px;color:#333;">{{ notif.usuario.telefono }}</p>
+              </div>
+              
+              <div style="margin-bottom:12px;">
+                <label style="display:block;font-size:12px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:4px;">Vehículo</label>
+                <p style="margin:0;font-size:14px;color:#333;">{{ notif.vehiculo }} - Placa: <strong>{{ notif.placa }}</strong></p>
+              </div>
+              
+              <div style="margin-bottom:16px;">
+                <label style="display:block;font-size:12px;font-weight:700;color:#666;text-transform:uppercase;margin-bottom:4px;">Solicitado</label>
+                <p style="margin:0;font-size:13px;color:#999;">{{ notif.fecha_solicitud|date:"d/m/Y H:i" }}</p>
+              </div>
+              
+              <div style="display:flex;gap:8px;">
+                <a href="{% url 'aprobar_repartidor' notif.id %}" class="btn-dark" style="flex:1;text-align:center;padding:10px;background:#16a34a;border-radius:6px;text-decoration:none;color:white;font-weight:600;font-size:13px;">✓ Aprobar</a>
+                <a href="{% url 'rechazar_repartidor' notif.id %}" class="btn-dark" style="flex:1;text-align:center;padding:10px;background:#dc2626;border-radius:6px;text-decoration:none;color:white;font-weight:600;font-size:13px;">✕ Rechazar</a>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div style="background:#f0fdf4;border:2px dashed #86efac;border-radius:8px;padding:30px;text-align:center;">
+          <p style="margin:0;color:#15803d;font-size:16px;font-weight:600;">✓ No hay repartidores pendientes</p>
+          <p style="margin:8px 0 0;color:#6b7280;font-size:14px;">Todos los registros han sido procesados</p>
+        </div>
+      {% endif %}
     </div>
   </div>
 

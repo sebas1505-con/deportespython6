@@ -22,7 +22,7 @@ urlpatterns = [
     path('carrito/', views.carrito, name='carrito'),
     path('agregar-carrito/<int:id>/', views.agregar_al_carrito, name='agregar_carrito'),
     path('formulario_compra/', views.formulario_compra, name='formulario_compra'),
-    path('factura/<int:venta_id>/', views.factura, name='factura'),
+    path('factura/<int:venta_id>/', views.generar_factura, name='generar_factura'),
     path('factura1/<int:venta_id>/', views.factura1, name='factura1'),
     path('factura_pdf/<int:venta_id>/', views.generar_factura, name='factura_pdf'),
     path('generar-pdf/', views.generar_pdf, name='generar_pdf'),
@@ -37,12 +37,13 @@ urlpatterns = [
     path('sugerencias/respuestas/<int:sugerencia_id>/', views.sugerencia_respuestas, name='sugerencia_respuestas'),
     path('sugerencias/lista/', views.sugerencias_lista, name='sugerencias_lista'),
     path('reportes-admin/', views.reportes_admin, name='reportes_admin'),
-    path(
-        'stock-insuficiente/<int:producto_id>/<str:talla>/<int:stock_disponible>/',
-        views.stock_insuficiente,
-        name='stock_insuficiente'
-    ),
+    path('stock-insuficiente/<int:producto_id>/<str:talla>/<int:stock_disponible>/',views.stock_insuficiente, name='stock_insuficiente'),
     path('carga-masiva/', views.carga_masiva_productos, name='carga_masiva'),
+    path('carrito/agregar/<int:producto_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),
+    path('factura/<int:venta_id>/', views.generar_factura, name='generar_factura'),
+    path('producto/<int:producto_id>/discontinuar/', views.producto_discontinuar, name='producto_discontinuar'),
+    path('pedidos/', views.pedidos, name='pedidos'),
+    path('factura/<int:venta_id>/', views.generar_factura, name='factura'),
 ]
 
 

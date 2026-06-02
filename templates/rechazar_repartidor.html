@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rechazar Repartidor — Deportes 360</title>
+    {% load static %}
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #f5f7fa;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+            color: white;
+            padding: 30px 25px;
+            text-align: center;
+        }
+        
+        .header h2 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .content {
+            padding: 30px 25px;
+        }
+        
+        .info-box {
+            background: #fdf8f5;
+            border-left: 4px solid #e74c3c;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 5px;
+        }
+        
+        .info-box p {
+            color: #555;
+            font-size: 14px;
+            margin: 5px 0;
+        }
+        
+        .info-box strong {
+            color: #333;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 14px;
+            resize: vertical;
+            min-height: 120px;
+        }
+        
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #e74c3c;
+            box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+        
+        button, a {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-reject {
+            background: #e74c3c;
+            color: white;
+        }
+        
+        .btn-reject:hover {
+            background: #c0392b;
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+        
+        .btn-cancel {
+            background: #ecf0f1;
+            color: #7f8c8d;
+        }
+        
+        .btn-cancel:hover {
+            background: #d5dbdb;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Rechazar Solicitud</h2>
+            <p>Ingresa el motivo del rechazo</p>
+        </div>
+        
+        <div class="content">
+            <div class="info-box">
+                <p><strong>Repartidor:</strong> {{ notificacion.usuario.first_name }}</p>
+                <p><strong>Usuario:</strong> {{ notificacion.usuario.username }}</p>
+                <p><strong>Email:</strong> {{ notificacion.usuario.email }}</p>
+                <p><strong>Vehículo:</strong> {{ notificacion.vehiculo }} - Placa: {{ notificacion.placa }}</p>
+            </div>
+            
+            <form method="POST" class="rejection-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label for="motivo">Motivo del Rechazo *</label>
+                    <textarea 
+                        id="motivo" 
+                        name="motivo" 
+                        placeholder="Explica el motivo por el cual rechazas esta solicitud de registro..."
+                        required
+                    ></textarea>
+                    <small style="color: #999; display: block; margin-top: 5px;">
+                        Este motivo será enviado al repartidor por correo electrónico.
+                    </small>
+                </div>
+                
+                <div class="warning">
+                    ⚠️ Al rechazar, se eliminará el registro del usuario y recibirá una notificación por correo.
+                </div>
+                
+                <div class="button-group">
+                    <button type="submit" class="btn-reject">Confirmar Rechazo</button>
+                    <a href="{% url 'panel_admin' %}" class="btn-cancel">Cancelar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

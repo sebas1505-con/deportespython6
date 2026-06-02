@@ -407,9 +407,9 @@ def carrito(request):
         'total': total
     })
 
-def agregar_al_carrito(request, id):
+def agregar_al_carrito(request, producto_id):
     carrito = request.session.get('carrito', {})
-    producto = get_object_or_404(Producto, id=id)
+    producto = Producto.objects.get(id=producto_id)
     if request.method == 'POST':
         talla = request.POST.get('talla')
         key = f"{id}_{talla}"
@@ -708,33 +708,30 @@ def factura1(request, venta_id):
     })
 
 def generar_factura(request, venta_id):
-    venta    = get_object_or_404(Venta, id=venta_id)
-    detalles = DetalleVentaProductos.objects.filter(venta=venta)
-    cliente  = venta.cliente
-
+    venta = get_object_or_404(Venta, id=venta_id)
+    detalles = DetalleVentaProductos.objects.filter( venta=venta)
+    cliente = venta.cliente
     response = HttpResponse(content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="factura_{venta.id}.pdf"'
-    doc      = SimpleDocTemplate(response)
+    response['Content-Disposition'] = (
+        f'attachment; filename="factura_{venta.id}.pdf"'
+    )
+    doc = SimpleDocTemplate(response)
     elementos = []
-    estilos  = getSampleStyleSheet()
-
-    ruta_logo = os.path.join(settings.BASE_DIR, 'static/images/logo.png')
+    estilos = getSampleStyleSheet()
+    ruta_logo = os.path.join( settings.BASE_DIR, 'static/images/logo.png')
     if os.path.exists(ruta_logo):
-        elementos.append(Image(ruta_logo, width=120, height=60))
-
+        logo = Image(ruta_logo, width=120, height=60)
+        elementos.append(logo)
     elementos.append(Spacer(1, 10))
-    elementos.append(Paragraph("Factura - Deportes 360", estilos['Title']))
+    elementos.append(Paragraph("Factura - Deportes 360",estilos['Title']))
     elementos.append(Spacer(1, 20))
     elementos.append(Paragraph(f"Cliente: {cliente.usuario.first_name}", estilos['Normal']))
-    elementos.append(Paragraph(f"Dirección: {cliente.direccion}", estilos['Normal']))
+    elementos.append(Paragraph(f"Dirección: {cliente.direccion}",estilos['Normal']))
     elementos.append(Paragraph(f"Teléfono: {venta.telefonoContacto}", estilos['Normal']))
     elementos.append(Spacer(1, 20))
-
     datos = [["Producto", "Talla", "Cantidad", "Precio Unitario", "Subtotal"]]
     for d in detalles:
-        datos.append([d.producto.nombre, d.talla, str(d.cantidad),
-                      f"${d.precio_unitario}", f"${d.subtotal}"])
-
+        datos.append([d.producto.nombre, d.talla, str(d.cantidad), f"${d.precio_unitario}", f"${d.subtotal}" ])
     tabla = Table(datos)
     tabla.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, 0), colors.black),
@@ -743,11 +740,9 @@ def generar_factura(request, venta_id):
     ]))
     elementos.append(tabla)
     elementos.append(Spacer(1, 20))
-    elementos.append(Paragraph(f"Total: ${venta.totalVenta}", estilos['Heading2']))
+    elementos.append( Paragraph(f"Total: ${venta.totalVenta}", estilos['Heading2']))
     doc.build(elementos)
     return response
-
-
 # ── Pedidos y repartidores ────────────────────────────────────────────────────
 
 def pedidos(request):
@@ -843,8 +838,8 @@ def reportesVentas(request):
                   .order_by('-fecha_venta')
     return render(request, "productos/reportes_ventas.html", {'ventas': ventas})
 
-def producto_discontinuar(request, id):
-    producto = get_object_or_404(Producto, id=id)
+def producto_discontinuar(request, producto_id):
+    producto = get_object_or_404(Producto, id=producto_id)
     if request.method == 'POST':
         producto.descontinuado = True   # ← con 's', igual que el modelo
         producto.save()

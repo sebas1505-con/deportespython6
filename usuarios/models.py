@@ -52,6 +52,30 @@ class Administrador(models.Model):
     def __str__(self):
         return f"Admin: {self.usuario.username}"
 
+
+class NotificacionRepartidor(models.Model):
+    """Modelo para registros de repartidores pendientes de aprobación"""
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('aprobado', 'Aprobado'),
+        ('rechazado', 'Rechazado'),
+    ]
+    
+    usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='notificacion_repartidor')
+    vehiculo = models.CharField(max_length=20)
+    placa = models.CharField(max_length=10)
+    estado = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='pendiente')
+    fecha_solicitud = models.DateTimeField(auto_now_add=True)
+    fecha_respuesta = models.DateTimeField(null=True, blank=True)
+    motivo_rechazo = models.TextField(null=True, blank=True)
+    
+    def __str__(self):
+        return f"Notificación - {self.usuario.username} ({self.estado})"
+    
+    class Meta:
+        ordering = ['-fecha_solicitud']
+
+
 class Producto(models.Model):
     CATEGORIAS = [
         ('hombre', 'Hombre'),
