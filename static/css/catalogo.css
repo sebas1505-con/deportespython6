@@ -3,35 +3,6 @@
 
         body { background: #f2f3f5; color: #222; }
 
-        /* ── HEADER ── */
-        .header {
-            background: linear-gradient(90deg, #000, #111);
-            border-bottom: 3px solid #d40000;
-            padding: 16px 28px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .header .logo { color: #fff; font-size: 20px; font-weight: 700; text-decoration: none; letter-spacing: 1px; }
-
-        .header nav ul { list-style: none; display: flex; gap: 12px; padding: 0; margin: 0; }
-
-        .header nav ul li a {
-            color: rgba(255,255,255,0.8);
-            text-decoration: none;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            transition: 0.2s;
-            border: 1px solid transparent;
-        }
-
-        .header nav ul li a:hover { background: #d40000; color: #fff; }
 
         .btn-agregar {
             background: #d40000;
@@ -221,21 +192,7 @@
         /* ── RESPONSIVE ── */
         @media (max-width: 600px) {
             .Prodcts-content { grid-template-columns: 1fr; }
-            .header { flex-direction: column; gap: 10px; }
         }
-        /* ── Contenedor ── */
-.container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 24px;
-}
-
-.header .container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    width: 100%;
-}
 
 /* ── Main ── */
 main.Prodcts {

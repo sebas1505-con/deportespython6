@@ -80,7 +80,11 @@
     <span class="material-symbols-outlined">storefront</span>
     <span>Panel Admin — Deportes 360</span>
   </div>
+  <button class="sidebar-toggle" id="sidebarToggle" onclick="adminToggleSidebar()" aria-label="Abrir menú">
+    <span></span><span></span><span></span>
+  </button>
 </header>
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
 
 <nav class="sidebar">
   <div class="sidebar-nav-wrap">
@@ -1088,6 +1092,67 @@ document.querySelectorAll('input[type="number"]').forEach(function(input) {
     });
 
 });
+
+// ── Sidebar hamburger ──
+var _adminSidebar  = document.querySelector('.sidebar');
+var _adminToggle   = document.getElementById('sidebarToggle');
+var _adminOverlay  = document.getElementById('sidebarOverlay');
+var _sidebarOpen   = false;
+
+function _applyLayout() {
+    if (window.innerWidth <= 820) {
+        // Mobile: sidebar oculto, botón visible
+        _adminToggle.style.display = 'flex';
+        if (!_sidebarOpen) {
+            _adminSidebar.style.transform  = 'translateX(-100%)';
+            _adminSidebar.style.visibility = 'hidden';
+            _adminSidebar.style.position   = 'fixed';
+            _adminSidebar.style.top        = '0';
+            _adminSidebar.style.left       = '0';
+            _adminSidebar.style.height     = '100vh';
+            _adminSidebar.style.zIndex     = '1001';
+        }
+        _adminSidebar.style.transition = 'transform 0.3s ease, visibility 0.3s ease';
+        document.querySelector('.dashboard').style.marginLeft = '0';
+    } else {
+        // Desktop: sidebar visible, botón oculto
+        _adminToggle.style.display = 'none';
+        _adminSidebar.style.transform  = 'translateX(0)';
+        _adminSidebar.style.visibility = 'visible';
+        _adminSidebar.style.position   = 'fixed';
+        _adminSidebar.style.top        = '64px';
+        _adminSidebar.style.left       = '0';
+        _adminSidebar.style.height     = 'calc(100vh - 64px)';
+        _adminSidebar.style.transition = 'none';
+        document.querySelector('.dashboard').style.marginLeft = '220px';
+        _adminOverlay.style.display    = 'none';
+        _sidebarOpen = false;
+    }
+}
+
+function adminToggleSidebar() {
+    _sidebarOpen = !_sidebarOpen;
+    if (_sidebarOpen) {
+        _adminSidebar.style.transform  = 'translateX(0)';
+        _adminSidebar.style.visibility = 'visible';
+        _adminOverlay.style.display    = 'block';
+        _adminToggle.classList.add('open');
+        document.body.style.overflow   = 'hidden';
+    } else {
+        _adminSidebar.style.transform  = 'translateX(-100%)';
+        _adminSidebar.style.visibility = 'hidden';
+        _adminOverlay.style.display    = 'none';
+        _adminToggle.classList.remove('open');
+        document.body.style.overflow   = '';
+    }
+}
+
+_adminOverlay.addEventListener('click', function() {
+    if (_sidebarOpen) adminToggleSidebar();
+});
+
+window.addEventListener('resize', _applyLayout);
+_applyLayout();
 </script>
 </body>
 </html>

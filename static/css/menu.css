@@ -96,8 +96,31 @@ body {
 
 @media (max-width: 768px) {
   .roles {
-    flex-direction: column; 
-    gap: 20px; 
+    flex-direction: column;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .cuadro {
+    width: 100%;
+    max-width: 200px;
+  }
+
+  .cuadro-img {
+    width: 90px;
+    height: 90px;
+  }
+
+  .cuadro-titulo {
+    font-size: 18px;
+  }
+
+  .btn-volver-home {
+    top: 10px;
+    left: 10px;
+    font-size: 12px;
+    padding: 6px 10px;
   }
 }
 button:hover {

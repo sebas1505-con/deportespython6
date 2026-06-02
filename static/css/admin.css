@@ -10,7 +10,7 @@ body { background-color: #f2f3f5; color: #222; min-height: 100vh; }
   color: #fff; padding: 0 24px; height: 64px;
   display: flex; align-items: center;
   border-bottom: 3px solid #d40000;
-  position: fixed; top: 0; left: 0; width: 100%; z-index: 1000;
+  position: fixed; top: 0; left: 0; width: 100%; z-index: 1002;
 }
 .header-logo { display: flex; align-items: center; gap: 10px; font-size: 1rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
 .header-logo .material-symbols-outlined { font-size: 26px; color: #d40000; }
@@ -18,9 +18,16 @@ body { background-color: #f2f3f5; color: #222; min-height: 100vh; }
 /* ══ SIDEBAR ══ */
 .sidebar {
   background-color: #0d0d0d; width: 220px;
-  height: calc(100vh - 64px); position: fixed; top: 64px; left: 0;
-  box-shadow: 4px 0 16px rgba(0,0,0,.3); overflow-y: auto; z-index: 999;
+  height: 100vh; position: fixed; top: 0; left: 0;
+  box-shadow: 4px 0 16px rgba(0,0,0,.3); overflow-y: auto; z-index: 1001;
   display: flex; flex-direction: column;
+  transform: translateX(-100%);
+  visibility: hidden;
+  transition: transform 0.3s ease, visibility 0.3s ease;
+}
+.sidebar.open {
+  transform: translateX(0);
+  visibility: visible;
 }
 .sidebar-nav-wrap { display: flex; flex-direction: column; height: 100%; padding: 12px 10px; }
 .sidebar-nav-main { flex: 1; display: flex; flex-direction: column; gap: 2px; }
@@ -44,7 +51,7 @@ body { background-color: #f2f3f5; color: #222; min-height: 100vh; }
 .nav-item.nav-logout:hover { background: rgba(212,0,0,.2); color: #ff8080; }
 
 /* ══ DASHBOARD ══ */
-.dashboard { margin-left: 220px; padding: 28px; padding-top: 88px; }
+.dashboard { margin-left: 0; padding: 28px; padding-top: 88px; }
 .section { display: none; }
 .section.visible { display: block; }
 
@@ -230,15 +237,61 @@ body { background-color: #f2f3f5; color: #222; min-height: 100vh; }
 .mov-filtro:hover  {background:#fff0f0;border-color:#d40000;color:#d40000}
 .mov-filtro--active{background:#d40000;color:#fff;border-color:#d40000}
 
+/* ══ HAMBURGER BUTTON ══ */
+.sidebar-toggle {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  width: 40px;
+  height: 36px;
+  background: rgba(255,255,255,0.12);
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+.sidebar-toggle span {
+  display: block;
+  width: 20px;
+  height: 2px;
+  background: #fff;
+  border-radius: 2px;
+  transition: 0.3s ease;
+}
+.sidebar-toggle.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+.sidebar-toggle.open span:nth-child(2) { opacity: 0; }
+.sidebar-toggle.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+.sidebar-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 1000;
+}
+.sidebar-overlay.active { display: block; }
+
+/* ══ DESKTOP: sidebar siempre visible, boton oculto ══ */
+@media(min-width: 821px) {
+  .sidebar {
+    transform: translateX(0) !important;
+    visibility: visible !important;
+  }
+  .sidebar-toggle { display: none; }
+  .dashboard { margin-left: 220px; }
+}
+
 /* ══ RESPONSIVE ══ */
 @media(max-width:1100px){.rp-summary{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px) {.rp-charts-grid{grid-template-columns:1fr}.rp-summary{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:820px) {
-  .sidebar  {width:100%;height:auto;position:relative;top:0}
-  .dashboard{margin-left:0;padding:16px;padding-top:80px}
-  .form-row,.form-row-4{grid-template-columns:1fr}
-  .stats{flex-direction:column}
-  .tabla-admin{display:block;overflow-x:auto;white-space:nowrap}
-  .sugerencias-layout{grid-template-columns:1fr;height:auto}
+  .dashboard { padding: 16px; padding-top: 80px; }
+  .form-row,.form-row-4 { grid-template-columns: 1fr; }
+  .stats { flex-direction: column; }
+  .tabla-admin { display: block; overflow-x: auto; white-space: nowrap; }
+  .sugerencias-layout { grid-template-columns: 1fr; height: auto; }
 }
 @media(max-width:600px){.rp-summary{grid-template-columns:1fr 1fr}.mov-summary{grid-template-columns:1fr 1fr}}

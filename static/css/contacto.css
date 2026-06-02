@@ -1,62 +1,6 @@
 /* ===================================================
-   RESET GENERAL
+   PÁGINA CONTACTO
 =================================================== */
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: "Poppins", sans-serif;
-}
-
-body {
-  background: #f4f6f8;
-  color: #333;
-  line-height: 1.6;
-}
-
-
-/* ===================================================
-   HEADER / NAVBAR
-=================================================== */
-
-.header {
-  background: #0d0d0d;
-  color: #fff;
-  padding: 15px 40px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-}
-
-.logo h1 {
-  font-size: 26px;
-  font-weight: 700;
-  color: #ff4c29;
-}
-
-.menu ul {
-  list-style: none;
-  display: flex;
-  gap: 25px;
-}
-
-.menu a {
-  text-decoration: none;
-  color: #fff;
-  font-weight: 500;
-  transition: 0.3s ease;
-  padding: 6px 0;
-}
-
-.menu a:hover,
-.menu a.activo {
-  color: #ff4c29;
-  border-bottom: 2px solid #ff4c29;
-}
 
 
 /* ===================================================
@@ -122,39 +66,8 @@ body {
 }
 
 
-/* ===================================================
-   FOOTER
-=================================================== */
-
-footer {
-  background: #0d0d0d;
-  color: #fff;
-  text-align: center;
-  padding: 20px;
-  margin-top: 50px;
-  font-size: 14px;
-}
-
-
-/* ===================================================
-   RESPONSIVE
-=================================================== */
-
 @media (max-width: 768px) {
-
-  .header {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .menu ul {
-    flex-direction: column;
-    gap: 10px;
-    margin-top: 10px;
-  }
-
   .contacto .card {
     padding: 20px;
   }
-
 }

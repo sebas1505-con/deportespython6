@@ -11,29 +11,19 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+# Lee variables de entorno (Railway las inyecta automáticamente)
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-hv$y6kuexh^^=b3f%3zn^(f-6r=r0i46&&7u&b5*ufq4$_q$7r')
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-hv$y6kuexh^^=b3f%3zn^(f-6r=r0i46&&7u&b5*ufq4$_q$7r'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = [
-    'localhost',
-    '127.0.0.1',
-    '192.168.1.118', 
-    'rosalind-precrucial-steven.ngrok-free.dev',  
-]
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://rosalind-precrucial-steven.ngrok-free.dev',
+    f'https://{h}' for h in ALLOWED_HOSTS
+    if h not in ('localhost', '127.0.0.1', '')
 ]
 
 
@@ -87,11 +77,11 @@ WSGI_APPLICATION = 'Deportes360.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': '360deportes',
-        'USER': 'root',
-        'PASSWORD': '123456789',
-        'HOST': 'localhost',
-        'PORT': '3306',
+        'NAME':     os.environ.get('DB_NAME',     '360deportes'),
+        'USER':     os.environ.get('DB_USER',     'root'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '123456789'),
+        'HOST':     os.environ.get('DB_HOST',     'localhost'),
+        'PORT':     os.environ.get('DB_PORT',     '3306'),
     }
 }
 
@@ -130,12 +120,9 @@ USE_TZ = False
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
-STATIC_URL = '/static/'
-
-import os
-STATICFILES_DIRS = [
-    os.path.join(BASE_DIR, "static"),
-]
+STATIC_URL   = '/static/'
+STATIC_ROOT  = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -149,8 +136,8 @@ EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = "smtp.gmail.com"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "juancerquera104@gmail.com"
-EMAIL_HOST_PASSWORD = "xpni nsdy heqa pfia"  
-DEFAULT_FROM_EMAIL = "Soporte Deportes360 <tucorreo@gmail.com>"
+EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER',     'juancerquera104@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'xpni nsdy heqa pfia')
+DEFAULT_FROM_EMAIL  = f'Soporte Deportes360 <{EMAIL_HOST_USER}>'
 
 

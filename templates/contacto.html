@@ -2,26 +2,36 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Contacto - Deportes 360</title>
     {% load static %}
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'css/index.css' %}">
     <link rel="stylesheet" href="{% static 'css/contacto.css' %}">
 </head>
 
 <body>
 
-    <header class="header">
-        <div class="logo">
-            <h1>Deportes 360</h1>
+<header class="header">
+    <div class="container">
+        <div class="menu">
+            <a href="{% url 'index' %}" class="logo-text">Deportes <span>360</span></a>
+            <input type="checkbox" id="menu" />
+            <label for="menu" class="menu-toggle" aria-label="Abrir menú">
+                <span></span>
+            </label>
+            <nav class="navbar">
+                <ul>
+                    <li><a href="{% url 'quienes' %}">Quiénes Somos</a></li>
+                    <li><a href="{% url 'contacto' %}">Contacto</a></li>
+                    <li><a href="{% url 'catalogoindex' %}">Catálogo</a></li>
+                    <li><a href="{% url 'menu' %}">Crear Cuenta</a></li>
+                    <li><a href="{% url 'login' %}">Iniciar Sesión</a></li>
+                </ul>
+            </nav>
         </div>
-
-        <nav class="menu">
-            <ul>
-                <li><a href="{% url 'index' %}">Volver</a></li>
-                <li><a href="{% url 'login' %}">Login</a></li>
-            </ul>
-        </nav>
-    </header>
+    </div>
+</header>
 
     <main>
         <section class="contacto">

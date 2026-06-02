@@ -26,7 +26,47 @@
 
         .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
 
-        .header nav { display: flex; gap: 10px; }
+        /* ── NAV HAMBURGER ── */
+        #nav-toggle { display: none; }
+        .nav-toggle-btn { display: none; }
+        .nav-rep { display: flex; gap: 10px; }
+
+        @media (max-width: 600px) {
+            .header { position: relative; flex-wrap: wrap; }
+
+            .nav-toggle-btn {
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                gap: 5px;
+                width: 38px;
+                height: 34px;
+                background: rgba(255,255,255,0.12);
+                border-radius: 8px;
+                cursor: pointer;
+            }
+            .nav-toggle-btn span {
+                display: block;
+                width: 20px;
+                height: 2px;
+                background: #fff;
+                border-radius: 2px;
+                transition: 0.3s ease;
+            }
+            #nav-toggle:checked + .nav-toggle-btn span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+            #nav-toggle:checked + .nav-toggle-btn span:nth-child(2) { opacity: 0; }
+            #nav-toggle:checked + .nav-toggle-btn span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+
+            .nav-rep {
+                display: none;
+                flex-direction: column;
+                width: 100%;
+                gap: 8px;
+                padding: 12px 0 4px;
+            }
+            #nav-toggle:checked ~ .nav-rep { display: flex; }
+        }
 
         .btn {
             display: inline-block;
@@ -207,6 +247,14 @@
             .stats-wrap { grid-template-columns: 1fr 1fr; }
             .table { display: block; overflow-x: auto; }
         }
+
+        @media (max-width: 480px) {
+            .stats-wrap { grid-template-columns: 1fr; }
+            .perfil-avatar { width: 70px; height: 70px; font-size: 28px; }
+            .nav-tabs { flex-wrap: wrap; gap: 6px; }
+            .nav-tab { font-size: 13px; padding: 8px 12px; }
+            .page-title { font-size: 20px; }
+        }
     </style>
 </head>
 
@@ -215,7 +263,11 @@
 <!-- HEADER -->
 <div class="header">
     <h1>Panel del Repartidor</h1>
-    <nav>
+    <input type="checkbox" id="nav-toggle" />
+    <label for="nav-toggle" class="nav-toggle-btn" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+    </label>
+    <nav class="nav-rep">
         <a href="{% url 'repartidor' %}" class="btn">Inicio</a>
         <a href="{% url 'perfil_repartidor' %}" class="btn">Mi Perfil</a>
         <a href="{% url 'logout' %}" class="btn btn-logout">Cerrar Sesión</a>

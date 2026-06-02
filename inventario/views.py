@@ -77,15 +77,37 @@ def carga_masiva_productos(request):
         try:
             df = pd.read_excel(archivo)
 
-            for _, fila in df.iterrows():
-                Producto.objects.create(
-                    nombre=fila['nombre'],
-                    precio=fila['precio'],
-                    stock=fila['stock'],
-                    descripcion=fila['descripcion']
-                )
+            columnas_requeridas = {'nombre', 'precio', 'descripcion'}
+            if not columnas_requeridas.issubset(set(df.columns.str.lower())):
+                messages.error(request, "El archivo debe tener las columnas: nombre, precio, descripcion")
+                return redirect('carga_masiva')
 
-            messages.success(request, "Productos cargados correctamente")
+            df.columns = df.columns.str.lower().str.strip()
+            creados = 0
+            errores = []
+
+            for i, fila in df.iterrows():
+                try:
+                    categoria = str(fila.get('categoria', 'MIXTO')).upper().strip()
+                    if categoria not in ['HOMBRE', 'MUJER', 'MIXTO']:
+                        categoria = 'MIXTO'
+
+                    Producto.objects.create(
+                        nombre      = str(fila['nombre']).strip(),
+                        precio      = fila['precio'],
+                        descripcion = str(fila['descripcion']).strip(),
+                        stock_total = int(fila['stock']) if 'stock' in fila and str(fila['stock']) != 'nan' else 0,
+                        categoria   = categoria,
+                        imagen      = '',
+                    )
+                    creados += 1
+                except Exception as e_fila:
+                    errores.append(f"Fila {i+2}: {e_fila}")
+
+            if creados:
+                messages.success(request, f"{creados} producto(s) cargado(s) correctamente.")
+            if errores:
+                messages.warning(request, f"Errores en {len(errores)} fila(s): {' | '.join(errores[:5])}")
 
         except Exception as e:
             messages.error(request, f"Error al procesar el archivo: {e}")

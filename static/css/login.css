@@ -138,3 +138,39 @@ label {
 .btn-secundario:hover {
   background: #0056b3;
 }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 600px) {
+  body {
+    align-items: center;
+    padding: 20px 0;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .login-container {
+    padding: 24px 18px;
+    margin: 0 16px;
+    max-width: 100%;
+  }
+
+  .btn-volver-home {
+    top: 10px;
+    left: 10px;
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  .login-links {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .btn-secundario {
+    text-align: center;
+  }
+
+  .logo {
+    width: 60px;
+  }
+}
