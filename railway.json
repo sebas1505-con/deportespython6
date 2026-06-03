@@ -6,9 +6,6 @@
   },
   "deploy": {
     "startCommand": "sh -c 'gunicorn Deportes360.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --preload --timeout 120 --access-logfile - --error-logfile - --log-level debug'",
-    "healthcheckPath": "/health/",
-    "healthcheckTimeout": 60,
-    "restartPolicyType": "ON_FAILURE",
-    "restartPolicyMaxRetries": 3
+    "restartPolicyType": "NEVER"
   }
 }
