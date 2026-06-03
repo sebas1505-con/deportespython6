@@ -299,7 +299,17 @@ def crear_admin(request):
         barrio         = request.POST.get("barrio") or None
         localidad      = request.POST.get("localidad") or None
         tipo_documento = request.POST.get("tipo_documento") or None
-        cedula         = request.POST.get("cedula") or None
+        cedula = request.POST.get("cedula", "").strip()
+
+        if not cedula:
+            return render(request, "crear_admin.html", {
+            "error": "La cédula es obligatoria"
+        })
+
+        if not cedula.isdigit():
+            return render(request, "crear_admin.html", {
+            "error": "La cédula debe contener solo números"
+        })
 
         if contrasena != confirmar:
             return render(request, "crear_admin.html", {"error": "Las contraseñas no coinciden"})
