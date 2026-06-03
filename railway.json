@@ -5,9 +5,9 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "python manage.py migrate --noinput && gunicorn Deportes360.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-file -",
+    "startCommand": "gunicorn Deportes360.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-file -",
     "healthcheckPath": "/health/",
-    "healthcheckTimeout": 30,
+    "healthcheckTimeout": 60,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 3
   }

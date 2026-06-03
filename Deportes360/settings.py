@@ -101,8 +101,8 @@ STATIC_URL   = '/static/'
 STATIC_ROOT  = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 
-# WhiteNoise: compresión y caché de estáticos en producción
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# WhiteNoise: compresión sin manifest (más estable en Railway)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
 # ── ARCHIVOS MEDIA ────────────────────────────────────────────────────────────
 MEDIA_URL  = '/media/'
