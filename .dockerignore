@@ -17,4 +17,3 @@ pytest.ini
 .pytest_cache/
 README.md
 carga_masiva_plantilla.xlsx
-static/videos/
