@@ -5,7 +5,13 @@ from django.conf import settings
 from django.http import JsonResponse
 
 def health_check(request):
-    return JsonResponse({'status': 'ok', 'app': 'Deportes360'})
+    from django.db import connection
+    try:
+        connection.ensure_connection()
+        db_ok = True
+    except Exception:
+        db_ok = False
+    return JsonResponse({'status': 'ok', 'db': db_ok, 'app': 'Deportes360'})
 
 def handler404_view(request, exception):
     from django.shortcuts import render
