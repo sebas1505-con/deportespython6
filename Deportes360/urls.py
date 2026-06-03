@@ -3,6 +3,8 @@ from django.urls import path, include
 from django.conf.urls.static import static
 from django.conf import settings
 from django.http import JsonResponse
+from django.views.static import serve
+import os
 
 def health_check(request):
     from django.db import connection
@@ -24,9 +26,14 @@ def handler500_view(request):
 handler404 = handler404_view
 handler500 = handler500_view
 
+def serve_video(request, filename):
+    video_dir = os.path.join(settings.BASE_DIR, 'static', 'videos')
+    return serve(request, filename, document_root=video_dir)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('health/', health_check, name='health'),
+    path('static/videos/<str:filename>', serve_video, name='serve_video'),
     path('', include('usuarios.urls')),
     path('', include('inventario.urls')),
 ]
