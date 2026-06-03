@@ -104,6 +104,18 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, 'static')]
 # WhiteNoise: compresión sin manifest (más estable en Railway)
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 
+# Servir videos MP4 correctamente
+WHITENOISE_MIMETYPES = {
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
+    '.ogg': 'video/ogg',
+}
+# No comprimir videos (ya están comprimidos)
+WHITENOISE_SKIP_COMPRESS_EXTENSIONS = [
+    'jpg', 'jpeg', 'png', 'gif', 'webp', 'zip', 'gz', 'tgz', 'bz2', 'tbz',
+    'xz', 'br', 'swf', 'flv', 'woff', 'woff2', 'mp4', 'webm', 'ogg', 'mp3',
+]
+
 # ── ARCHIVOS MEDIA ────────────────────────────────────────────────────────────
 MEDIA_URL  = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
