@@ -52,7 +52,7 @@
 
     <div id="c-cedula">
       <label>Número de Identificación</label>
-      <input type="text" name="cedula" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+">
+      <input type="text" id="input-cedula" name="cedula" placeholder="Ej: 12345678" inputmode="numeric" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
       <span class="msg-error" id="e-cedula">La cédula debe contener solo números.</span>
     </div>
 
@@ -99,74 +99,80 @@
 </div>
 
 <script>
-document.getElementById('form-adm').addEventListener('submit', function(e) {
-  var ok = true;
-  var soloNums = /^[0-9]+$/;
+(function () {
+  var form       = document.getElementById('form-adm');
+  var soloNums   = /^[0-9]+$/;
+
+  // Lee un campo de forma segura usando querySelector (evita problemas en Safari iOS
+  // cuando form[name] devuelve HTMLFormControlsCollection en vez de un elemento)
+  function val(selector) {
+    var el = form.querySelector(selector);
+    return el ? el.value.trim() : '';
+  }
 
   function campo(id, errId, cond) {
     var c   = document.getElementById(id);
     var err = document.getElementById(errId);
+    if (!c || !err) return;
     if (cond) {
       c.classList.add('campo-error');
       err.style.display = 'block';
-      ok = false;
     } else {
       c.classList.remove('campo-error');
       err.style.display = 'none';
     }
   }
 
-  var nombre        = this.first_name.value.trim();
-  var tipo_documento = this.tipo_documento.value.trim();
-  var cedula        = this.cedula.value.trim();
-  var usuario       = this.usuario.value.trim();
-  var correo        = this.correo.value.trim();
-  var telefono      = this.telefono.value.trim();
-  var codigo        = this.codigo.value.trim();
-  var contrasena    = this.contrasena.value;
-  var confirmar     = this.confirmar.value;
-  var nombre    = this.first_name.value.trim();
-  var usuario   = this.usuario.value.trim();
-  var correo    = this.correo.value.trim();
-  var telefono  = this.telefono.value.trim();
-  var cedula    = this.cedula.value.trim();
-  var codigo    = this.codigo.value.trim();
-  var contrasena= this.contrasena.value;
-  var confirmar = this.confirmar.value;
+  form.addEventListener('submit', function (e) {
+    var ok           = true;
+    var nombre       = val('[name="first_name"]');
+    var tipoDoc      = val('[name="tipo_documento"]');
+    var cedula       = val('[name="cedula"]');
+    var usuario      = val('[name="usuario"]');
+    var correo       = val('[name="correo"]');
+    var telefono     = val('[name="telefono"]');
+    var codigo       = val('[name="codigo"]');
+    var contrasena   = form.querySelector('[name="contrasena"]').value;
+    var confirmar    = form.querySelector('[name="confirmar"]').value;
 
-  campo('c-nombre',    'e-nombre',    !nombre);
-  campo('c-tipo-doc',  'e-tipo-doc',  !tipo_documento);
-  campo('c-cedula',    'e-cedula',    !cedula || !soloNums.test(cedula));
-  campo('c-usuario',   'e-usuario',   !usuario);
-  campo('c-correo',    'e-correo',    !correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo));
-  campo('c-telefono',  'e-telefono',  !telefono || !soloNums.test(telefono) || telefono.length < 10);
-  campo('c-telefono',  'e-telefono',  !telefono || !soloNums.test(telefono) || telefono.length < 8);
-  campo('c-cedula', 'e-cedula',!cedula || !soloNums.test(cedula) || cedula.length < 6);
-  campo('c-codigo',    'e-codigo',    !codigo);
-  campo('c-contrasena','e-contrasena',contrasena.length < 8);
-  campo('c-confirmar', 'e-confirmar', contrasena !== confirmar);
+    var checks = [
+      ['c-nombre',    'e-nombre',    !nombre],
+      ['c-tipo-doc',  'e-tipo-doc',  !tipoDoc],
+      ['c-cedula',    'e-cedula',    !cedula || !soloNums.test(cedula)],
+      ['c-usuario',   'e-usuario',   !usuario],
+      ['c-correo',    'e-correo',    !correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)],
+      ['c-telefono',  'e-telefono',  !telefono || !soloNums.test(telefono) || telefono.length < 10],
+      ['c-codigo',    'e-codigo',    !codigo],
+      ['c-contrasena','e-contrasena', contrasena.length < 8],
+      ['c-confirmar', 'e-confirmar',  contrasena !== confirmar],
+    ];
 
-  if (!ok) e.preventDefault();
-});
+    checks.forEach(function (c) {
+      campo(c[0], c[1], c[2]);
+      if (c[2]) ok = false;
+    });
 
-var telInput = document.querySelector('[name="telefono"]');
-var cedInput = document.querySelector('[name="cedula"]');
-telInput.addEventListener('keypress', function(e) {
-  if (!/[0-9]/.test(e.key)) e.preventDefault();
-});
-telInput.addEventListener('paste', function(e) {
-  var txt = (e.clipboardData || window.clipboardData).getData('text');
-  if (!/^[0-9]+$/.test(txt)) e.preventDefault();
-});
+    if (!ok) e.preventDefault();
+  });
 
-var cedulaInput = document.querySelector('[name="cedula"]');
-cedulaInput.addEventListener('keypress', function(e) {
-  if (!/[0-9]/.test(e.key)) e.preventDefault();
-});
-cedulaInput.addEventListener('paste', function(e) {
-  var txt = (e.clipboardData || window.clipboardData).getData('text');
-  if (!/^[0-9]+$/.test(txt)) e.preventDefault();
-});
+  // Filtro numérico para cédula y teléfono (compatible iOS Safari)
+  ['[name="cedula"]', '[name="telefono"]'].forEach(function (sel) {
+    var el = form.querySelector(sel);
+    if (!el) return;
+    el.addEventListener('keypress', function (e) {
+      if (e.key && e.key.length === 1 && !/[0-9]/.test(e.key)) e.preventDefault();
+    });
+    el.addEventListener('paste', function (e) {
+      var txt = (e.clipboardData || window.clipboardData).getData('text');
+      if (!/^[0-9]+$/.test(txt)) e.preventDefault();
+    });
+    el.addEventListener('input', function () {
+      // Limpia caracteres no numéricos que iOS autocorrect pueda insertar
+      var clean = this.value.replace(/\D/g, '');
+      if (clean !== this.value) this.value = clean;
+    });
+  });
+}());
 </script>
 
 </body>
