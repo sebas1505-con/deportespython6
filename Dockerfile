@@ -1,4 +1,4 @@
-# build v5
+# build v6
 FROM python:3.12-slim
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
@@ -18,8 +18,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# cache-bust 2026-06-04-09:00 — fuerza rebuild desde aquí
+# ARG invalida el caché de Docker desde este punto hacia abajo
+ARG CACHEBUST=20260604v2
 COPY . .
+
+# Eliminar cualquier gunicorn.conf.py que Railway pueda haber generado
+RUN rm -f gunicorn.conf.py
 
 RUN python manage.py collectstatic --noinput
 
