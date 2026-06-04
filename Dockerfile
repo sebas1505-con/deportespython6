@@ -18,12 +18,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# ARG invalida el caché de Docker desde este punto hacia abajo
-ARG CACHEBUST=20260604v2
+ENV RAILWAY_CACHE_BUST="20260604v3"
 COPY . .
 
-# Eliminar cualquier gunicorn.conf.py que Railway pueda haber generado
-RUN rm -f gunicorn.conf.py
+RUN rm -f gunicorn.conf.py && echo "Build ok: $(date)"
 
 RUN python manage.py collectstatic --noinput
 
