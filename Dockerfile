@@ -18,6 +18,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
+# cache-bust 2026-06-04-09:00 — fuerza rebuild desde aquí
 COPY . .
 
 RUN python manage.py collectstatic --noinput
@@ -25,4 +26,3 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 CMD ["sh", "-c", "exec gunicorn Deportes360.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120 --access-logfile - --error-logfile - --log-level info"]
-# cache-bust Wed Jun  4 08:00:00 HPS 2026
