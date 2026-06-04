@@ -25,4 +25,4 @@ RUN python manage.py collectstatic --noinput
 EXPOSE 8000
 
 CMD ["sh", "-c", "exec gunicorn Deportes360.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120 --access-logfile - --error-logfile - --log-level info"]
-# cache-bust Wed Jun  3 17:00:52 HPS 2026
+# cache-bust Wed Jun  4 08:00:00 HPS 2026
