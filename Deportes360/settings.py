@@ -83,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME':     os.environ.get('MYSQLDATABASE') or os.environ.get('DB_NAME',     '360deportes'),
         'USER':     os.environ.get('MYSQLUSER')     or os.environ.get('DB_USER',     'root'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD') or os.environ.get('DB_PASSWORD', '123456789'),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD') or os.environ.get('DB_PASSWORD', ''),
         'HOST':     os.environ.get('MYSQLHOST')     or os.environ.get('DB_HOST',     'localhost'),
         'PORT':     os.environ.get('MYSQLPORT')     or os.environ.get('DB_PORT',     '3306'),
         'OPTIONS': {
