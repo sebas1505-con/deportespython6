@@ -10,13 +10,24 @@ SECRET_KEY = os.environ.get(
 )
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-_raw_hosts = os.environ.get('ALLOWED_HOSTS', '')
-ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()] if _raw_hosts else ['*']
+_raw_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()]
+# Subdomain wildcard de Railway — matchea cualquier *.up.railway.app
+if not any('railway.app' in h for h in ALLOWED_HOSTS):
+    ALLOWED_HOSTS.append('.railway.app')
 
 CSRF_TRUSTED_ORIGINS = [
-    f'https://{h}' for h in ALLOWED_HOSTS
-    if h not in ('localhost', '127.0.0.1')
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
 ]
+for _h in ALLOWED_HOSTS:
+    if _h.startswith('.') or _h in ('localhost', '127.0.0.1', '*'):
+        continue
+    CSRF_TRUSTED_ORIGINS.extend([f'https://{_h}', f'http://{_h}'])
+# Dominio público configurado explícitamente en Railway (variable APP_URL)
+_app_url = os.environ.get('APP_URL', '')
+if _app_url and _app_url not in CSRF_TRUSTED_ORIGINS:
+    CSRF_TRUSTED_ORIGINS.append(_app_url)
 
 # ── APPS ────────────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
@@ -72,7 +83,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME':     os.environ.get('MYSQLDATABASE') or os.environ.get('DB_NAME',     '360deportes'),
         'USER':     os.environ.get('MYSQLUSER')     or os.environ.get('DB_USER',     'root'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD') or os.environ.get('DB_PASSWORD', '123456789'),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD') or os.environ.get('DB_PASSWORD', ''),
         'HOST':     os.environ.get('MYSQLHOST')     or os.environ.get('DB_HOST',     'localhost'),
         'PORT':     os.environ.get('MYSQLPORT')     or os.environ.get('DB_PORT',     '3306'),
         'OPTIONS': {
