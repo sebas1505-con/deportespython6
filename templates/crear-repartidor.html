@@ -7,6 +7,14 @@
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/alerts.css' %}">
     <link rel="stylesheet" href="{% static 'css/crear.repartidor.css' %}">
+    <style>
+        .campo-error { border-color: #dc2626 !important; }
+        .msg-error {
+            color: #dc2626; font-size: 11px; margin-top: 3px;
+            display: none;
+        }
+        .msg-error.visible { display: block; }
+    </style>
 </head>
 <body>
 
@@ -22,74 +30,111 @@
     </div>
 
     {% if messages %}
+    <div id="alerts-container">
         {% for message in messages %}
-            <div class="alert">{{ message }}</div>
+            <div class="alerta {% if message.tags %}alerta--{{ message.tags }}{% endif %}">
+                {{ message }}
+                <button class="alerta-close" onclick="this.parentElement.style.display='none';">&times;</button>
+            </div>
         {% endfor %}
+    </div>
     {% endif %}
 
-    <form method="POST" class="login-form">
+    <form method="POST" class="login-form" id="form-repartidor" novalidate>
         {% csrf_token %}
 
         <div>
             <label>Nombre Completo</label>
-            <input type="text" name="first_name" placeholder="Ej: Juan Pérez" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+">
+            <input type="text" name="first_name" id="first_name"
+                   placeholder="Ej: Juan Pérez"
+                   minlength="3" maxlength="60" required>
+            <span class="msg-error" id="err-first_name"></span>
         </div>
 
         <div>
             <label>Tipo de Identificación</label>
-            <select name="tipo_documento" required>
+            <select name="tipo_documento" id="tipo_documento" required>
                 <option value="">Seleccione</option>
                 <option value="CC">Cédula de ciudadanía</option>
                 <option value="TI">Tarjeta de identidad</option>
                 <option value="CE">Cédula de extranjería</option>
                 <option value="PAS">Pasaporte</option>
             </select>
+            <span class="msg-error" id="err-tipo_documento">Selecciona un tipo de identificación.</span>
         </div>
 
         <div>
             <label>Número de Identificación</label>
-            <input type="text" name="cedula" placeholder="Ej: 12345678" inputmode="numeric" pattern="[0-9]+" required>
+            <input type="text" name="cedula" id="cedula"
+                   inputmode="numeric" pattern="[0-9]+"
+                   placeholder="Ej: 12345678"
+                   minlength="6" maxlength="15" required>
+            <span class="msg-error" id="err-cedula"></span>
         </div>
 
         <div>
             <label>Correo Electrónico</label>
-            <input type="email" name="email" placeholder="correo@ejemplo.com" required>
+            <input type="email" name="email" id="email"
+                   placeholder="correo@ejemplo.com"
+                   maxlength="150" required>
+            <span class="msg-error" id="err-email">Ingresa un correo válido.</span>
         </div>
 
         <div>
             <label>Usuario</label>
-            <input type="text" name="username" placeholder="nombre_usuario" required autocomplete="off">
+            <input type="text" name="username" id="username"
+                   placeholder="nombre_usuario"
+                   minlength="4" maxlength="30"
+                   pattern="[A-Za-z0-9_]+"
+                   required autocomplete="off">
+            <span class="msg-error" id="err-username"></span>
+            <small style="font-size:11px;color:#888;">4–30 caracteres, solo letras, números y guión bajo.</small>
         </div>
 
         <div>
             <label>Teléfono</label>
-            <input type="text" name="telefono" placeholder="3001234567" inputmode="numeric" pattern="[0-9]{10,}" minlength="10" required>
+            <input type="text" name="telefono" id="telefono"
+                   inputmode="numeric" pattern="[0-9]+"
+                   placeholder="3001234567"
+                   minlength="10" maxlength="10" required>
+            <span class="msg-error" id="err-telefono"></span>
         </div>
 
         <div>
             <label>Contraseña</label>
-            <input type="password" name="password" placeholder="Mínimo 8 caracteres" required>
+            <input type="password" name="password" id="password"
+                   placeholder="Mínimo 8 caracteres"
+                   minlength="8" maxlength="64" required>
+            <span class="msg-error" id="err-password"></span>
         </div>
 
         <div>
             <label>Confirmar Contraseña</label>
-            <input type="password" name="confirmar" placeholder="Repite la contraseña" required>
+            <input type="password" name="confirmar" id="confirmar"
+                   placeholder="Repite la contraseña"
+                   minlength="8" maxlength="64" required>
+            <span class="msg-error" id="err-confirmar">Las contraseñas no coinciden.</span>
         </div>
 
         <div>
             <label>Tipo de Vehículo</label>
-            <select name="vehiculo" required>
+            <select name="vehiculo" id="vehiculo" required>
                 <option value="">Seleccione</option>
                 <option value="Moto">Moto</option>
                 <option value="Bicicleta">Bicicleta</option>
                 <option value="Carro">Carro</option>
             </select>
+            <span class="msg-error" id="err-vehiculo">Selecciona un tipo de vehículo.</span>
         </div>
 
         <div>
             <label>Número de Placa</label>
-            <input type="text" name="placa" placeholder="Ej: ABC123" required maxlength="6" pattern="[A-Za-z0-9]{1,6}">
-            <small style="font-size:12px;color:#666;">Máximo 6 caracteres, solo letras y números.</small>
+            <input type="text" name="placa" id="placa"
+                   placeholder="Ej: ABC123"
+                   minlength="1" maxlength="6"
+                   pattern="[A-Za-z0-9]{1,6}" required>
+            <span class="msg-error" id="err-placa"></span>
+            <small style="font-size:11px;color:#888;">Máximo 6 caracteres, solo letras y números.</small>
         </div>
 
         <button type="submit" class="btn-login">Registrarse como Repartidor</button>
@@ -101,6 +146,127 @@
 
     </form>
 </div>
+
+<script>
+/* Filtros de entrada */
+document.getElementById('first_name').addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '');
+});
+['cedula', 'telefono'].forEach(function(id) {
+    document.getElementById(id).addEventListener('input', function() {
+        this.value = this.value.replace(/[^0-9]/g, '');
+    });
+});
+document.getElementById('username').addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-z0-9_]/g, '');
+});
+document.getElementById('placa').addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+});
+
+function mostrarError(id, msg) {
+    var input = document.getElementById(id);
+    var span  = document.getElementById('err-' + id);
+    if (!input || !span) return;
+    input.classList.add('campo-error');
+    span.textContent = msg;
+    span.classList.add('visible');
+}
+
+function limpiarError(id) {
+    var input = document.getElementById(id);
+    var span  = document.getElementById('err-' + id);
+    if (!input || !span) return;
+    input.classList.remove('campo-error');
+    span.classList.remove('visible');
+}
+
+document.getElementById('form-repartidor').addEventListener('submit', function(e) {
+    var ok = true;
+
+    /* Nombre */
+    var nombre = document.getElementById('first_name').value.trim();
+    if (!nombre) {
+        mostrarError('first_name', 'El nombre completo es obligatorio.'); ok = false;
+    } else if (nombre.length < 3) {
+        mostrarError('first_name', 'El nombre debe tener al menos 3 caracteres.'); ok = false;
+    } else if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/.test(nombre)) {
+        mostrarError('first_name', 'Solo letras y espacios.'); ok = false;
+    } else { limpiarError('first_name'); }
+
+    /* Tipo de documento */
+    var tipoDoc = document.getElementById('tipo_documento').value;
+    if (!tipoDoc) { mostrarError('tipo_documento', 'Selecciona un tipo de identificación.'); ok = false; }
+    else { limpiarError('tipo_documento'); }
+
+    /* Cédula */
+    var cedula = document.getElementById('cedula').value.trim();
+    if (!cedula || !/^[0-9]+$/.test(cedula)) {
+        mostrarError('cedula', 'La cédula solo puede contener números.'); ok = false;
+    } else if (cedula.length < 6) {
+        mostrarError('cedula', 'Mínimo 6 dígitos.'); ok = false;
+    } else if (cedula.length > 15) {
+        mostrarError('cedula', 'Máximo 15 dígitos.'); ok = false;
+    } else { limpiarError('cedula'); }
+
+    /* Email */
+    var email = document.getElementById('email').value.trim();
+    if (!email) {
+        mostrarError('email', 'El correo es obligatorio.'); ok = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        mostrarError('email', 'Ingresa un correo válido.'); ok = false;
+    } else { limpiarError('email'); }
+
+    /* Usuario */
+    var user = document.getElementById('username').value.trim();
+    if (!user) {
+        mostrarError('username', 'El usuario es obligatorio.'); ok = false;
+    } else if (user.length < 4) {
+        mostrarError('username', 'Mínimo 4 caracteres.'); ok = false;
+    } else if (user.length > 30) {
+        mostrarError('username', 'Máximo 30 caracteres.'); ok = false;
+    } else if (!/^[A-Za-z0-9_]+$/.test(user)) {
+        mostrarError('username', 'Solo letras, números y guión bajo ( _ ).'); ok = false;
+    } else { limpiarError('username'); }
+
+    /* Teléfono */
+    var tel = document.getElementById('telefono').value.trim();
+    if (!tel || !/^[0-9]+$/.test(tel)) {
+        mostrarError('telefono', 'Solo se permiten números.'); ok = false;
+    } else if (tel.length !== 10) {
+        mostrarError('telefono', 'El teléfono debe tener exactamente 10 dígitos.'); ok = false;
+    } else { limpiarError('telefono'); }
+
+    /* Contraseña */
+    var pwd = document.getElementById('password').value;
+    if (pwd.length < 8) {
+        mostrarError('password', 'Mínimo 8 caracteres.'); ok = false;
+    } else if (pwd.length > 64) {
+        mostrarError('password', 'Máximo 64 caracteres.'); ok = false;
+    } else { limpiarError('password'); }
+
+    /* Confirmar contraseña */
+    var pwd2 = document.getElementById('confirmar').value;
+    if (!pwd2 || pwd2 !== pwd) {
+        mostrarError('confirmar', 'Las contraseñas no coinciden.'); ok = false;
+    } else { limpiarError('confirmar'); }
+
+    /* Vehículo */
+    var vehiculo = document.getElementById('vehiculo').value;
+    if (!vehiculo) { mostrarError('vehiculo', 'Selecciona un tipo de vehículo.'); ok = false; }
+    else { limpiarError('vehiculo'); }
+
+    /* Placa */
+    var placa = document.getElementById('placa').value.trim();
+    if (!placa) {
+        mostrarError('placa', 'La placa es obligatoria.'); ok = false;
+    } else if (!/^[A-Za-z0-9]{1,6}$/.test(placa)) {
+        mostrarError('placa', 'Máximo 6 caracteres, solo letras y números.'); ok = false;
+    } else { limpiarError('placa'); }
+
+    if (!ok) e.preventDefault();
+});
+</script>
 
 </body>
 </html>

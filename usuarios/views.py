@@ -126,24 +126,36 @@ def registro_cliente(request):
             messages.error(request, 'Todos los campos son obligatorios.')
             return redirect('registro')
 
-        if not telefono.isdigit() or len(telefono) < 10:
-            messages.error(request, 'El teléfono debe contener solo números y mínimo 10 dígitos.')
-            return redirect('registro')
-
-        if not cedula.isdigit() or len(cedula) < 8:
-            messages.error(request, 'La cédula debe contener solo números y mínimo 8 dígitos.')
-            return redirect('registro')
-
-        if tipo_documento not in ['CC', 'TI', 'CE', 'PAS']:
-            messages.error(request, 'Selecciona un tipo de identificación válido.')
+        if len(first_name) < 3 or len(first_name) > 60:
+            messages.error(request, 'El nombre debe tener entre 3 y 60 caracteres.')
             return redirect('registro')
 
         if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$', first_name):
             messages.error(request, 'El nombre completo solo puede contener letras y espacios.')
             return redirect('registro')
 
-        if len(password) < 8:
-            messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
+        if tipo_documento not in ['CC', 'TI', 'CE', 'PAS']:
+            messages.error(request, 'Selecciona un tipo de identificación válido.')
+            return redirect('registro')
+
+        if not cedula.isdigit() or len(cedula) < 6 or len(cedula) > 15:
+            messages.error(request, 'La cédula debe contener solo números (6–15 dígitos).')
+            return redirect('registro')
+
+        if not telefono.isdigit() or len(telefono) != 10:
+            messages.error(request, 'El teléfono debe contener exactamente 10 dígitos.')
+            return redirect('registro')
+
+        if len(username) < 4 or len(username) > 30:
+            messages.error(request, 'El usuario debe tener entre 4 y 30 caracteres.')
+            return redirect('registro')
+
+        if not re.match(r'^[A-Za-z0-9_]+$', username):
+            messages.error(request, 'El usuario solo puede tener letras, números y guión bajo.')
+            return redirect('registro')
+
+        if len(password) < 8 or len(password) > 64:
+            messages.error(request, 'La contraseña debe tener entre 8 y 64 caracteres.')
             return redirect('registro')
 
         if password != confirmar_password:
@@ -191,28 +203,52 @@ def crear_repartidor(request):
         vehiculo     = request.POST.get('vehiculo', '').strip()
         placa        = request.POST.get('placa', '').strip()
 
-        if password != confirmar:
-            messages.error(request, 'Las contraseñas no coinciden.')
+        if not all([first_name, email, username, password, confirmar, telefono, tipo_doc, cedula, vehiculo, placa]):
+            messages.error(request, 'Todos los campos son obligatorios.')
             return redirect('crear_repartidor')
 
-        if len(password) < 8:
-            messages.error(request, 'La contraseña debe tener al menos 8 caracteres.')
+        if len(first_name) < 3 or len(first_name) > 60:
+            messages.error(request, 'El nombre debe tener entre 3 y 60 caracteres.')
             return redirect('crear_repartidor')
 
-        if not telefono.isdigit() or len(telefono) < 10:
-            messages.error(request, 'El teléfono debe contener solo números y mínimo 10 dígitos.')
+        if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$', first_name):
+            messages.error(request, 'El nombre completo solo puede contener letras y espacios.')
             return redirect('crear_repartidor')
 
         if tipo_doc not in ['CC', 'TI', 'CE', 'PAS']:
             messages.error(request, 'Selecciona un tipo de identificación válido.')
             return redirect('crear_repartidor')
 
-        if not re.match(r'^[A-Za-z0-9]{1,6}$', placa):
-            messages.error(request, 'La placa debe tener máximo 6 caracteres alfanuméricos.')
+        if not cedula.isdigit() or len(cedula) < 6 or len(cedula) > 15:
+            messages.error(request, 'La cédula debe contener solo números (6–15 dígitos).')
             return redirect('crear_repartidor')
 
-        if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$', first_name):
-            messages.error(request, 'El nombre completo solo puede contener letras y espacios.')
+        if not telefono.isdigit() or len(telefono) != 10:
+            messages.error(request, 'El teléfono debe contener exactamente 10 dígitos.')
+            return redirect('crear_repartidor')
+
+        if len(username) < 4 or len(username) > 30:
+            messages.error(request, 'El usuario debe tener entre 4 y 30 caracteres.')
+            return redirect('crear_repartidor')
+
+        if not re.match(r'^[A-Za-z0-9_]+$', username):
+            messages.error(request, 'El usuario solo puede tener letras, números y guión bajo.')
+            return redirect('crear_repartidor')
+
+        if len(password) < 8 or len(password) > 64:
+            messages.error(request, 'La contraseña debe tener entre 8 y 64 caracteres.')
+            return redirect('crear_repartidor')
+
+        if password != confirmar:
+            messages.error(request, 'Las contraseñas no coinciden.')
+            return redirect('crear_repartidor')
+
+        if vehiculo not in ['Moto', 'Bicicleta', 'Carro']:
+            messages.error(request, 'Selecciona un tipo de vehículo válido.')
+            return redirect('crear_repartidor')
+
+        if not re.match(r'^[A-Za-z0-9]{1,6}$', placa):
+            messages.error(request, 'La placa debe tener máximo 6 caracteres alfanuméricos.')
             return redirect('crear_repartidor')
 
         if Usuario.objects.filter(username=username).exists():
@@ -221,6 +257,10 @@ def crear_repartidor(request):
 
         if Usuario.objects.filter(email=email).exists():
             messages.error(request, 'Ese correo ya está registrado.')
+            return redirect('crear_repartidor')
+
+        if cedula and Usuario.objects.filter(cedula=cedula).exists():
+            messages.error(request, 'Esa cédula ya está registrada.')
             return redirect('crear_repartidor')
 
         # Crear usuario inactivo (pendiente de aprobación)
@@ -287,6 +327,13 @@ def crear_repartidor(request):
     return render(request, 'crear-repartidor.html', {})
 
 def crear_admin(request):
+    admin_existe = Usuario.objects.filter(rol='ADMIN').exists()
+    rol_sesion = request.session.get('rol')
+
+    # Si ya hay admins, solo puede entrar alguien logueado como ADMIN
+    if admin_existe and rol_sesion != 'ADMIN':
+        return redirect('sinacceso')
+
     if request.method == "POST":
         usuario_val    = request.POST.get("usuario", "").strip()
         correo         = request.POST.get("correo", "").strip()
@@ -1178,43 +1225,60 @@ def sugerencias(request):
     usuario_id = request.session.get('usuario_id')
     usuario = get_object_or_404(Usuario, id=usuario_id)
     nombre = usuario.first_name or usuario.username
+    correo = usuario.email or ''
 
     if request.method == 'POST':
         try:
             texto         = request.POST.get('texto', '').strip()
             sugerencia_id = request.POST.get('sugerencia_id')
 
-            if sugerencia_id:
-                sug = get_object_or_404(SugerenciaInventario, id=sugerencia_id)
-                RespuestaSugerencia.objects.create(
-                    sugerencia = sug,
-                    mensaje    = texto,
-                    es_admin   = False
-                )
-                return JsonResponse({'ok': True, 'mensaje': texto})
-
             if not texto:
                 return JsonResponse({'ok': False, 'error': 'Mensaje vacío'})
 
-            sug_existente = SugerenciaInventario.objects.filter(nombre=nombre).first()
+            # Si ya tenemos el hilo, solo agregar respuesta
+            if sugerencia_id:
+                sug = get_object_or_404(SugerenciaInventario, id=sugerencia_id)
+                RespuestaSugerencia.objects.create(
+                    sugerencia=sug,
+                    mensaje=texto,
+                    es_admin=False
+                )
+                return JsonResponse({'ok': True, 'mensaje': texto})
+
+            # Buscar hilo existente por correo (único) o por nombre como fallback
+            sug_existente = (
+                SugerenciaInventario.objects.filter(correo=correo).first()
+                if correo else
+                SugerenciaInventario.objects.filter(nombre=nombre).first()
+            )
+
             if sug_existente:
                 RespuestaSugerencia.objects.create(
-                    sugerencia = sug_existente,
-                    mensaje    = texto,
-                    es_admin   = False
+                    sugerencia=sug_existente,
+                    mensaje=texto,
+                    es_admin=False
                 )
                 return JsonResponse({'ok': True, 'sugerencia_id': sug_existente.id})
             else:
-                nueva = SugerenciaInventario.objects.create(nombre=nombre, mensaje=texto)
+                nueva = SugerenciaInventario.objects.create(
+                    nombre=nombre,
+                    correo=correo,
+                    mensaje=texto
+                )
                 return JsonResponse({'ok': True, 'sugerencia_id': nueva.id})
 
         except Exception as e:
             return JsonResponse({'ok': False, 'error': str(e)}, status=200)
 
-    
-    mi_sugerencia = SugerenciaInventario.objects.filter(
-        nombre=nombre
-    ).order_by('-fecha').first()
+    # Buscar el hilo del usuario por correo primero, luego por nombre
+    mi_sugerencia = (
+        SugerenciaInventario.objects.filter(correo=correo).order_by('-fecha').first()
+        if correo else None
+    )
+    if not mi_sugerencia:
+        mi_sugerencia = SugerenciaInventario.objects.filter(
+            nombre=nombre
+        ).order_by('-fecha').first()
 
     return render(request, 'sugerencias.html', {
         'mi_sugerencia': mi_sugerencia,
@@ -1229,41 +1293,42 @@ def panel_sugerencias(request):
 
 def restablecer_password(request):
     if request.method == 'POST':
-        email = request.POST.get('email')
+        email = request.POST.get('email', '').strip().lower()
         if not email:
             messages.error(request, "Debes ingresar un correo.")
             return redirect('restablecer')
 
-        usuario = Usuario.objects.filter(email__iexact=email.strip().lower()).first()
-        if usuario:
-            token = str(uuid.uuid4())
-            usuario.token_recuperacion = token
-            usuario.save()
-            enlace = f"http://127.0.0.1:8000/nueva_contrasena/{token}/"
+        usuario = Usuario.objects.filter(email__iexact=email).first()
+
+        if not usuario:
+            # No revelar si el correo existe o no (seguridad)
+            messages.success(request, "Si ese correo está registrado, recibirás un enlace para restablecer tu contraseña.")
+            return redirect('restablecer')
+
+        # Generar token y guardarlo
+        token = str(uuid.uuid4())
+        usuario.token_recuperacion = token
+        usuario.save()
+
+        enlace = request.build_absolute_uri(f"/nueva_contrasena/{token}/")
+
         cuerpo = f"""
 <html>
   <body style="font-family:Arial,sans-serif; background:#f5f5f5; padding:20px;">
     <div style="max-width:600px; margin:auto; border-radius:10px; overflow:hidden;
                 box-shadow:0 4px 12px rgba(0,0,0,0.1);">
-
-      <!-- Encabezado con fondo deportivo -->
-      <div style="background-image:url('https://upload.wikimedia.org/wikipedia/commons/5/51/Football_pitch.jpg');
-                  background-size:cover; background-position:center; padding:30px; text-align:center; color:#fff;">
-        <img src="https://tuservidor.com/static/images/pelota-futbol.png"
-            alt="Balón" width="70" style="margin-bottom:10px;">
+      <div style="background:#c40000; padding:30px; text-align:center; color:#fff;">
         <h2 style="margin:0;">Recuperar Contraseña</h2>
-        <p style="margin:0;">Deportes360</p>
+        <p style="margin:0;">Deportes 360</p>
       </div>
-
-      <!-- Contenido -->
       <div style="background:#fff; padding:30px; text-align:center;">
         <p style="font-size:16px; color:#333;">
-          Hola <strong>{usuario.first_name or 'Jugador'}</strong>,
+          Hola <strong>{usuario.first_name or 'usuario'}</strong>,
         </p>
         <p style="font-size:15px; color:#555;">
-          Haz clic en el botón para restablecer tu contraseña y volver al a iniar sesion:
+          Haz clic en el botón para restablecer tu contraseña:
         </p>
-        <a href="{enlace}" style="display:inline-block; background:#3b82f6; color:#fff;
+        <a href="{enlace}" style="display:inline-block; background:#c40000; color:#fff;
            padding:14px 28px; border-radius:6px; text-decoration:none; font-weight:bold;
            margin-top:20px;">Restablecer Contraseña</a>
         <p style="margin-top:25px; font-size:12px; color:#999;">
@@ -1275,18 +1340,19 @@ def restablecer_password(request):
 </html>
 """
 
-
-
-        correo = EmailMessage(
-                subject="Recuperación de contraseña",
+        try:
+            correo = EmailMessage(
+                subject="Recuperación de contraseña - Deportes 360",
                 body=cuerpo,
                 from_email="juancerquera104@gmail.com",
                 to=[usuario.email],
             )
-        correo.content_subtype = "html"
-        correo.send(fail_silently=False)
+            correo.content_subtype = "html"
+            correo.send(fail_silently=False)
+            messages.success(request, "Correo enviado. Revisa tu bandeja de entrada.")
+        except Exception:
+            messages.error(request, "No se pudo enviar el correo. Intenta de nuevo más tarde.")
 
-        messages.success(request, "El correo se envió exitosamente.")
         return redirect('restablecer')
     return render(request, 'restablecer.html')
 

@@ -1,12 +1,14 @@
 /* FONDO */
 body {
     margin: 0;
+    padding: 20px;
     font-family: 'Segoe UI', sans-serif;
-    height: 100vh;
+    min-height: 100vh;
     background: linear-gradient(135deg, #f8f9fa, #f9f9fa, #f4f5f6);
     display: flex;
     justify-content: center;
     align-items: center;
+    box-sizing: border-box;
 }
 
 /* CONTENEDOR */
@@ -18,7 +20,8 @@ body {
 
 /* TARJETA */
 .card {
-    width: 380px;
+    width: 100%;
+    max-width: 380px;
     padding: 40px;
     border-radius: 20px;
     background: rgba(255,255,255,0.95);
@@ -26,6 +29,7 @@ body {
     text-align: center;
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     animation: fadeIn 0.7s ease;
+    box-sizing: border-box;
 }
 
 /* LOGO */
@@ -59,6 +63,7 @@ h2 {
     border: 1px solid #ccc;
     outline: none;
     font-size: 14px;
+    box-sizing: border-box;
 }
 
 .input-group label {

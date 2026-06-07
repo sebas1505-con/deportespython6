@@ -1,23 +1,25 @@
 body {
   margin: 0;
-  padding: 0;
+  padding: 20px;
   font-family: Arial, sans-serif;
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
-  color: #fff; /* ✅ texto blanco por defecto */
+  min-height: 100vh;
+  color: #fff;
+  box-sizing: border-box;
 }
 
 .login-container {
-  background: rgba(0, 0, 0, 0.6); /* ✅ más oscuro para contraste */
+  background: rgba(0, 0, 0, 0.6);
   padding: 30px;
   border-radius: 15px;
   box-shadow: 0 4px 25px rgba(0,0,0,0.5);
   max-width: 350px;
   width: 100%;
   text-align: center;
-  color: #fff; /* ✅ texto blanco dentro del contenedor */
+  color: #fff;
+  box-sizing: border-box;
 }
 
 .logo {
@@ -52,6 +54,8 @@ label {
   border-radius: 8px;
   outline: none;
   font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .btn-login {
@@ -142,15 +146,11 @@ label {
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
   body {
-    align-items: center;
-    padding: 20px 0;
-    height: auto;
-    min-height: 100vh;
+    padding: 16px;
   }
 
   .login-container {
     padding: 24px 18px;
-    margin: 0 16px;
     max-width: 100%;
   }
 

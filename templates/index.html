@@ -22,6 +22,7 @@
             </label>
             <nav class="navbar">
                 <ul>
+                    <li><a href="{% url 'index' %}">Inicio</a></li>
                     <li><a href="{% url 'quienes' %}">Quiénes Somos</a></li>
                     <li><a href="{% url 'contacto' %}">Contacto</a></li>
                     <li><a href="{% url 'catalogoindex' %}">Catálogo</a></li>
@@ -35,32 +36,38 @@
 
 <section class="carousel">
     <div class="carousel-track">
-        <div class="carousel-slide">
+        <div class="carousel-slide slide--red">
+            <div class="slide-img">
+                <img src="{% static 'images/deporte-portada.png' %}" alt="Colección deportiva" />
+            </div>
             <div class="slide-content">
-                <span>Nueva Colección</span>
+                <span class="slide-tag">Nueva Colección</span>
                 <h2>Encuentra tu estilo deportivo</h2>
                 <p>Prendas cómodas y modernas para entrenar, correr o disfrutar tu día con confianza.</p>
                 <a href="{% url 'catalogoindex' %}" class="btn-2">Ver catálogo</a>
             </div>
-            <img src="{% static 'images/deporte-portada.png' %}" alt="Colección deportiva" />
         </div>
-        <div class="carousel-slide">
+        <div class="carousel-slide slide--blue">
+            <div class="slide-img">
+                <img src="{% static 'images/camiseta3.png' %}" alt="Ropa deportiva" />
+            </div>
             <div class="slide-content">
-                <span>Envíos a todo el país</span>
+                <span class="slide-tag">Envíos a todo el país</span>
                 <h2>Compra fácil y recibe rápido</h2>
                 <p>Envíos seguros y cambios sin complicaciones para todas tus compras deportivas.</p>
                 <a href="{% url 'catalogoindex' %}" class="btn-2">Comprar ahora</a>
             </div>
-            <img src="{% static 'images/camiseta3.png' %}" alt="Ropa deportiva" />
         </div>
-        <div class="carousel-slide">
+        <div class="carousel-slide slide--dark">
+            <div class="slide-img">
+                <img src="{% static 'images/buzo-hombre.png' %}" alt="Ofertas deportivas" />
+            </div>
             <div class="slide-content">
-                <span>Ofertas destacadas</span>
+                <span class="slide-tag">Ofertas destacadas</span>
                 <h2>Lo mejor en ropa deportiva</h2>
                 <p>Descubre ofertas especiales en zapatillas, ropa y accesorios para tu entrenamiento.</p>
                 <a href="{% url 'catalogoindex' %}" class="btn-2">Ver ofertas</a>
             </div>
-            <img src="{% static 'images/buzo-hombre.png' %}" alt="Ofertas deportivas" />
         </div>
     </div>
     <div class="carousel-controls">
@@ -313,6 +320,17 @@
     });
 
     slideInterval = setInterval(showNextSlide, 5000);
+
+    // Swipe táctil en el carrusel
+    let touchStartX = 0;
+    track.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', e => {
+        const diff = touchStartX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) {
+            diff > 0 ? showNextSlide() : updateCarousel((currentIndex - 1 + slides.length) % slides.length);
+            resetInterval();
+        }
+    });
 
     // Testimonials carousel - 3 visible, auto-advances
     const tCarousel = document.querySelector('.testimonials-carousel');

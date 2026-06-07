@@ -21,7 +21,6 @@ import os
 import pandas as pd
 import json
 from decimal import Decimal
-import pytz
 
 # ── Catálogo y productos ──────────────────────────────────────────────────────
 
@@ -442,7 +441,7 @@ def agregar_al_carrito(request, producto_id):
     producto = Producto.objects.get(id=producto_id)
     if request.method == 'POST':
         talla = request.POST.get('talla')
-        key = f"{id}_{talla}"
+        key = f"{producto_id}_{talla}"
         if key in carrito:
             carrito[key]['cantidad'] += 1
         else:
@@ -616,7 +615,6 @@ def registrar_pse(request):
         usuario = Usuario.objects.get(id=usuario_id)
         cliente = Cliente.objects.get(usuario=usuario)
 
-        # Normalizar el totalVenta
         total_str = request.POST.get("totalVenta", "0").replace(",", ".")
         total_decimal = Decimal(total_str)
 
@@ -631,11 +629,11 @@ def registrar_pse(request):
             observaciones=request.POST.get("observaciones")
         )
 
-        # Crear detalles desde el carrito
         carrito = request.session.get("carrito", {})
         for key, item in carrito.items():
             producto_id = key.split("_")[0]
             producto = Producto.objects.get(id=int(producto_id))
+
             DetalleVentaProductos.objects.create(
                 venta=venta,
                 producto=producto,
@@ -645,9 +643,25 @@ def registrar_pse(request):
                 subtotal=item["precio"] * item["cantidad"]
             )
 
-        # limpiar carrito
-        request.session["carrito"] = {}
+            # Descontar stock de la talla
+            try:
+                talla_obj = TallaProducto.objects.get(producto=producto, talla=item["talla"])
+                talla_obj.stock = max(0, talla_obj.stock - item["cantidad"])
+                talla_obj.save()
+            except TallaProducto.DoesNotExist:
+                pass
 
+            # Crear pedido para repartidor
+            Pedido.objects.create(
+                venta=venta,
+                producto=producto,
+                cantidad=item["cantidad"],
+                total=Decimal(str(item["precio"])) * item["cantidad"],
+                estado="Disponible",
+                usuario=usuario
+            )
+
+        request.session["carrito"] = {}
         return redirect("factura", venta_id=venta.id)
 
 
@@ -695,17 +709,60 @@ def validar_pse(request):
 def confirmar_compra(request):
     if request.method == 'POST':
         compra = request.session.get('compra')
-
         if not compra:
             return redirect('carrito')
 
-        # 👉 AQUÍ puedes guardar la venta en BD (luego lo hacemos pro)
+        usuario_id = request.session.get('usuario_id')
+        usuario = Usuario.objects.get(id=usuario_id)
+        cliente = Cliente.objects.filter(usuario=usuario).first()
+        if not cliente:
+            cliente = Cliente.objects.create(usuario=usuario, direccion='')
 
-        # limpiar carrito
+        carrito = compra.get('carrito', {})
+
+        venta = Venta.objects.create(
+            cliente=cliente,
+            cantProducto=compra['cantidad_total'],
+            metodoEnvio=compra['metodo_envio'],
+            totalVenta=compra['total_venta'],
+            metodo_de_pago=compra['metodo_pago'],
+            direccionEnvio=compra['direccion_envio'],
+            telefonoContacto=compra['telefono_contacto'],
+            observaciones=compra.get('observaciones', '')
+        )
+
+        for key, item in carrito.items():
+            producto_id = key.split('_')[0]
+            producto = Producto.objects.get(id=int(producto_id))
+
+            DetalleVentaProductos.objects.create(
+                venta=venta,
+                producto=producto,
+                talla=item['talla'],
+                cantidad=item['cantidad'],
+                precio_unitario=item['precio'],
+                subtotal=item['precio'] * item['cantidad']
+            )
+
+            try:
+                talla_obj = TallaProducto.objects.get(producto=producto, talla=item['talla'])
+                talla_obj.stock = max(0, talla_obj.stock - item['cantidad'])
+                talla_obj.save()
+            except TallaProducto.DoesNotExist:
+                pass
+
+            Pedido.objects.create(
+                venta=venta,
+                producto=producto,
+                cantidad=item['cantidad'],
+                total=Decimal(str(item['precio'])) * item['cantidad'],
+                estado='Disponible',
+                usuario=usuario
+            )
+
         request.session['carrito'] = {}
         request.session['compra'] = {}
-
-        return redirect('carrito')  # o donde quieras
+        return redirect('factura', venta_id=venta.id)
 
     return redirect('carrito')
 
@@ -898,44 +955,36 @@ def responder_sugerencia(request, sugerencia_id):
     return JsonResponse({'ok': False})
 
 def sugerencia_respuestas(request, sugerencia_id):
-    
-    bogota = pytz.timezone('America/Bogota')
     sug = get_object_or_404(Sugerencia, id=sugerencia_id)
-    
+
     respuestas = []
     for r in sug.respuestas.all():
-        fecha_bogota = r.fecha.astimezone(bogota)
         respuestas.append({
             'mensaje':  r.mensaje,
             'es_admin': r.es_admin,
-            'hora':     fecha_bogota.strftime('%d/%m/%Y %H:%M'),
+            'hora':     r.fecha.strftime('%d/%m/%Y %H:%M'),
         })
-    
-    fecha_sug = sug.fecha.astimezone(bogota)
+
     return JsonResponse({
         'ok':         True,
         'nombre':     sug.nombre or 'Anónimo',
         'texto':      sug.mensaje,
-        'fecha':      fecha_sug.strftime('%d/%m/%Y %H:%M'),
+        'fecha':      sug.fecha.strftime('%d/%m/%Y %H:%M'),
         'respuestas': respuestas,
     })
 
 def sugerencias_lista(request):
-    import pytz
-    bogota = pytz.timezone('America/Bogota')
     sugerencias = Sugerencia.objects.all().order_by('-fecha')
     data = []
     for s in sugerencias:
-        fecha_bogota = s.fecha.astimezone(bogota)
         ultima = s.respuestas.order_by('-fecha').first()
-        last_msg   = ultima.mensaje if ultima else s.mensaje
-        last_fecha = ultima.fecha.astimezone(bogota).strftime('%d/%m/%Y %H:%M') if ultima else fecha_bogota.strftime('%d/%m/%Y %H:%M')
+        last_msg = ultima.mensaje if ultima else s.mensaje
         data.append({
             'id':      s.id,
             'nombre':  s.nombre or 'Anónimo',
             'texto':   s.mensaje,
             'preview': (last_msg or '')[:60],
-            'fecha':   fecha_bogota.strftime('%d/%m/%Y %H:%M'),
+            'fecha':   s.fecha.strftime('%d/%m/%Y %H:%M'),
         })
     return JsonResponse({'sugerencias': data})
 

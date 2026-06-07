@@ -43,8 +43,10 @@
 
         <div>
             <label>Nombre Completo</label>
-            <input type="text" name="first_name" id="first_name" placeholder="Ej: Juan Pérez" required>
-            <span class="msg-error" id="err-first_name">El nombre solo puede contener letras y espacios.</span>
+            <input type="text" name="first_name" id="first_name"
+                   placeholder="Ej: Juan Pérez"
+                   minlength="3" maxlength="60" required>
+            <span class="msg-error" id="err-first_name"></span>
         </div>
 
         <div>
@@ -63,41 +65,52 @@
             <label>Número de Identificación</label>
             <input type="text" name="cedula" id="cedula"
                    inputmode="numeric" pattern="[0-9]+"
-                   placeholder="Ej: 12345678" required minlength="8">
-            <span class="msg-error" id="err-cedula">Solo números, mínimo 8 dígitos.</span>
+                   placeholder="Ej: 12345678"
+                   minlength="6" maxlength="15" required>
+            <span class="msg-error" id="err-cedula"></span>
         </div>
 
         <div>
             <label>Correo Electrónico</label>
-            <input type="email" name="email" id="email" placeholder="correo@ejemplo.com" required>
+            <input type="email" name="email" id="email"
+                   placeholder="correo@ejemplo.com"
+                   maxlength="150" required>
             <span class="msg-error" id="err-email">Ingresa un correo válido.</span>
         </div>
 
         <div>
             <label>Usuario</label>
-            <input type="text" name="username" id="username" placeholder="nombre_usuario" required autocomplete="off">
-            <span class="msg-error" id="err-username">El usuario es obligatorio.</span>
+            <input type="text" name="username" id="username"
+                   placeholder="nombre_usuario"
+                   minlength="4" maxlength="30"
+                   pattern="[A-Za-z0-9_]+"
+                   required autocomplete="off">
+            <span class="msg-error" id="err-username"></span>
+            <small style="font-size:11px;color:#888;">4–30 caracteres, solo letras, números y guión bajo.</small>
         </div>
 
         <div>
             <label>Teléfono</label>
             <input type="text" name="telefono" id="telefono"
-                   inputmode="numeric" pattern="[0-9]{10,}"
-                   placeholder="3001234567" required minlength="10">
-            <span class="msg-error" id="err-telefono">Solo números, mínimo 10 dígitos.</span>
+                   inputmode="numeric" pattern="[0-9]+"
+                   placeholder="3001234567"
+                   minlength="10" maxlength="10" required>
+            <span class="msg-error" id="err-telefono"></span>
         </div>
 
         <div>
             <label>Contraseña</label>
             <input type="password" name="password" id="password"
-                   placeholder="Mínimo 8 caracteres" required minlength="8">
-            <span class="msg-error" id="err-password">Mínimo 8 caracteres.</span>
+                   placeholder="Mínimo 8 caracteres"
+                   minlength="8" maxlength="64" required>
+            <span class="msg-error" id="err-password"></span>
         </div>
 
         <div>
             <label>Confirmar Contraseña</label>
             <input type="password" name="confirmar_password" id="confirmar_password"
-                   placeholder="Repite la contraseña" required minlength="8">
+                   placeholder="Repite la contraseña"
+                   minlength="8" maxlength="64" required>
             <span class="msg-error" id="err-confirmar_password">Las contraseñas no coinciden.</span>
         </div>
 
@@ -112,7 +125,7 @@
 </div>
 
 <script>
-/* Solo permitir letras y espacios en el nombre completo y dígitos en cédula y teléfono */
+/* Filtros de entrada: solo letras/espacios en nombre, solo dígitos en cédula y teléfono */
 document.getElementById('first_name').addEventListener('input', function() {
     this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '');
 });
@@ -121,18 +134,23 @@ document.getElementById('first_name').addEventListener('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
     });
 });
+document.getElementById('username').addEventListener('input', function() {
+    this.value = this.value.replace(/[^A-Za-z0-9_]/g, '');
+});
 
 function mostrarError(id, msg) {
     var input = document.getElementById(id);
     var span  = document.getElementById('err-' + id);
+    if (!input || !span) return;
     input.classList.add('campo-error');
-    if (msg) span.textContent = msg;
+    span.textContent = msg;
     span.classList.add('visible');
 }
 
 function limpiarError(id) {
     var input = document.getElementById(id);
     var span  = document.getElementById('err-' + id);
+    if (!input || !span) return;
     input.classList.remove('campo-error');
     span.classList.remove('visible');
 }
@@ -140,54 +158,72 @@ function limpiarError(id) {
 document.getElementById('form-registro').addEventListener('submit', function(e) {
     var ok = true;
 
-    /* Campos obligatorios simples */
-    ['first_name', 'tipo_documento', 'email', 'username'].forEach(function(id) {
-        var val = document.getElementById(id).value.trim();
-        if (!val) { mostrarError(id); ok = false; }
-        else limpiarError(id);
-    });
+    /* Nombre completo */
+    var nombre = document.getElementById('first_name').value.trim();
+    if (!nombre) {
+        mostrarError('first_name', 'El nombre completo es obligatorio.'); ok = false;
+    } else if (nombre.length < 3) {
+        mostrarError('first_name', 'El nombre debe tener al menos 3 caracteres.'); ok = false;
+    } else if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/.test(nombre)) {
+        mostrarError('first_name', 'Solo letras y espacios.'); ok = false;
+    } else { limpiarError('first_name'); }
 
-    /* Nombre completo solo letras y espacios */
-    var nameVal = document.getElementById('first_name').value.trim();
-    if (nameVal && !/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/.test(nameVal)) {
-        mostrarError('first_name', 'El nombre solo puede contener letras y espacios.');
-        ok = false;
-    }
+    /* Tipo de documento */
+    var tipoDoc = document.getElementById('tipo_documento').value;
+    if (!tipoDoc) { mostrarError('tipo_documento', 'Selecciona un tipo de identificación.'); ok = false; }
+    else { limpiarError('tipo_documento'); }
 
-    /* Email válido */
-    var emailVal = document.getElementById('email').value.trim();
-    if (emailVal && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
-        mostrarError('email', 'Ingresa un correo válido.');
-        ok = false;
-    }
-
-    /* Cédula: solo números, mínimo 8 */
+    /* Cédula */
     var cedula = document.getElementById('cedula').value.trim();
-    if (!cedula || !/^[0-9]+$/.test(cedula) || cedula.length < 8) {
-        mostrarError('cedula', 'Solo números, mínimo 8 dígitos.');
-        ok = false;
-    } else limpiarError('cedula');
+    if (!cedula || !/^[0-9]+$/.test(cedula)) {
+        mostrarError('cedula', 'La cédula solo puede contener números.'); ok = false;
+    } else if (cedula.length < 6) {
+        mostrarError('cedula', 'Mínimo 6 dígitos.'); ok = false;
+    } else if (cedula.length > 15) {
+        mostrarError('cedula', 'Máximo 15 dígitos.'); ok = false;
+    } else { limpiarError('cedula'); }
 
-    /* Teléfono: solo números, mínimo 10 */
+    /* Email */
+    var email = document.getElementById('email').value.trim();
+    if (!email) {
+        mostrarError('email', 'El correo es obligatorio.'); ok = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        mostrarError('email', 'Ingresa un correo válido.'); ok = false;
+    } else { limpiarError('email'); }
+
+    /* Usuario */
+    var user = document.getElementById('username').value.trim();
+    if (!user) {
+        mostrarError('username', 'El usuario es obligatorio.'); ok = false;
+    } else if (user.length < 4) {
+        mostrarError('username', 'Mínimo 4 caracteres.'); ok = false;
+    } else if (user.length > 30) {
+        mostrarError('username', 'Máximo 30 caracteres.'); ok = false;
+    } else if (!/^[A-Za-z0-9_]+$/.test(user)) {
+        mostrarError('username', 'Solo letras, números y guión bajo ( _ ).'); ok = false;
+    } else { limpiarError('username'); }
+
+    /* Teléfono */
     var tel = document.getElementById('telefono').value.trim();
-    if (!tel || !/^[0-9]+$/.test(tel) || tel.length < 10) {
-        mostrarError('telefono', 'Solo números, mínimo 10 dígitos.');
-        ok = false;
-    } else limpiarError('telefono');
+    if (!tel || !/^[0-9]+$/.test(tel)) {
+        mostrarError('telefono', 'Solo se permiten números.'); ok = false;
+    } else if (tel.length !== 10) {
+        mostrarError('telefono', 'El teléfono debe tener exactamente 10 dígitos.'); ok = false;
+    } else { limpiarError('telefono'); }
 
-    /* Contraseña mínimo 8 */
+    /* Contraseña */
     var pwd = document.getElementById('password').value;
     if (pwd.length < 8) {
-        mostrarError('password', 'Mínimo 8 caracteres.');
-        ok = false;
-    } else limpiarError('password');
+        mostrarError('password', 'Mínimo 8 caracteres.'); ok = false;
+    } else if (pwd.length > 64) {
+        mostrarError('password', 'Máximo 64 caracteres.'); ok = false;
+    } else { limpiarError('password'); }
 
     /* Confirmar contraseña */
     var pwd2 = document.getElementById('confirmar_password').value;
     if (!pwd2 || pwd2 !== pwd) {
-        mostrarError('confirmar_password', 'Las contraseñas no coinciden.');
-        ok = false;
-    } else limpiarError('confirmar_password');
+        mostrarError('confirmar_password', 'Las contraseñas no coinciden.'); ok = false;
+    } else { limpiarError('confirmar_password'); }
 
     if (!ok) e.preventDefault();
 });
