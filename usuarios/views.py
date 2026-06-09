@@ -387,7 +387,8 @@ def crear_admin(request):
             is_superuser=True
         )
         Administrador.objects.create(codigo=codigo, usuario=usuario)
-        return redirect("panel_admin")
+        messages.success(request, "Administrador creado exitosamente.")
+        return redirect("login")
     return render(request, "crear_admin.html")
 
 
@@ -929,6 +930,12 @@ def repartidor(request):
         total=Sum('valor_domicilio')
     )['total'] or 0
 
+    import urllib.parse
+    mensaje_wa = urllib.parse.quote(
+        "¡Hola! Soy el repartidor de Deportes 360. "
+        "Ya voy en camino con su pedido, pronto lo estaré entregando. 🚀"
+    )
+
     return render(request, 'repartidor.html', {
         'Nombre':            usuario.first_name,
         'usuario':           usuario,
@@ -937,6 +944,7 @@ def repartidor(request):
         'pedidos_activos':   pedidos_activos,
         'mis_pedidos':       mis_pedidos,
         'total_ganancias':   total_ganancias,
+        'mensaje_wa':        mensaje_wa,
     })
 
 
@@ -1176,9 +1184,13 @@ def tomar_pedido(request, pedido_id):
     usuario_id = request.session.get('usuario_id')
     repartidor_obj = get_object_or_404(Repartidor, usuario__id=usuario_id)
     pedido = get_object_or_404(Pedido, id=pedido_id)
-    pedido.estado = 'En camino'  
-    pedido.repartidor = repartidor_obj  
+    pedido.estado = 'En camino'
+    pedido.repartidor = repartidor_obj
     pedido.save()
+    # Actualizar estado de la venta para que se refleje en mis_compras
+    if pedido.venta:
+        pedido.venta.estado = 'En camino'
+        pedido.venta.save()
     messages.success(request, "Pedido tomado correctamente.")
     return redirect('repartidor')
 
@@ -1186,8 +1198,12 @@ def entregar_pedido(request, pedido_id):
     usuario_id = request.session.get('usuario_id')
     repartidor_obj = get_object_or_404(Repartidor, usuario__id=usuario_id)
     pedido = get_object_or_404(Pedido, id=pedido_id, repartidor=repartidor_obj)
-    pedido.estado = 'Entregado'  
+    pedido.estado = 'Entregado'
     pedido.save()
+    # Actualizar estado de la venta para que se refleje en mis_compras
+    if pedido.venta:
+        pedido.venta.estado = 'Entregado'
+        pedido.venta.save()
     messages.success(request, "Pedido marcado como entregado.")
     return redirect('repartidor')
 
@@ -1344,7 +1360,7 @@ def restablecer_password(request):
             correo = EmailMessage(
                 subject="Recuperación de contraseña - Deportes 360",
                 body=cuerpo,
-                from_email="juancerquera104@gmail.com",
+                from_email="Deportes 360 <juancuervo141414@gmail.com>",
                 to=[usuario.email],
             )
             correo.content_subtype = "html"
@@ -1439,8 +1455,8 @@ def prueba_correo(request):
     correo = EmailMessage(
         subject="Prueba de correo",
         body="Este es un correo de prueba desde Django.",
-        from_email="Soporte Deportes360 <tucorreo@gmail.com>",
-        to=["juancerquera104@gmail.com"],
+        from_email="Deportes 360 <juancuervo141414@gmail.com>",
+        to=["juancuervo141414@gmail.com"],
     )
     correo.send(fail_silently=False)
     return HttpResponse("Correo enviado correctamente")

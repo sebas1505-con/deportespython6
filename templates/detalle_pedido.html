@@ -3,37 +3,348 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Detalle Pedido #{{ pedido.id }}</title>
-    <link rel="stylesheet" href="{% static 'css/repartidor.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pedido #{{ pedido.id }} — Deportes 360</title>
+    <link rel="icon" type="image/png" href="{% static 'images/repar.png' %}">
+    <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
+    body { background: #f2f3f5; color: #222; }
+
+    /* ── Header ── */
+    .header {
+        background: linear-gradient(90deg, #0d1a26, #1a2f45);
+        color: #fff;
+        padding: 16px 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 3px solid #d40000;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+    .header h1 { font-size: 18px; font-weight: 700; letter-spacing: 0.5px; }
+
+    #nav-toggle { display: none; }
+    .nav-toggle-btn { display: none; }
+    .nav-rep { display: flex; gap: 10px; }
+
+    @media (max-width: 600px) {
+        .header { position: relative; flex-wrap: wrap; }
+        .nav-toggle-btn {
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            gap: 5px; width: 38px; height: 34px;
+            background: rgba(255,255,255,0.12);
+            border-radius: 8px; cursor: pointer;
+        }
+        .nav-toggle-btn span {
+            display: block; width: 20px; height: 2px;
+            background: #fff; border-radius: 2px; transition: 0.3s ease;
+        }
+        #nav-toggle:checked + .nav-toggle-btn span:nth-child(1) { transform: rotate(45deg) translate(5px,5px); }
+        #nav-toggle:checked + .nav-toggle-btn span:nth-child(2) { opacity: 0; }
+        #nav-toggle:checked + .nav-toggle-btn span:nth-child(3) { transform: rotate(-45deg) translate(5px,-5px); }
+        .nav-rep { display: none; flex-direction: column; width: 100%; gap: 8px; padding: 12px 0 4px; }
+        #nav-toggle:checked ~ .nav-rep { display: flex; }
+    }
+
+    /* ── Layout ── */
+    .page { max-width: 800px; margin: 28px auto 60px; padding: 0 20px; }
+
+    /* ── Número de pedido hero ── */
+    .pedido-hero {
+        background: linear-gradient(135deg, #0d1a26, #1a2f45);
+        border-radius: 16px;
+        padding: 24px 28px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+    .pedido-hero-id { font-size: 32px; font-weight: 800; letter-spacing: 1px; }
+    .pedido-hero-sub { font-size: 13px; color: rgba(255,255,255,.65); margin-top: 4px; }
+    .badge {
+        display: inline-block;
+        padding: 6px 16px; border-radius: 20px;
+        font-size: 13px; font-weight: 700;
+    }
+    .badge-disp      { background: #e3f2fd; color: #1565c0; }
+    .badge-camino    { background: #fff8e1; color: #f57f17; }
+    .badge-entregado { background: #e8f5e9; color: #2e7d32; }
+
+    /* ── Cards ── */
+    .card {
+        background: #fff;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        padding: 22px 24px;
+        margin-bottom: 16px;
+    }
+    .card-title {
+        font-size: 12px; text-transform: uppercase; letter-spacing: .08em;
+        color: #aaa; font-weight: 700; margin-bottom: 16px;
+    }
+
+    /* ── Grid de info ── */
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+    @media(max-width:520px){ .info-grid { grid-template-columns: 1fr; } }
+
+    .info-item span {
+        display: block; font-size: 11px; color: #aaa;
+        text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px;
+    }
+    .info-item strong { font-size: 15px; color: #111; font-weight: 600; }
+
+    /* ── Dirección + Maps ── */
+    .direccion-wrap {
+        grid-column: span 2;
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 16px 18px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+    }
+    @media(max-width:520px){ .direccion-wrap { grid-column: span 1; } }
+
+    .direccion-wrap span { font-size: 11px; color: #aaa; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 4px; display: block; }
+    .direccion-wrap strong { font-size: 15px; color: #111; font-weight: 600; }
+
+    .btn-maps {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 10px 18px; background: #4285F4; color: #fff;
+        border-radius: 10px; font-size: 13px; font-weight: 700;
+        text-decoration: none; transition: .2s; white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .btn-maps:hover { background: #3367d6; }
+
+    /* ── Tabla productos ── */
+    .tabla {
+        width: 100%; border-collapse: collapse; font-size: 14px;
+    }
+    .tabla thead tr { background: #0d1a26; color: #fff; }
+    .tabla th { padding: 11px 14px; text-align: left; font-size: 12px; font-weight: 600; letter-spacing: .03em; }
+    .tabla td { padding: 12px 14px; border-bottom: 1px solid #f0f0f0; color: #333; }
+    .tabla tbody tr:hover { background: #fafafa; }
+    .tabla tbody tr:last-child td { border-bottom: none; }
+    .tag-talla {
+        display: inline-block; background: #f0f0f0; color: #444;
+        padding: 2px 8px; border-radius: 5px; font-size: 12px; font-weight: 600;
+    }
+
+    /* ── Totales ── */
+    .totales {
+        display: flex; flex-direction: column; align-items: flex-end;
+        gap: 6px; padding-top: 14px; border-top: 1px solid #f0f0f0; margin-top: 4px;
+    }
+    .total-row { display: flex; gap: 40px; font-size: 14px; color: #555; }
+    .total-final { font-size: 18px; font-weight: 800; color: #0d1a26; border-top: 2px solid #0d1a26; padding-top: 8px; margin-top: 4px; }
+
+    /* ── Ganancia ── */
+    .ganancia-box {
+        background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+        border-radius: 12px; padding: 16px 20px;
+        display: flex; align-items: center; justify-content: space-between;
+    }
+    .ganancia-box span { font-size: 13px; color: #388e3c; font-weight: 600; }
+    .ganancia-val { font-size: 28px; font-weight: 800; color: #1b5e20; }
+
+    /* ── Botones acción ── */
+    .acciones { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+        display: inline-flex; align-items: center; gap: 7px;
+        padding: 11px 20px; border-radius: 10px;
+        font-size: 14px; font-weight: 700; text-decoration: none;
+        border: none; cursor: pointer; transition: .2s;
+    }
+    .btn-tomar    { background: #0d1a26; color: #fff; }
+    .btn-tomar:hover { background: #1a2f45; }
+    .btn-entregar { background: #2e7d32; color: #fff; }
+    .btn-entregar:hover { background: #1b5e20; }
+    .btn-wa       { background: #25d366; color: #fff; }
+    .btn-wa:hover { background: #1aaa53; }
+
+    /* ── Observaciones ── */
+    .obs-box {
+        background: #fffbea; border-left: 4px solid #f59e0b;
+        border-radius: 0 10px 10px 0; padding: 14px 16px;
+        font-size: 14px; color: #78350f; line-height: 1.6;
+    }
+    </style>
 </head>
 <body>
 
+<!-- HEADER -->
 <div class="header">
     <h1>Panel del Repartidor</h1>
+    <input type="checkbox" id="nav-toggle" />
+    <label for="nav-toggle" class="nav-toggle-btn" aria-label="Abrir menú">
+        <span></span><span></span><span></span>
+    </label>
+    <nav class="nav-rep">
+        <a href="{% url 'repartidor' %}" class="btn btn-tomar">Inicio</a>
+        <a href="{% url 'perfil_repartidor' %}" class="btn btn-tomar">Mi Perfil</a>
+        <a href="{% url 'logout' %}" class="btn" style="background:#d40000;">Cerrar Sesión</a>
+    </nav>
 </div>
 
-<div class="container">
+<div class="page">
 
-    <div class="card">
-        <a href="{% url 'repartidor' %}" class="btn">⬅ Volver</a>
+    <!-- Hero: número y estado -->
+    <div class="pedido-hero">
+        <div>
+            <div class="pedido-hero-id">Pedido #{{ pedido.id }}</div>
+            <div class="pedido-hero-sub">{{ venta.fecha_venta|date:"d/m/Y · H:i" }}</div>
+        </div>
+        {% if pedido.estado == 'Entregado' %}
+            <span class="badge badge-entregado">Entregado</span>
+        {% elif pedido.estado == 'En camino' %}
+            <span class="badge badge-camino">En camino</span>
+        {% else %}
+            <span class="badge badge-disp">Disponible</span>
+        {% endif %}
     </div>
 
+    <!-- Info del cliente -->
     <div class="card">
-    <h2>Detalle del Pedido #{{ pedido.id }}</h2>
-    <table class="table" style="margin-top:16px;">
-        <tr><th>Cliente</th><td>{{ venta.cliente.usuario.username }}</td></tr>
-        <tr><th>Dirección</th><td>{{ venta.direccionEnvio }}</td></tr>
-        <tr><th>Teléfono</th><td>{{ venta.telefonoContacto }}</td></tr>
-        <tr><th>Método de Pago</th><td>{{ venta.metodo_de_pago|title|cut:"_" }}</td></tr>
-        <tr><th>Producto</th><td>{{ pedido.producto.nombre }}</td></tr>
-        <tr><th>Cantidad</th><td>{{ pedido.cantidad }}</td></tr>
-        <tr><th>Total</th><td>${{ pedido.total }}</td></tr>
-        
-        {% if venta.observaciones %}
-        <tr><th>Observaciones</th><td>{{ venta.observaciones }}</td></tr>
-        {% endif %}
-    </table>
-</div>
+        <div class="card-title">Datos del cliente</div>
+        <div class="info-grid">
+            <div class="info-item">
+                <span>Nombre</span>
+                <strong>{{ venta.cliente.usuario.first_name }} {{ venta.cliente.usuario.last_name }}</strong>
+            </div>
+            <div class="info-item">
+                <span>Teléfono</span>
+                <strong>{{ venta.telefonoContacto }}</strong>
+            </div>
+            <div class="info-item">
+                <span>Método de pago</span>
+                <strong>{% if venta.metodo_de_pago == 'PSE' or venta.metodo_de_pago == 'PAGO_EN_LINEA' %}PSE / En línea{% else %}Contra entrega{% endif %}</strong>
+            </div>
+            <div class="info-item">
+                <span>Método de envío</span>
+                <strong>{{ venta.metodoEnvio }}</strong>
+            </div>
+
+            <!-- Dirección + Maps -->
+            <div class="direccion-wrap">
+                <div>
+                    <span>Dirección de entrega</span>
+                    <strong>{{ venta.direccionEnvio }}</strong>
+                </div>
+                <a href="https://www.google.com/maps/search/?api=1&query={{ venta.direccionEnvio|urlencode }}%2C+Colombia"
+                   target="_blank" class="btn-maps">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    Abrir en Maps
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Productos del pedido -->
+    <div class="card">
+        <div class="card-title">Productos</div>
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Talla</th>
+                    <th>Cant.</th>
+                    <th>Precio unit.</th>
+                    <th>Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in detalles %}
+                <tr>
+                    <td><strong>{{ d.producto.nombre }}</strong></td>
+                    <td><span class="tag-talla">{{ d.talla }}</span></td>
+                    <td>{{ d.cantidad }}</td>
+                    <td>${{ d.precio_unitario }}</td>
+                    <td><strong>${{ d.subtotal }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" style="text-align:center;color:#aaa;padding:20px;">Sin productos registrados</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="totales">
+            <div class="total-row total-final">
+                <span>TOTAL</span>
+                <span>${{ venta.totalVenta }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ganancia del repartidor -->
+    <div class="card" style="padding:20px 24px;">
+        <div class="card-title">Tu ganancia por este pedido</div>
+        <div class="ganancia-box">
+            <span>Valor de domicilio</span>
+            <div class="ganancia-val">${{ pedido.valor_domicilio }}</div>
+        </div>
+    </div>
+
+    {% if venta.observaciones %}
+    <!-- Observaciones -->
+    <div class="card">
+        <div class="card-title">Observaciones del cliente</div>
+        <div class="obs-box">{{ venta.observaciones }}</div>
+    </div>
+    {% endif %}
+
+    <!-- Acciones -->
+    <div class="card">
+        <div class="card-title">Acciones</div>
+        <div class="acciones">
+
+            {% if pedido.estado == 'Disponible' %}
+            <form method="post" action="{% url 'tomar_pedido' pedido.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-tomar"> Tomar pedido</button>
+            </form>
+            {% endif %}
+
+            {% if pedido.estado == 'En camino' %}
+            <form method="post" action="{% url 'entregar_pedido' pedido.id %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-entregar"> Marcar como entregado</button>
+            </form>
+            {% endif %}
+
+            <a href="https://wa.me/57{{ venta.telefonoContacto }}?text=Hola+{{ venta.cliente.usuario.first_name }}%2C+soy+el+repartidor+de+Deportes+360+y+voy+en+camino+con+tu+pedido+%23{{ pedido.id }}."
+               target="_blank" class="btn btn-wa">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+                    <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.526 5.845L.057 23.885l6.21-1.63A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.6a9.573 9.573 0 0 1-4.889-1.344l-.35-.208-3.635.954.969-3.54-.228-.364A9.565 9.565 0 0 1 2.4 12c0-5.292 4.308-9.6 9.6-9.6s9.6 4.308 9.6 9.6-4.308 9.6-9.6 9.6z"/>
+                </svg>
+                WhatsApp al cliente
+            </a>
+
+            <a href="https://www.google.com/maps/search/?api=1&query={{ venta.direccionEnvio|urlencode }}%2C+Colombia"
+               target="_blank" class="btn btn-maps">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                </svg>
+                Abrir Maps
+            </a>
+        </div>
+    </div>
 
 </div>
 </body>

@@ -49,12 +49,13 @@ def catalogo_categoria(request, categoria):
 
 def mis_compras(request):
     try:
-        usuario_id = request.session.get('usuario_id')  # 🔥 este es el correcto
+        usuario_id = request.session.get('usuario_id')
         usuario = Usuario.objects.get(id=usuario_id)
-
         cliente = Cliente.objects.get(usuario=usuario)
-        compras = Venta.objects.filter(cliente=cliente)
-
+        compras = (Venta.objects
+                   .filter(cliente=cliente)
+                   .prefetch_related('detalleventaproductos_set__producto')
+                   .order_by('-fecha_venta'))
     except (Cliente.DoesNotExist, Usuario.DoesNotExist):
         compras = []
 

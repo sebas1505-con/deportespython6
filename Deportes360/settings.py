@@ -83,9 +83,9 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME':     os.environ.get('MYSQLDATABASE') or os.environ.get('DB_NAME',     '360deportes'),
         'USER':     os.environ.get('MYSQLUSER')     or os.environ.get('DB_USER',     'root'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD') or os.environ.get('DB_PASSWORD', ''),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD') or os.environ.get('DB_PASSWORD', '123456789'),
         'HOST':     os.environ.get('MYSQLHOST')     or os.environ.get('DB_HOST',     'localhost'),
-        'PORT':     os.environ.get('MYSQLPORT')     or os.environ.get('DB_PORT',     '3306'),
+        'PORT':     os.environ.get('MYSQLPORT')     or os.environ.get('DB_PORT',     '3309'),
         'OPTIONS': {
             'charset': 'utf8mb4',
             'connect_timeout': 10,
@@ -141,9 +141,9 @@ EMAIL_BACKEND       = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST          = 'smtp.gmail.com'
 EMAIL_PORT          = 587
 EMAIL_USE_TLS       = True
-EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER',     'juancerquera104@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'xpni nsdy heqa pfia')
-DEFAULT_FROM_EMAIL  = f'Soporte Deportes360 <{EMAIL_HOST_USER}>'
+EMAIL_HOST_USER     = os.environ.get('EMAIL_HOST_USER',     'juancuervo141414@gmail.com')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'jhzr vsmb xwcd kpio')
+DEFAULT_FROM_EMAIL  = f'Deportes 360 <{EMAIL_HOST_USER}>'
 
 # ── CORS ──────────────────────────────────────────────────────────────────────
 CORS_ALLOW_ALL_ORIGINS = DEBUG  # Solo en desarrollo

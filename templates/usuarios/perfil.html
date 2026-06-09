@@ -171,6 +171,7 @@
       <div class="nav-overlay"></div>
       <nav class="navbar">
         <ul>
+          <li><a href="{% url 'usuario' %}">Inicio</a></li>
           <li><a href="{% url 'perfil' %}" style="color:var(--rojo,#d40000);font-weight:700;">Perfil</a></li>
           <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
           <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
@@ -380,6 +381,23 @@ window.addEventListener('DOMContentLoaded', function(){
   if (locSel.value) locSel.dispatchEvent(new Event('change'));
 });
 </script>
+
+<footer class="footer">
+    <div class="footer-content container">
+        <a href="{% url 'index' %}" class="logo-wrapper">
+            <div class="logo-icon"><span>360</span></div>
+            <div class="logo-text">
+                <strong>Deportes</strong>
+                <small>360</small>
+            </div>
+        </a>
+        <ul>
+            <li><a href="{% url 'usuario' %}">Inicio</a></li>
+            <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+            <li><a href="{% url 'contactousu' %}">Contacto</a></li>
+        </ul>
+    </div>
+</footer>
 
 </body>
 </html>

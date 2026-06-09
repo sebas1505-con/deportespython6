@@ -109,11 +109,37 @@ body {
   text-align: center;
 }
 
-@media (max-width: 768px) {
+/* ── Responsive ── */
+@media (max-width: 680px) {
+  body {
+    align-items: flex-start;
+    padding: 70px 16px 40px;
+  }
+
+  .login-container {
+    padding: 28px 20px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
   .login-form {
     grid-template-columns: 1fr;
+    gap: 14px;
   }
+
   .btn-login {
     grid-column: span 1;
+    margin-top: 10px;
+  }
+
+  .form-footer {
+    grid-column: span 1 !important;
+  }
+
+  .btn-volver-home {
+    position: fixed;
+    top: 14px;
+    left: 14px;
   }
 }

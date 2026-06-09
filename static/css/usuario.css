@@ -453,22 +453,17 @@ img {
    FOOTER
    ============================================================ */
 .footer {
-  background-color: #1b1b1d;
+  background-color: #ffffff;
   border-top: 2px solid #c40000;
-  padding: 20px 0;
-  text-align: center;
+  padding: 14px 0;
 }
 
 .footer-content {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   flex-wrap: wrap;
-}
-
-.footer-content .logo-wrapper .logo-text strong,
-.footer-content .logo-wrapper .logo-text small {
-  color: #ffffff;
+  gap: 24px;
 }
 
 .footer-content ul {
@@ -477,14 +472,18 @@ img {
 }
 
 .footer-content ul li a {
-  color: #fff;
-  font-size: 16px;
+  padding: 10px 18px;
+  border-radius: 20px;
   font-weight: 600;
-  transition: color 0.3s ease;
+  color: #1b1b1d;
+  transition: all 0.3s ease;
 }
 
 .footer-content ul li a:hover {
-  color: #c40000;
+  background: #c40000;
+  color: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(196, 0, 0, 0.3);
 }
 
 /* ============================================================
@@ -671,13 +670,14 @@ img {
   /* --- FOOTER --- */
   .footer-content {
     flex-direction: column;
-    gap: 16px;
+    align-items: center;
+    gap: 12px;
   }
 
   .footer-content ul {
     flex-wrap: wrap;
     justify-content: center;
-    gap: 12px;
+    gap: 8px;
   }
 }
 

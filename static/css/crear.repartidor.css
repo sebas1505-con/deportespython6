@@ -121,16 +121,36 @@ body {
 }
 
 /* ===== Responsive ===== */
-@media screen and (max-width: 600px) {
+@media screen and (max-width: 680px) {
+  body {
+    align-items: flex-start;
+    padding: 70px 16px 40px;
+  }
+
+  .login-container {
+    padding: 24px 20px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
   .login-form {
-    grid-template-columns: 1fr; /* 1 columna en móvil */
+    grid-template-columns: 1fr;
+    gap: 12px;
   }
 
   .login-form button {
     grid-column: span 1;
+    margin-top: 10px;
   }
 
-  .login-container {
-    padding: 20px;
+  .form-footer {
+    grid-column: span 1 !important;
+  }
+
+  .btn-volver-home {
+    position: fixed;
+    top: 14px;
+    left: 14px;
   }
 }

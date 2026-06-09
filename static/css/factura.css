@@ -1,144 +1,282 @@
-/* ───────── RESET ───────── */
-body{
-    margin:0;
-    padding:0;
-    font-family:Arial, Helvetica, sans-serif;
-    background:#f4f4f4;
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #f0f2f5;
+    padding: 30px 16px 60px;
+    color: #222;
 }
 
-/* ───────── CONTENEDOR FACTURA ───────── */
-.factura-container{
-    width:90%;
-    max-width:800px;
-    margin:40px auto;
-    background:white;
-    padding:30px;
-    border-radius:12px;
-    box-shadow:0 4px 12px rgba(0,0,0,0.15);
+/* ── Contenedor principal ── */
+.factura-container {
+    max-width: 820px;
+    margin: 0 auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+    overflow: hidden;
 }
 
-/* ───────── TITULO ───────── */
-h1{
-    text-align:center;
-    color:#a74a4a;
-    margin-bottom:20px;
+/* ── Encabezado ── */
+.factura-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 36px 40px 28px;
+    background: #fff;
+    gap: 20px;
 }
 
-/* ───────── DATOS CLIENTE ───────── */
-.datos-cliente{
-    margin-bottom:25px;
-    padding:15px;
-    background:#f9f9f9;
-    border-radius:8px;
+.empresa-info {
+    display: flex;
+    align-items: center;
+    gap: 14px;
 }
 
-/* ───────── TABLA ───────── */
-.tabla-productos{
-    width:100%;
-    border-collapse:collapse;
-    margin-top:20px;
+.logo-factura {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
 }
 
-.tabla-productos th{
-    background:#a74a4a;
-    color:white;
-    padding:10px;
-}
-
-.tabla-productos td{
-    padding:10px;
-    border-bottom:1px solid #ddd;
-    text-align:center;
-}
-
-/* ───────── TOTAL ───────── */
-.total{
-    text-align:right;
-    margin-top:20px;
-    font-size:20px;
-    color:#333;
-    font-weight:bold;
-}
-
-/* ───────── BOTONES ───────── */
-.botones{
-    margin-top:25px;
-    display:flex;
-    justify-content:space-between;
-    gap:10px;
-}
-
-/* BOTÓN GENERAL */
-.btn{
-    display:inline-block;
-    padding:10px 18px;
-    font-size:14px;
-    background:#ff0000;
-    color:white;
-    text-decoration:none;
-    border-radius:6px;
-    font-weight:bold;
-    transition:0.3s;
-}
-
-.btn:hover{
-    background:#b30000;
-}
-
-/* BOTÓN ROJO (descargar o acción importante) */
-.btn-rojo{
-    background:#a74a4a;
-}
-
-.btn-rojo:hover{
-    background:#bf0f0f;
-}
-
-/* ───────── BOTÓN VOLVER FIJO ───────── */
-.btn-volver{
-    position:fixed;
-    top:20px;
-    left:20px;
-
-    padding:8px 14px;
-    font-size:13px;
-    background:#ff0000;
-    color:#fff;
-    border-radius:6px;
-    text-decoration:none;
-
-    box-shadow:0 2px 6px rgba(0,0,0,0.2);
-}
-
-/* ───────── RESPONSIVE ───────── */
-@media (max-width: 860px) {
-  .factura-container {
-    width: 95%;
-    padding: 20px;
-  }
-
-  .botones {
-    flex-direction: column;
-  }
-
-  .btn {
-    text-align: center;
-    width:100%;
-  }
-}
-
-@media (max-width: 480px) {
-  h1 {
+.empresa-nombre {
     font-size: 22px;
-  }
+    font-weight: 800;
+    color: #111;
+    margin-bottom: 4px;
+}
 
-  .tabla-productos th,
-  .tabla-productos td {
-    padding: 8px 6px;
+.empresa-datos {
     font-size: 13px;
-  }
+    color: #666;
+    line-height: 1.6;
+}
 
-  .total {
-    font-size: 16px;
-  }
+.factura-meta {
+    text-align: right;
+}
+
+.factura-meta h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: #c40000;
+    letter-spacing: 3px;
+    margin-bottom: 14px;
+}
+
+.meta-table {
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.meta-table td {
+    padding: 4px 10px;
+    color: #555;
+}
+
+.meta-table td:first-child {
+    text-align: left;
+    color: #999;
+}
+
+.meta-table td:last-child {
+    text-align: right;
+}
+
+.badge-estado {
+    background: #dcfce7;
+    color: #16a34a;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* ── Divisor ── */
+.divider {
+    height: 1px;
+    background: #e5e7eb;
+    margin: 0 40px;
+}
+
+/* ── Grid info cliente/envío ── */
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    padding: 28px 40px;
+}
+
+.info-box h4 {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #999;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.info-box p {
+    font-size: 14px;
+    color: #444;
+    line-height: 1.7;
+}
+
+/* ── Tabla productos ── */
+.tabla-productos {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.tabla-productos thead tr {
+    background: #1a1a1a;
+    color: #fff;
+}
+
+.tabla-productos th {
+    padding: 13px 16px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.03em;
+}
+
+.tabla-productos th:first-child,
+.tabla-productos td.td-producto {
+    text-align: left;
+    padding-left: 40px;
+}
+
+.tabla-productos tbody tr {
+    border-bottom: 1px solid #f0f0f0;
+    transition: background 0.15s;
+}
+
+.tabla-productos tbody tr:hover {
+    background: #fafafa;
+}
+
+.tabla-productos td {
+    padding: 14px 16px;
+    text-align: center;
+    color: #333;
+}
+
+/* ── Totales ── */
+.totales-box {
+    padding: 20px 40px 28px;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.totales-inner {
+    width: 280px;
+    border-top: 2px solid #e5e7eb;
+    padding-top: 16px;
+}
+
+.total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #555;
+    padding: 6px 0;
+}
+
+.total-final {
+    border-top: 2px solid #1a1a1a;
+    margin-top: 8px;
+    padding-top: 12px;
+    font-size: 18px;
+    font-weight: 800;
+    color: #111;
+}
+
+/* ── Botones ── */
+.botones {
+    display: flex;
+    gap: 12px;
+    padding: 0 40px 36px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    display: inline-block;
+    padding: 11px 22px;
+    font-size: 14px;
+    font-weight: 600;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: 0.25s ease;
+    text-align: center;
+}
+
+.btn-descargar {
+    background: #16a34a;
+    color: #fff;
+    padding: 13px 28px;
+    font-size: 15px;
+}
+
+.btn-descargar:hover { background: #15803d; }
+
+.btn-secundario {
+    background: #f3f4f6;
+    color: #374151;
+    border: 1px solid #e5e7eb;
+}
+
+.btn-secundario:hover {
+    background: #e5e7eb;
+}
+
+/* ── Nota footer ── */
+.footer-nota {
+    text-align: center;
+    font-size: 12px;
+    color: #aaa;
+    padding: 0 40px 30px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .factura-header {
+        flex-direction: column;
+        padding: 24px 20px 20px;
+    }
+
+    .factura-meta {
+        text-align: left;
+        width: 100%;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+        padding: 20px;
+        gap: 16px;
+    }
+
+    .tabla-productos th:first-child,
+    .tabla-productos td.td-producto {
+        padding-left: 16px;
+    }
+
+    .totales-box {
+        padding: 16px 20px 20px;
+        justify-content: stretch;
+    }
+
+    .totales-inner { width: 100%; }
+
+    .botones {
+        flex-direction: column;
+        padding: 0 20px 28px;
+    }
+
+    .btn { width: 100%; }
+
+    .footer-nota { padding: 0 20px 24px; }
+
+    .divider { margin: 0 20px; }
 }

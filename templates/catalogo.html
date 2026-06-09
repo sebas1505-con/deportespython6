@@ -100,6 +100,7 @@
             <div class="nav-overlay"></div>
             <nav class="navbar">
                 <ul>
+                    <li><a href="{% url 'usuario' %}">Inicio</a></li>
                     <li><a href="{% url 'perfil' %}">Perfil</a></li>
                     <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
                     <li><a href="{% url 'catalogo' %}" style="color:#d40000;font-weight:700;">Catálogo</a></li>
@@ -159,9 +160,15 @@
 </div>
 
 <!-- Footer -->
-<footer class="footer container">
-    <div class="footer-content">
-        <a href="{% url 'index' %}" class="logo">Deportes 360</a>
+<footer class="footer">
+    <div class="footer-content container">
+        <a href="{% url 'index' %}" class="logo-wrapper">
+            <div class="logo-icon"><span>360</span></div>
+            <div class="logo-text">
+                <strong>Deportes</strong>
+                <small>360</small>
+            </div>
+        </a>
         <ul>
             <li><a href="{% url 'usuario' %}">Inicio</a></li>
             <li><a href="{% url 'catalogo' %}">Catálogo</a></li>

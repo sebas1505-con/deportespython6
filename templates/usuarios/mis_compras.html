@@ -10,20 +10,18 @@
     <style>
     /* ── Wrap ── */
     .compras-wrap {
-        max-width: 1000px;
+        max-width: 1060px;
         margin: 36px auto 60px;
         padding: 0 24px;
         font-family: 'Segoe UI', sans-serif;
     }
 
-    /* ── Cabecera de página ── */
+    /* ── Cabecera ── */
     .compras-hero {
         display: flex; align-items: center; justify-content: space-between;
-        flex-wrap: wrap; gap: 14px; margin-bottom: 28px;
+        flex-wrap: wrap; gap: 14px; margin-bottom: 32px;
     }
-    .compras-hero h1 {
-        font-size: 24px; font-weight: 800; color: #111;
-    }
+    .compras-hero h1 { font-size: 26px; font-weight: 800; color: #111; }
     .compras-hero h1 span { color: #d40000; }
 
     .btn-volver-compras {
@@ -31,36 +29,40 @@
         padding: 10px 20px; background: #0d0d0d; color: #fff;
         border-radius: 10px; font-size: 13px; font-weight: 700;
         text-decoration: none; transition: .2s;
-        border: 2px solid #0d0d0d;
     }
-    .btn-volver-compras:hover { background: #d40000; border-color: #d40000; }
+    .btn-volver-compras:hover { background: #d40000; }
 
     /* ── Grid ── */
     .compras-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-        gap: 20px;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 22px;
     }
 
     /* ── Card ── */
     .compra-card {
         background: #fff; border-radius: 16px;
-        box-shadow: 0 2px 12px rgba(0,0,0,.08);
+        box-shadow: 0 2px 14px rgba(0,0,0,.09);
         overflow: hidden; transition: transform .2s, box-shadow .2s;
         display: flex; flex-direction: column;
         border-top: 4px solid #d40000;
     }
-    .compra-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,.13); }
+    .compra-card:hover { transform: translateY(-4px); box-shadow: 0 10px 28px rgba(0,0,0,.13); }
 
+    /* Head */
     .compra-card-head {
-        padding: 16px 18px 12px;
-        border-bottom: 1px solid #f5f5f5;
+        padding: 14px 18px;
+        border-bottom: 1px solid #f0f0f0;
         display: flex; align-items: center; justify-content: space-between;
     }
     .compra-id {
         font-family: monospace; font-size: 13px; color: #888;
         background: #f3f4f6; padding: 3px 10px; border-radius: 6px;
+        font-weight: 700;
     }
+    .compra-fecha { font-size: 12px; color: #aaa; }
+
+    /* Estado badge */
     .compra-estado {
         padding: 4px 12px; border-radius: 20px;
         font-size: 11px; font-weight: 700;
@@ -70,28 +72,53 @@
     .estado-pendiente { background: #fffbeb; color: #b45309; border: 1px solid #fcd34d; }
     .estado-cancelada { background: #fff1f2; color: #be123c; border: 1px solid #fca5a5; }
 
+    /* Body */
     .compra-card-body { padding: 16px 18px; flex: 1; }
+
+    .compra-total-val {
+        font-size: 26px; font-weight: 800; color: #d40000; margin-bottom: 14px;
+    }
 
     .compra-row {
         display: flex; align-items: center; justify-content: space-between;
-        font-size: 13px; color: #555; margin-bottom: 8px;
+        font-size: 13px; color: #666; padding: 5px 0;
+        border-bottom: 1px solid #f5f5f5;
     }
-    .compra-row strong { color: #111; }
-    .compra-total-val {
-        font-size: 22px; font-weight: 800; color: #d40000; margin: 10px 0 4px;
+    .compra-row:last-of-type { border-bottom: none; }
+    .compra-row strong { color: #222; font-weight: 600; }
+
+    /* Lista de productos */
+    .compra-productos {
+        margin-top: 12px;
+        background: #fafafa;
+        border-radius: 10px;
+        padding: 10px 14px;
     }
-    .compra-metodo {
-        font-size: 12px; color: #888;
-        display: inline-flex; align-items: center; gap: 5px;
+    .compra-productos-titulo {
+        font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+        color: #aaa; font-weight: 700; margin-bottom: 8px;
+    }
+    .compra-producto-item {
+        display: flex; align-items: center; gap: 8px;
+        font-size: 13px; color: #444; padding: 4px 0;
+    }
+    .compra-producto-item::before {
+        content: ''; display: block; width: 6px; height: 6px;
+        border-radius: 50%; background: #d40000; flex-shrink: 0;
+    }
+    .compra-mas {
+        font-size: 11px; color: #aaa; margin-top: 4px; padding-left: 14px;
     }
 
+    /* Footer botones */
     .compra-card-foot {
-        padding: 12px 18px;
-        border-top: 1px solid #f5f5f5;
+        padding: 14px 18px;
+        border-top: 1px solid #f0f0f0;
         display: flex; gap: 8px;
     }
     .btn-factura {
-        flex: 1; padding: 10px; background: linear-gradient(180deg, #d40000, #8b0000);
+        flex: 1; padding: 11px 10px;
+        background: linear-gradient(180deg, #d40000, #8b0000);
         color: #fff; border: none; border-radius: 9px;
         font-size: 13px; font-weight: 700; text-align: center;
         text-decoration: none; transition: .15s; cursor: pointer;
@@ -99,16 +126,25 @@
     }
     .btn-factura:hover { opacity: .88; }
 
-    /* ── Empty state ── */
-    .compras-empty {
-        text-align: center; padding: 60px 20px; color: #aaa;
+    .btn-pdf {
+        padding: 11px 14px;
+        background: #f3f4f6; color: #374151;
+        border: 1px solid #e5e7eb; border-radius: 9px;
+        font-size: 13px; font-weight: 600; text-align: center;
+        text-decoration: none; transition: .15s; white-space: nowrap;
     }
-    .compras-empty div { font-size: 56px; margin-bottom: 16px; }
-    .compras-empty h3 { font-size: 18px; color: #111; margin-bottom: 8px; }
-    .compras-empty p  { font-size: 13px; }
+    .btn-pdf:hover { background: #e5e7eb; }
+
+    /* Empty state */
+    .compras-empty {
+        text-align: center; padding: 70px 20px; color: #aaa;
+    }
+    .compras-empty div { font-size: 60px; margin-bottom: 18px; }
+    .compras-empty h3 { font-size: 20px; color: #111; margin-bottom: 8px; }
+    .compras-empty p  { font-size: 14px; }
     .compras-empty a  {
-        display: inline-block; margin-top: 20px;
-        padding: 11px 28px; background: #d40000; color: #fff;
+        display: inline-block; margin-top: 22px;
+        padding: 12px 30px; background: #d40000; color: #fff;
         border-radius: 10px; font-weight: 700; text-decoration: none;
         font-size: 14px; transition: .2s;
     }
@@ -116,12 +152,12 @@
 
     @media(max-width:600px){
         .compras-grid { grid-template-columns: 1fr; }
+        .compra-total-val { font-size: 22px; }
     }
     </style>
 </head>
 <body>
 
-<!-- Header igual a usuario.html -->
 <header class="header">
     <div class="container">
         <div class="menu">
@@ -139,6 +175,7 @@
             <div class="nav-overlay"></div>
             <nav class="navbar">
                 <ul>
+                    <li><a href="{% url 'usuario' %}">Inicio</a></li>
                     <li><a href="{% url 'perfil' %}">Perfil</a></li>
                     <li><a href="{% url 'mis_compras' %}" style="color:#d40000;font-weight:700;">Mis Compras</a></li>
                     <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
@@ -153,12 +190,9 @@
 
 <div class="compras-wrap">
 
-    <!-- Cabecera -->
     <div class="compras-hero">
         <h1>Mis <span>Compras</span></h1>
-        <a href="{% url 'usuario' %}" class="btn-volver-compras">
-            ← Volver al inicio
-        </a>
+        <a href="{% url 'usuario' %}" class="btn-volver-compras">← Volver al inicio</a>
     </div>
 
     {% if compras %}
@@ -166,12 +200,16 @@
         {% for compra in compras %}
         <div class="compra-card">
 
+            <!-- Head: número + fecha -->
             <div class="compra-card-head">
-                <span class="compra-id">#{{ compra.id }}</span>
+                <div>
+                    <div class="compra-id">#{{ compra.id }}</div>
+                    <div class="compra-fecha">{{ compra.fecha_venta|date:"d/m/Y H:i" }}</div>
+                </div>
                 {% if compra.estado == 'Entregado' or compra.estado == 'completada' %}
-                    <span class="compra-estado estado-entregado">✅ Entregado</span>
+                    <span class="compra-estado estado-entregado">Entregado</span>
                 {% elif compra.estado == 'En camino' %}
-                    <span class="compra-estado estado-camino">🚚 En camino</span>
+                    <span class="compra-estado estado-camino">En camino</span>
                 {% elif compra.estado == 'cancelada' %}
                     <span class="compra-estado estado-cancelada">❌ Cancelada</span>
                 {% else %}
@@ -179,30 +217,47 @@
                 {% endif %}
             </div>
 
+            <!-- Body -->
             <div class="compra-card-body">
                 <div class="compra-total-val">${{ compra.totalVenta|floatformat:0 }}</div>
-                <div class="compra-row">
-                    <span>Cantidad de productos</span>
-                    <strong>{{ compra.cantProducto }} uds</strong>
-                </div>
+
                 <div class="compra-row">
                     <span>Método de pago</span>
-                    <strong>{% if compra.metodo_de_pago == 'PSE' or compra.metodo_de_pago == 'PAGO_EN_LINEA' %} PSE{% else %} Contra entrega{% endif %}</strong>
+                    <strong>{% if compra.metodo_de_pago == 'PSE' or compra.metodo_de_pago == 'PAGO_EN_LINEA' %}PSE{% else %}Contra entrega{% endif %}</strong>
                 </div>
                 <div class="compra-row">
-                    <span>Fecha</span>
-                    <strong>{{ compra.fecha_venta|date:"d/m/Y" }}</strong>
+                    <span>Método de envío</span>
+                    <strong>{{ compra.metodoEnvio }}</strong>
                 </div>
                 {% if compra.direccionEnvio %}
                 <div class="compra-row">
                     <span>Dirección</span>
-                    <strong style="font-size:12px;color:#888;">{{ compra.direccionEnvio|truncatechars:28 }}</strong>
+                    <strong style="font-size:12px;">{{ compra.direccionEnvio|truncatechars:30 }}</strong>
                 </div>
                 {% endif %}
+
+                <!-- Productos -->
+                {% with detalles=compra.detalleventaproductos_set.all %}
+                {% if detalles %}
+                <div class="compra-productos">
+                    <div class="compra-productos-titulo">Productos</div>
+                    {% for d in detalles|slice:":3" %}
+                    <div class="compra-producto-item">
+                        {{ d.producto.nombre }} — T: {{ d.talla }} &times; {{ d.cantidad }}
+                    </div>
+                    {% endfor %}
+                    {% if detalles.count > 3 %}
+                    <div class="compra-mas">+{{ detalles.count|add:"-3" }} más</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+                {% endwith %}
             </div>
 
+            <!-- Botones -->
             <div class="compra-card-foot">
-                <a href="{% url 'factura1' compra.id %}" class="btn-factura"> Ver factura</a>
+                <a href="{% url 'factura' compra.id %}" class="btn-factura">Ver factura</a>
+                <a href="{% url 'factura_pdf' compra.id %}" class="btn-pdf">PDF</a>
             </div>
 
         </div>
@@ -220,10 +275,15 @@
 
 </div>
 
-<!-- Footer -->
-<footer class="footer container">
-    <div class="footer-content">
-        <a href="{% url 'index' %}" class="logo">Deportes 360</a>
+<footer class="footer">
+    <div class="footer-content container">
+        <a href="{% url 'index' %}" class="logo-wrapper">
+            <div class="logo-icon"><span>360</span></div>
+            <div class="logo-text">
+                <strong>Deportes</strong>
+                <small>360</small>
+            </div>
+        </a>
         <ul>
             <li><a href="{% url 'usuario' %}">Inicio</a></li>
             <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
