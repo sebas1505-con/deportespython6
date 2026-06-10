@@ -97,16 +97,21 @@
             <label for="menu" class="menu-btn">
                 <span></span><span></span><span></span>
             </label>
-            <div class="nav-overlay"></div>
+            <div class="nav-overlay" onclick="cerrarMenu()"></div>
             <nav class="navbar">
-                <ul>
-                    <li><a href="{% url 'perfil' %}">Perfil</a></li>
-                    <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
-                    <li><a href="{% url 'catalogo' %}" style="color:#d40000;font-weight:700;">Catálogo</a></li>
-                    <li><a href="{% url 'sugerencias' %}">Sugerencias</a></li>
-                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
-                    <li><a href="{% url 'carrito' %}">🛒</a></li>
-                </ul>
+              <div class="nav-close">
+                <span class="nav-close-logo">Deportes <span>360</span></span>
+                <label for="menu" class="nav-close-btn" aria-label="Cerrar menú">&#x2715;</label>
+              </div>
+              <ul>
+                <li><a href="{% url 'usuario' %}">Inicio</a></li>
+                <li><a href="{% url 'perfil' %}">Perfil</a></li>
+                <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
+                <li><a href="{% url 'catalogo' %}" style="color:#d40000;font-weight:700;">Catálogo</a></li>
+                <li><a href="{% url 'sugerencias' %}">Sugerencias</a></li>
+                <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                <li><a href="{% url 'carrito' %}">🛒</a></li>
+              </ul>
             </nav>
         </div>
     </div>
@@ -128,12 +133,16 @@
 
     <div class="Prodcts-content">
         {% for producto in productos %}
-        <div class="Prodcts-1">
+        <div class="Prodcts-1" {% if producto.stock_total == 0 %}style="position:relative;opacity:.7;"{% endif %}>
+
+            {% if producto.stock_total == 0 %}
+            <div style="position:absolute;top:10px;left:10px;background:#dc2626;color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;z-index:2;">Se acabó</div>
+            {% endif %}
 
             {% if producto.imagen %}
-                <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
+            <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
             {% else %}
-                <img src="/media/default.png" alt="Sin imagen">
+            {% include 'snippets/producto_placeholder.html' %}
             {% endif %}
 
             <h4>{{ producto.nombre }}</h4>
@@ -142,9 +151,11 @@
                 ${{ producto.precio }}
             </p>
 
-            <a href="{% url 'detalle_producto' producto.id %}" class="btn-1">
-                Más Información
-            </a>
+            {% if producto.stock_total == 0 %}
+            <span class="btn-1" style="background:#aaa;cursor:not-allowed;pointer-events:none;">Sin stock</span>
+            {% else %}
+            <a href="{% url 'detalle_producto' producto.id %}" class="btn-1">Más Información</a>
+            {% endif %}
 
         </div>
 
@@ -159,9 +170,15 @@
 </div>
 
 <!-- Footer -->
-<footer class="footer container">
-    <div class="footer-content">
-        <a href="{% url 'index' %}" class="logo">Deportes 360</a>
+<footer class="footer">
+    <div class="footer-content container">
+        <a href="{% url 'index' %}" class="logo-wrapper">
+            <div class="logo-icon"><span>360</span></div>
+            <div class="logo-text">
+                <strong>Deportes</strong>
+                <small>360</small>
+            </div>
+        </a>
         <ul>
             <li><a href="{% url 'usuario' %}">Inicio</a></li>
             <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
@@ -170,5 +187,10 @@
     </div>
 </footer>
 
+<script>
+function cerrarMenu(){
+  document.getElementById('menu').checked = false;
+}
+</script>
 </body>
 </html>

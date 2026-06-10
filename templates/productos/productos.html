@@ -177,7 +177,7 @@
         {% if producto.imagen %}
             <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}">
         {% else %}
-            <div class="no-img">👟</div>
+            {% include 'snippets/producto_placeholder.html' %}
         {% endif %}
         {% if producto.descontinuado %}
             <span class="badge-top disc">⚠ Descontinuado</span>

@@ -9,6 +9,32 @@
 <style>
   .msg-error { color:#b30000; font-size:12px; margin-top:3px; display:none; }
   .campo-error input { border-color:#b30000 !important; }
+
+  .campo-password { position: relative; }
+  .campo-password input { padding-right: 42px; }
+  .login-form .toggle-pwd {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none !important;
+      border: none;
+      cursor: pointer;
+      padding: 0 !important;
+      margin: 0 !important;
+      color: #6b7280 !important;
+      display: flex;
+      align-items: center;
+      grid-column: unset !important;
+      justify-self: unset !important;
+      font-weight: normal;
+      font-size: inherit;
+      width: auto;
+      border-radius: 0;
+      transition: color 0.2s ease;
+  }
+  .login-form .toggle-pwd:hover { color: #007bff !important; background: none !important; box-shadow: none !important; }
+  .login-form .toggle-pwd svg { width: 20px; height: 20px; pointer-events: none; }
 </style>
 </head>
 
@@ -33,14 +59,15 @@
     {% csrf_token %}
 
     <div id="c-nombre">
-      <label>Nombre</label>
-      <input type="text" name="first_name" placeholder="Tu nombre completo">
-      <span class="msg-error" id="e-nombre">El nombre es obligatorio.</span>
+      <label>Nombre Completo</label>
+      <input type="text" name="first_name" placeholder="Ej: Juan Pérez"
+             minlength="3" maxlength="60" required>
+      <span class="msg-error" id="e-nombre"></span>
     </div>
 
     <div id="c-tipo-doc">
       <label>Tipo de Identificación</label>
-      <select name="tipo_documento">
+      <select name="tipo_documento" required>
         <option value="">Seleccione</option>
         <option value="CC">Cédula de ciudadanía</option>
         <option value="TI">Tarjeta de identidad</option>
@@ -52,43 +79,68 @@
 
     <div id="c-cedula">
       <label>Número de Identificación</label>
-      <input type="text" id="input-cedula" name="cedula" placeholder="Ej: 12345678" inputmode="numeric" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
-      <span class="msg-error" id="e-cedula">La cédula debe contener solo números.</span>
+      <input type="text" id="input-cedula" name="cedula"
+             placeholder="Ej: 12345678"
+             inputmode="numeric" minlength="6" maxlength="15"
+             autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" required>
+      <span class="msg-error" id="e-cedula"></span>
     </div>
 
     <div id="c-usuario">
       <label>Usuario</label>
-      <input type="text" name="usuario" placeholder="Crea tu usuario" autocomplete="off">
-      <span class="msg-error" id="e-usuario">El usuario es obligatorio.</span>
+      <input type="text" name="usuario" placeholder="nombre_usuario"
+             minlength="4" maxlength="30" pattern="[A-Za-z0-9_]+"
+             autocomplete="off" required>
+      <span class="msg-error" id="e-usuario"></span>
+      <small style="font-size:11px;color:#888;">4–30 caracteres, solo letras, números y guión bajo.</small>
     </div>
 
     <div id="c-correo">
-      <label>Correo</label>
-      <input type="email" name="correo" placeholder="ejemplo@correo.com">
+      <label>Correo Electrónico</label>
+      <input type="email" name="correo" placeholder="ejemplo@correo.com"
+             maxlength="150" required>
       <span class="msg-error" id="e-correo">Ingresa un correo válido.</span>
     </div>
 
     <div id="c-telefono">
       <label>Teléfono</label>
-      <input type="text" name="telefono" placeholder="300 000 0000" inputmode="numeric" pattern="[0-9]{10,}" minlength="10">
-      <span class="msg-error" id="e-telefono">Solo números, mínimo 10 dígitos.</span>
+      <input type="text" name="telefono" placeholder="3001234567"
+             inputmode="numeric" minlength="10" maxlength="10" required>
+      <span class="msg-error" id="e-telefono"></span>
     </div>
 
     <div id="c-codigo">
-      <label>Código administrador</label>
-      <input type="text" name="codigo" placeholder="ADM-000">
+      <label>Código Administrador</label>
+      <input type="text" name="codigo" placeholder="ADM-000"
+             maxlength="20" required>
       <span class="msg-error" id="e-codigo">El código es obligatorio.</span>
     </div>
 
     <div id="c-contrasena">
       <label>Contraseña</label>
-      <input type="password" name="contrasena" placeholder="Crea una contraseña">
+      <div class="campo-password">
+        <input type="password" id="adm-contrasena" name="contrasena" placeholder="Crea una contraseña">
+        <button type="button" class="toggle-pwd" onclick="togglePwd('adm-contrasena', this)" tabindex="-1" aria-label="Mostrar contraseña">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+        </button>
+      </div>
       <span class="msg-error" id="e-contrasena">Mínimo 8 caracteres.</span>
     </div>
 
     <div id="c-confirmar">
       <label>Confirmar contraseña</label>
-      <input type="password" name="confirmar" placeholder="Repite la contraseña">
+      <div class="campo-password">
+        <input type="password" id="adm-confirmar" name="confirmar" placeholder="Repite la contraseña">
+        <button type="button" class="toggle-pwd" onclick="togglePwd('adm-confirmar', this)" tabindex="-1" aria-label="Mostrar contraseña">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+        </button>
+      </div>
       <span class="msg-error" id="e-confirmar">Las contraseñas no coinciden.</span>
     </div>
 
@@ -99,66 +151,35 @@
 </div>
 
 <script>
+function togglePwd(inputId, btn) {
+    var input = document.getElementById(inputId);
+    var mostrar = input.type === 'password';
+    input.type = mostrar ? 'text' : 'password';
+    btn.querySelector('svg').innerHTML = mostrar
+        ? '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.47-4.172M6.53 6.53A9.97 9.97 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.413 2.612M6.53 6.53L3 3m3.53 3.53l10.94 10.94M16.47 16.47L20 20"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.88 9.88A3 3 0 0014.12 14.12M9.88 9.88L14.12 14.12"/>'
+        : '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+}
+
 (function () {
-  var form       = document.getElementById('form-adm');
-  var soloNums   = /^[0-9]+$/;
+  var form = document.getElementById('form-adm');
 
-  // Lee un campo de forma segura usando querySelector (evita problemas en Safari iOS
-  // cuando form[name] devuelve HTMLFormControlsCollection en vez de un elemento)
-  function val(selector) {
-    var el = form.querySelector(selector);
-    return el ? el.value.trim() : '';
-  }
-
-  function campo(id, errId, cond) {
-    var c   = document.getElementById(id);
-    var err = document.getElementById(errId);
-    if (!c || !err) return;
-    if (cond) {
-      c.classList.add('campo-error');
-      err.style.display = 'block';
-    } else {
-      c.classList.remove('campo-error');
-      err.style.display = 'none';
-    }
-  }
-
-  form.addEventListener('submit', function (e) {
-    var ok           = true;
-    var nombre       = val('[name="first_name"]');
-    var tipoDoc      = val('[name="tipo_documento"]');
-    var cedula       = val('[name="cedula"]');
-    var usuario      = val('[name="usuario"]');
-    var correo       = val('[name="correo"]');
-    var telefono     = val('[name="telefono"]');
-    var codigo       = val('[name="codigo"]');
-    var contrasena   = form.querySelector('[name="contrasena"]').value;
-    var confirmar    = form.querySelector('[name="confirmar"]').value;
-
-    var checks = [
-      ['c-nombre',    'e-nombre',    !nombre],
-      ['c-tipo-doc',  'e-tipo-doc',  !tipoDoc],
-      ['c-cedula',    'e-cedula',    !cedula || !soloNums.test(cedula)],
-      ['c-usuario',   'e-usuario',   !usuario],
-      ['c-correo',    'e-correo',    !correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)],
-      ['c-telefono',  'e-telefono',  !telefono || !soloNums.test(telefono) || telefono.length < 10],
-      ['c-codigo',    'e-codigo',    !codigo],
-      ['c-contrasena','e-contrasena', contrasena.length < 8],
-      ['c-confirmar', 'e-confirmar',  contrasena !== confirmar],
-    ];
-
-    checks.forEach(function (c) {
-      campo(c[0], c[1], c[2]);
-      if (c[2]) ok = false;
-    });
-
-    if (!ok) e.preventDefault();
+  /* ── Filtros en tiempo real ── */
+  var nombreEl = form.querySelector('[name="first_name"]');
+  if (nombreEl) nombreEl.addEventListener('input', function () {
+    this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '');
   });
 
-  // Filtro numérico para cédula y teléfono (compatible iOS Safari)
+  var usuarioEl = form.querySelector('[name="usuario"]');
+  if (usuarioEl) usuarioEl.addEventListener('input', function () {
+    this.value = this.value.replace(/[^A-Za-z0-9_]/g, '');
+  });
+
   ['[name="cedula"]', '[name="telefono"]'].forEach(function (sel) {
     var el = form.querySelector(sel);
     if (!el) return;
+    el.addEventListener('input', function () {
+      this.value = this.value.replace(/\D/g, '');
+    });
     el.addEventListener('keypress', function (e) {
       if (e.key && e.key.length === 1 && !/[0-9]/.test(e.key)) e.preventDefault();
     });
@@ -166,11 +187,104 @@
       var txt = (e.clipboardData || window.clipboardData).getData('text');
       if (!/^[0-9]+$/.test(txt)) e.preventDefault();
     });
-    el.addEventListener('input', function () {
-      // Limpia caracteres no numéricos que iOS autocorrect pueda insertar
-      var clean = this.value.replace(/\D/g, '');
-      if (clean !== this.value) this.value = clean;
-    });
+  });
+
+  /* ── Helpers ── */
+  function mostrarError(contId, errId, msg) {
+    var cont = document.getElementById(contId);
+    var err  = document.getElementById(errId);
+    if (!cont || !err) return;
+    cont.classList.add('campo-error');
+    err.textContent = msg;
+    err.style.display = 'block';
+  }
+
+  function limpiarError(contId, errId) {
+    var cont = document.getElementById(contId);
+    var err  = document.getElementById(errId);
+    if (!cont || !err) return;
+    cont.classList.remove('campo-error');
+    err.style.display = 'none';
+  }
+
+  function q(sel) {
+    var el = form.querySelector(sel);
+    return el ? el.value.trim() : '';
+  }
+
+  /* ── Validación al enviar ── */
+  form.addEventListener('submit', function (e) {
+    var ok = true;
+
+    /* Nombre */
+    var nombre = q('[name="first_name"]');
+    if (!nombre) {
+      mostrarError('c-nombre', 'e-nombre', 'El nombre es obligatorio.'); ok = false;
+    } else if (nombre.length < 3) {
+      mostrarError('c-nombre', 'e-nombre', 'Mínimo 3 caracteres.'); ok = false;
+    } else if (!/^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$/.test(nombre)) {
+      mostrarError('c-nombre', 'e-nombre', 'Solo letras y espacios.'); ok = false;
+    } else { limpiarError('c-nombre', 'e-nombre'); }
+
+    /* Tipo de documento */
+    if (!q('[name="tipo_documento"]')) {
+      mostrarError('c-tipo-doc', 'e-tipo-doc', 'Selecciona un tipo de identificación.'); ok = false;
+    } else { limpiarError('c-tipo-doc', 'e-tipo-doc'); }
+
+    /* Cédula */
+    var cedula = q('[name="cedula"]');
+    if (!cedula || !/^[0-9]+$/.test(cedula)) {
+      mostrarError('c-cedula', 'e-cedula', 'Solo se permiten números.'); ok = false;
+    } else if (cedula.length < 6) {
+      mostrarError('c-cedula', 'e-cedula', 'Mínimo 6 dígitos.'); ok = false;
+    } else { limpiarError('c-cedula', 'e-cedula'); }
+
+    /* Usuario */
+    var usuario = q('[name="usuario"]');
+    if (!usuario) {
+      mostrarError('c-usuario', 'e-usuario', 'El usuario es obligatorio.'); ok = false;
+    } else if (usuario.length < 4) {
+      mostrarError('c-usuario', 'e-usuario', 'Mínimo 4 caracteres.'); ok = false;
+    } else if (!/^[A-Za-z0-9_]+$/.test(usuario)) {
+      mostrarError('c-usuario', 'e-usuario', 'Solo letras, números y guión bajo ( _ ).'); ok = false;
+    } else { limpiarError('c-usuario', 'e-usuario'); }
+
+    /* Correo */
+    var correo = q('[name="correo"]');
+    if (!correo) {
+      mostrarError('c-correo', 'e-correo', 'El correo es obligatorio.'); ok = false;
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
+      mostrarError('c-correo', 'e-correo', 'Ingresa un correo válido.'); ok = false;
+    } else { limpiarError('c-correo', 'e-correo'); }
+
+    /* Teléfono */
+    var tel = q('[name="telefono"]');
+    if (!tel || !/^[0-9]+$/.test(tel)) {
+      mostrarError('c-telefono', 'e-telefono', 'Solo se permiten números.'); ok = false;
+    } else if (tel.length !== 10) {
+      mostrarError('c-telefono', 'e-telefono', 'Debe tener exactamente 10 dígitos.'); ok = false;
+    } else { limpiarError('c-telefono', 'e-telefono'); }
+
+    /* Código */
+    if (!q('[name="codigo"]')) {
+      mostrarError('c-codigo', 'e-codigo', 'El código es obligatorio.'); ok = false;
+    } else { limpiarError('c-codigo', 'e-codigo'); }
+
+    /* Contraseña */
+    var pwd = form.querySelector('[name="contrasena"]').value;
+    if (pwd.length < 8) {
+      mostrarError('c-contrasena', 'e-contrasena', 'Mínimo 8 caracteres.'); ok = false;
+    } else if (pwd.length > 64) {
+      mostrarError('c-contrasena', 'e-contrasena', 'Máximo 64 caracteres.'); ok = false;
+    } else { limpiarError('c-contrasena', 'e-contrasena'); }
+
+    /* Confirmar contraseña */
+    var pwd2 = form.querySelector('[name="confirmar"]').value;
+    if (!pwd2 || pwd2 !== pwd) {
+      mostrarError('c-confirmar', 'e-confirmar', 'Las contraseñas no coinciden.'); ok = false;
+    } else { limpiarError('c-confirmar', 'e-confirmar'); }
+
+    if (!ok) e.preventDefault();
   });
 }());
 </script>

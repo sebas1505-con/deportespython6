@@ -1,6 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
-from .models import (Producto, TallaProducto, Venta, Movimiento,Reporte, DetalleVentaProductos, Pedido, Sugerencia, RespuestaSugerencia)
+from .models import (Producto, TallaProducto, Venta, Movimiento, Reporte, DetalleVentaProductos, Pedido, Sugerencia, RespuestaSugerencia, ResenaVenta)
 from .forms import CompraForm, ReportesForm, MovimientoForm
 from usuarios.models import Usuario, Cliente, Repartidor
 from django.contrib.auth.hashers import make_password
@@ -26,39 +26,74 @@ from decimal import Decimal
 
 def catalogo(request):
     categoria = request.GET.get('categoria')
+    base = Producto.objects.filter(descontinuado=False).exclude(imagen='').exclude(imagen__isnull=True)
     if categoria:
-        productos = Producto.objects.filter(
-            categoria__iexact=categoria,
-            descontinuado=False    
-        )
+        productos = base.filter(categoria__iexact=categoria)
     else:
-        productos = Producto.objects.filter(
-            descontinuado=False    # ← y esto
-        )
+        productos = base
     return render(request, 'catalogo.html', {'productos': productos})
 
 def catalogo_categoria(request, categoria):
-    productos = Producto.objects.filter(
-        categoria__iexact=categoria,
-        descontinuado=False    # ← agrega esto
-    )
+    cat = categoria.upper()
+    if cat == 'HOMBRE':
+        categorias = ['HOMBRE', 'MIXTO']
+    elif cat == 'MUJER':
+        categorias = ['MUJER', 'MIXTO']
+    else:
+        categorias = ['MIXTO']
+    productos = Producto.objects.filter(categoria__in=categorias, descontinuado=False).exclude(imagen='').exclude(imagen__isnull=True)
+    for p in productos:
+        p.stock_total = sum(t.stock for t in TallaProducto.objects.filter(producto=p))
     return render(request, 'catalogo_categoria.html', {
         'productos': productos,
-        'categoria': categoria
+        'categoria': cat,
     })
 
 def mis_compras(request):
     try:
-        usuario_id = request.session.get('usuario_id')  # 🔥 este es el correcto
+        usuario_id = request.session.get('usuario_id')
         usuario = Usuario.objects.get(id=usuario_id)
-
         cliente = Cliente.objects.get(usuario=usuario)
-        compras = Venta.objects.filter(cliente=cliente)
-
+        compras = (Venta.objects
+                   .filter(cliente=cliente)
+                   .prefetch_related('detalleventaproductos_set__producto')
+                   .select_related('resena')
+                   .order_by('-fecha_venta'))
     except (Cliente.DoesNotExist, Usuario.DoesNotExist):
         compras = []
 
     return render(request, 'usuarios/mis_compras.html', {'compras': compras})
+
+
+def guardar_resena(request, venta_id):
+    if request.method != 'POST':
+        return redirect('mis_compras')
+
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login')
+
+    try:
+        usuario = Usuario.objects.get(id=usuario_id)
+        cliente = Cliente.objects.get(usuario=usuario)
+        venta = Venta.objects.get(id=venta_id, cliente=cliente)
+    except (Usuario.DoesNotExist, Cliente.DoesNotExist, Venta.DoesNotExist):
+        return redirect('mis_compras')
+
+    if venta.estado not in ('Entregado', 'completada'):
+        return redirect('mis_compras')
+
+    estado_llegada = request.POST.get('estado_llegada', '')
+    comentario = request.POST.get('comentario', '').strip()
+
+    if estado_llegada not in ('bien', 'mal_estado', 'no_llego'):
+        return redirect('mis_compras')
+
+    ResenaVenta.objects.update_or_create(
+        venta=venta,
+        defaults={'estado_llegada': estado_llegada, 'comentario': comentario},
+    )
+    return redirect('mis_compras')
 
 def carga_masiva_productos(request):
     if request.method == 'POST':
@@ -83,30 +118,61 @@ def carga_masiva_productos(request):
 
             df.columns = df.columns.str.lower().str.strip()
             creados = 0
+            actualizados = 0
             errores = []
 
             for i, fila in df.iterrows():
                 try:
+                    nombre_limpio = str(fila['nombre']).strip()
                     categoria = str(fila.get('categoria', 'MIXTO')).upper().strip()
                     if categoria not in ['HOMBRE', 'MUJER', 'MIXTO']:
                         categoria = 'MIXTO'
+                    precio = fila['precio']
+                    descripcion = str(fila.get('descripcion', '')).strip()
 
-                    Producto.objects.create(
-                        nombre      = str(fila['nombre']).strip(),
-                        precio      = fila['precio'],
-                        descripcion = str(fila['descripcion']).strip(),
-                        stock_total = int(fila['stock']) if 'stock' in fila and str(fila['stock']) != 'nan' else 0,
-                        categoria   = categoria,
-                        imagen      = '',
-                    )
-                    creados += 1
+                    # Buscar producto existente por nombre (evita duplicados)
+                    producto = Producto.objects.filter(nombre__iexact=nombre_limpio).first()
+                    if producto:
+                        producto.precio = precio
+                        if descripcion:
+                            producto.descripcion = descripcion
+                        producto.categoria = categoria
+                        producto.save()
+                        actualizados += 1
+                    else:
+                        producto = Producto.objects.create(
+                            nombre      = nombre_limpio,
+                            precio      = precio,
+                            descripcion = descripcion,
+                            categoria   = categoria,
+                            imagen      = '',
+                        )
+                        creados += 1
+
+                    # Crear o actualizar talla/stock
+                    talla_val = str(fila.get('talla', '')).strip().upper() if 'talla' in df.columns else ''
+                    stock_val = fila.get('stock', 0) if 'stock' in df.columns else 0
+                    stock_int = int(stock_val) if str(stock_val) not in ('nan', '', 'None') else 0
+                    if talla_val:
+                        TallaProducto.objects.update_or_create(
+                            producto=producto,
+                            talla=talla_val,
+                            defaults={'stock': stock_int},
+                        )
+
+                    # Recalcular stock_total
+                    producto.stock_total = sum(t.stock for t in TallaProducto.objects.filter(producto=producto))
+                    producto.save()
+
                 except Exception as e_fila:
                     errores.append(f"Fila {i+2}: {e_fila}")
 
             if creados:
-                messages.success(request, f"{creados} producto(s) cargado(s) correctamente.")
+                messages.success(request, f"✅ {creados} producto(s) nuevo(s) creado(s) correctamente.")
+            if actualizados:
+                messages.info(request, f"🔄 {actualizados} producto(s) existente(s) actualizado(s) (sin duplicar).")
             if errores:
-                messages.warning(request, f"Errores en {len(errores)} fila(s): {' | '.join(errores[:5])}")
+                messages.warning(request, f"⚠ Errores en {len(errores)} fila(s): {' | '.join(errores[:5])}")
 
         except Exception as e:
             messages.error(request, f"Error al procesar el archivo: {e}")
@@ -172,9 +238,12 @@ def productos(request):
 
 
 def detalle_producto(request, id):
-    producto = get_object_or_404(Producto, id=id, descontinuado=False)  # ← agrega descontinuado=False
+    producto = get_object_or_404(Producto, id=id, descontinuado=False)
     tallas   = TallaProducto.objects.filter(producto=producto)
     stock_total = sum(t.stock for t in tallas)
+    if stock_total == 0:
+        messages.error(request, 'Este producto está agotado.')
+        return redirect('catalogo')
     return render(request, 'productos/producto-detalle.html', {
         'producto':   producto,
         'tallas':     tallas,

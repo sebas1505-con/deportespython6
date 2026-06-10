@@ -4,55 +4,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Factura - Deportes 360</title>
+    <title>Factura #{{ venta.id }} - Deportes 360</title>
     <link rel="stylesheet" href="{% static 'css/factura.css' %}">
 </head>
 <body>
+
 <div class="factura-container">
 
-    <h1>Factura de Compra</h1>
-
-<div class="datos-cliente">
-    <h3>Datos del Cliente</h3>
-    <p><strong>Nombre:</strong> {{ cliente.usuario.first_name }} {{ cliente.usuario.last_name }}</p>
-    <p><strong>Email:</strong> {{ cliente.usuario.email }}</p>
-    <p><strong>Dirección:</strong> {{ cliente.direccion }}</p>
-</div>
-
-<table class="tabla-productos">
-    <tr>
-        <th>Producto</th>
-        <th>Talla</th>
-        <th>Cantidad</th>
-        <th>Precio Unitario</th>
-        <th>Subtotal</th>
-    </tr>
-    {% for d in detalles %}
-    <tr>
-        <td>{{ d.producto.nombre }}</td>
-        <td>{{ d.talla }}</td>
-        <td>{{ d.cantidad }}</td>
-        <td>${{ d.precio_unitario }}</td>
-        <td>${{ d.subtotal }}</td>
-    </tr>
-    {% empty %}
-    <tr>
-        <td colspan="5">No hay productos en esta venta</td>
-    </tr>
-    {% endfor %}
-</table>
-
-
-    <div class="total">
-        <h2>Total: ${{ total }}</h2>
+    <!-- ENCABEZADO -->
+    <div class="factura-header">
+        <div class="empresa-info">
+            <img src="{% static 'images/logo-deporte.png' %}" alt="Deportes 360" class="logo-factura">
+            <div>
+                <h2 class="empresa-nombre">Deportes 360</h2>
+                <p class="empresa-datos">deportes360@gmail.com</p>
+                <p class="empresa-datos">Colombia</p>
+            </div>
+        </div>
+        <div class="factura-meta">
+            <h1>FACTURA</h1>
+            <table class="meta-table">
+                <tr><td>N° Pedido</td><td><strong>#{{ venta.id }}</strong></td></tr>
+                <tr><td>Fecha</td><td>{{ venta.fecha_venta|date:"d/m/Y" }}</td></tr>
+                <tr><td>Método de pago</td><td>{{ venta.metodo_de_pago }}</td></tr>
+                <tr><td>Estado</td><td><span class="badge-estado">Confirmado ✓</span></td></tr>
+            </table>
+        </div>
     </div>
 
+    <div class="divider"></div>
+
+    <!-- DATOS CLIENTE Y ENVÍO -->
+    <div class="info-grid">
+        <div class="info-box">
+            <h4>Datos del cliente</h4>
+            <p><strong>{{ cliente.usuario.first_name }} {{ cliente.usuario.last_name }}</strong></p>
+            <p>{{ cliente.usuario.email }}</p>
+            {% if cliente.usuario.telefono %}<p>{{ cliente.usuario.telefono }}</p>{% endif %}
+        </div>
+        <div class="info-box">
+            <h4>Datos de envío</h4>
+            <p><strong>Método:</strong> {{ venta.metodoEnvio }}</p>
+            <p><strong>Dirección:</strong> {{ venta.direccionEnvio }}</p>
+            {% if venta.telefonoContacto %}<p><strong>Teléfono:</strong> {{ venta.telefonoContacto }}</p>{% endif %}
+            {% if venta.observaciones %}<p><strong>Nota:</strong> {{ venta.observaciones }}</p>{% endif %}
+        </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- TABLA DE PRODUCTOS -->
+    <table class="tabla-productos">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Talla</th>
+                <th>Cantidad</th>
+                <th>Precio unitario</th>
+                <th>Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in detalles %}
+            <tr>
+                <td class="td-producto">{{ d.producto.nombre }}</td>
+                <td>{{ d.talla }}</td>
+                <td>{{ d.cantidad }}</td>
+                <td>${{ d.precio_unitario }}</td>
+                <td><strong>${{ d.subtotal }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" style="text-align:center;color:#888;">No hay productos en esta venta</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- TOTALES -->
+    <div class="totales-box">
+        <div class="totales-inner">
+            <div class="total-row subtotal-row">
+                <span>Subtotal</span>
+                <span>${{ total }}</span>
+            </div>
+            {% if venta.valor_domicilio %}
+            <div class="total-row">
+                <span>Domicilio</span>
+                <span>${{ venta.valor_domicilio }}</span>
+            </div>
+            {% endif %}
+            <div class="total-row total-final">
+                <span>TOTAL</span>
+                <span>${{ total }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTONES -->
     <div class="botones">
-        <a href="{% url 'catalogo' %}" class="btn">Seguir comprando</a>
-        <a href="{% url 'usuario' %}" class="btn">Volver al inicio</a>
-        <a href="{% url 'factura_pdf' venta.id %}" target="_blank" class="btn">Imprimir Factura</a>
+        <a href="{% url 'factura_pdf' venta.id %}" class="btn btn-descargar">⬇ Descargar PDF</a>
+        <a href="{% url 'catalogo' %}" class="btn btn-secundario">Seguir comprando</a>
+        <a href="{% url 'usuario' %}" class="btn btn-secundario">Ir al inicio</a>
     </div>
 
+    <p class="footer-nota">Gracias por tu compra en Deportes 360 · Este documento es tu comprobante de pago.</p>
+
 </div>
+
 </body>
 </html>

@@ -231,3 +231,18 @@ class Pedido(models.Model):
 
     def __str__(self):
         return f"Pedido {self.id} - {self.producto}"
+
+
+class ResenaVenta(models.Model):
+    ESTADOS = [
+        ('bien',       'Llegó bien'),
+        ('mal_estado', 'Llegó en mal estado'),
+        ('no_llego',   'No llegó'),
+    ]
+    venta          = models.OneToOneField(Venta, on_delete=models.CASCADE, related_name='resena')
+    estado_llegada = models.CharField(max_length=20, choices=ESTADOS)
+    comentario     = models.TextField(blank=True, default='')
+    fecha          = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Reseña venta #{self.venta.id} — {self.get_estado_llegada_display()}"

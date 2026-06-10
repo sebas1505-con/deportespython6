@@ -343,12 +343,20 @@
                         <td>{{ pedido.venta.telefonoContacto }}</td>
                         <td>${{ pedido.venta.totalVenta }}</td>
                         <td><span class="ganancia-tag">${{ pedido.valor_domicilio }}</span></td>
-                        <td style="display:flex;gap:6px;flex-wrap:wrap;">
+                        <td style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
                             <a href="{% url 'detalle_pedido' pedido.id %}" class="btn">Ver</a>
                             <form method="post" action="{% url 'tomar_pedido' pedido.id %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn" style="background:#2e7d32;">Tomar</button>
                             </form>
+                            <a href="https://www.google.com/maps/search/?api=1&query={{ pedido.venta.direccionEnvio|urlencode }}%2C+Colombia"
+                               target="_blank" class="btn"
+                               style="background:#4285F4;display:inline-flex;align-items:center;gap:5px;text-decoration:none;">
+                                <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                                </svg>
+                                Maps
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
@@ -411,7 +419,7 @@
                         </button>
                     </form>
                 </div>
-                <!-- Botón WhatsApp — va dentro del div de pedidos activos, al lado del form de entregar -->
+                <!-- Botón WhatsApp -->
                 <div style="align-self:center;margin-top:6px;">
                     <a href="https://wa.me/57{{ pedido.venta.telefonoContacto|slugify }}?text={{ mensaje_wa|urlencode }}"
                         target="_blank" class="btn"
@@ -421,6 +429,17 @@
                             <path d="M12 0C5.373 0 0 5.373 0 12c0 2.123.554 4.118 1.526 5.845L.057 23.885l6.21-1.63A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.6a9.573 9.573 0 0 1-4.889-1.344l-.35-.208-3.635.954.969-3.54-.228-.364A9.565 9.565 0 0 1 2.4 12c0-5.292 4.308-9.6 9.6-9.6s9.6 4.308 9.6 9.6-4.308 9.6-9.6 9.6z"/>
                         </svg>
                         WhatsApp
+                    </a>
+                </div>
+                <!-- Botón Google Maps -->
+                <div style="align-self:center;margin-top:6px;">
+                    <a href="https://www.google.com/maps/search/?api=1&query={{ pedido.venta.direccionEnvio|urlencode }}%2C+Colombia"
+                       target="_blank" class="btn"
+                       style="background:#4285F4;display:flex;align-items:center;gap:8px;text-decoration:none;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                        </svg>
+                        Ir al destino
                     </a>
                 </div>
             </div>

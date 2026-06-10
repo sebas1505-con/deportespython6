@@ -18,8 +18,9 @@ body { background-color: #f2f3f5; color: #222; min-height: 100vh; }
 /* ══ SIDEBAR ══ */
 .sidebar {
   background-color: #0d0d0d; width: 220px;
-  height: 100vh; position: fixed; top: 0; left: 0;
-  box-shadow: 4px 0 16px rgba(0,0,0,.3); overflow-y: auto; z-index: 1001;
+  height: calc(100vh - 64px); position: fixed; top: 64px; left: 0;
+  box-shadow: 4px 0 16px rgba(0,0,0,.3); overflow-y: auto;
+  -webkit-overflow-scrolling: touch; z-index: 1001;
   display: flex; flex-direction: column;
   transform: translateX(-100%);
   visibility: hidden;
@@ -29,7 +30,7 @@ body { background-color: #f2f3f5; color: #222; min-height: 100vh; }
   transform: translateX(0);
   visibility: visible;
 }
-.sidebar-nav-wrap { display: flex; flex-direction: column; height: 100%; padding: 12px 10px; }
+.sidebar-nav-wrap { display: flex; flex-direction: column; min-height: 100%; padding: 12px 10px; }
 .sidebar-nav-main { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 .sidebar-nav-bottom { border-top: 1px solid rgba(255,255,255,.1); padding-top: 10px; display: flex; flex-direction: column; gap: 2px; margin-top: 12px; }
 

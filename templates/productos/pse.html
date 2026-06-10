@@ -148,7 +148,14 @@
       </div>
     </div>
     <div class="nota-demo">PSE </div>
-    <button class="btn-sec" onclick="resetFlow()">Volver a intentar</button>
+
+    <!-- Botón factura (solo visible si pago aprobado) -->
+    <button class="btn-cta" id="btn-factura" style="display:none;margin-top:12px;" onclick="document.getElementById('django-form').submit()">
+      Ver mi factura →
+    </button>
+    <p id="countdown-txt" style="display:none;text-align:center;font-size:13px;color:#6b7280;margin-top:8px;"></p>
+
+    <button class="btn-sec" id="btn-reintentar" onclick="resetFlow()">Volver a intentar</button>
 
     <!-- ↓ Botón real que envía el form Django cuando el pago es "aprobado" -->
     <form id="django-form" method="post" action="{% url 'registrar_pse' %}">
@@ -298,10 +305,22 @@ function showResult(){
       <div class="rrow"><span class="k">Fecha y hora</span><span class="v">${fecha} · ${hora}</span></div>
       <div class="rrow"><span class="k">Estado</span><span class="v ok">Aprobada ✓</span></div>`;
 
-    /* ── Si el pago está "aprobado" en simulación, envía el form Django ── */
-    setTimeout(()=>{
-      document.getElementById('django-form').submit();
-    }, 4000);  /* espera 4s para que el usuario vea el resultado */
+    /* ── Pago aprobado: mostrar botón y contador ── */
+    document.getElementById('btn-factura').style.display = 'block';
+    document.getElementById('btn-reintentar').style.display = 'none';
+    const ctxt = document.getElementById('countdown-txt');
+    ctxt.style.display = 'block';
+    let secs = 5;
+    ctxt.textContent = `Serás redirigido a tu factura en ${secs} segundos...`;
+    const cd = setInterval(() => {
+      secs--;
+      if (secs > 0) {
+        ctxt.textContent = `Serás redirigido a tu factura en ${secs} segundos...`;
+      } else {
+        clearInterval(cd);
+        document.getElementById('django-form').submit();
+      }
+    }, 1000);
 
   } else {
     rb.className='rbadge fail';

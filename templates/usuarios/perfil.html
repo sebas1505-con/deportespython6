@@ -171,6 +171,7 @@
       <div class="nav-overlay"></div>
       <nav class="navbar">
         <ul>
+          <li><a href="{% url 'usuario' %}">Inicio</a></li>
           <li><a href="{% url 'perfil' %}" style="color:var(--rojo,#d40000);font-weight:700;">Perfil</a></li>
           <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
           <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
@@ -244,7 +245,8 @@
           </div>
           <div class="pf-campo">
             <label>Fecha de nacimiento</label>
-            <input type="date" name="fecha_nacimiento" value="{{ usuario.fecha_nacimiento|date:'Y-m-d' }}">
+            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ usuario.fecha_nacimiento|date:'Y-m-d' }}">
+            <span id="err-fecha_nacimiento" style="color:#dc2626;font-size:12px;display:none;"></span>
           </div>
         </div>
 
@@ -343,6 +345,41 @@ function togglePwd(id, btn) {
   else { inp.type = 'password'; btn.textContent = '👁'; }
 }
 
+(function() {
+  var input = document.getElementById('fecha_nacimiento');
+  if (!input) return;
+  var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  var max18 = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+  input.max = max18.toISOString().split('T')[0];
+  input.min = '1900-01-01';
+
+  var form = input.closest('form');
+  var errSpan = document.getElementById('err-fecha_nacimiento');
+  if (!form) return;
+
+  form.addEventListener('submit', function(e) {
+    errSpan.style.display = 'none'; errSpan.textContent = '';
+    var val = input.value;
+    if (!val) return;
+    var fecha = new Date(val);
+    if (fecha > hoy) {
+      e.preventDefault();
+      errSpan.textContent = 'La fecha no puede ser futura.';
+      errSpan.style.display = 'block';
+      input.focus(); return;
+    }
+    if (fecha > max18) {
+      e.preventDefault();
+      errSpan.textContent = 'Debes tener al menos 18 años.';
+      errSpan.style.display = 'block';
+      input.focus();
+    }
+  });
+  input.addEventListener('change', function() {
+    errSpan.style.display = 'none'; errSpan.textContent = '';
+  });
+})();
+
 /* Cargar barrios al cambiar localidad */
 document.getElementById('localidad').addEventListener('change', function(){
   var localidad = this.value;
@@ -380,6 +417,23 @@ window.addEventListener('DOMContentLoaded', function(){
   if (locSel.value) locSel.dispatchEvent(new Event('change'));
 });
 </script>
+
+<footer class="footer">
+    <div class="footer-content container">
+        <a href="{% url 'index' %}" class="logo-wrapper">
+            <div class="logo-icon"><span>360</span></div>
+            <div class="logo-text">
+                <strong>Deportes</strong>
+                <small>360</small>
+            </div>
+        </a>
+        <ul>
+            <li><a href="{% url 'usuario' %}">Inicio</a></li>
+            <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+            <li><a href="{% url 'contactousu' %}">Contacto</a></li>
+        </ul>
+    </div>
+</footer>
 
 </body>
 </html>
