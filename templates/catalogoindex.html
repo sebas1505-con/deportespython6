@@ -9,6 +9,47 @@
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{% static 'css/index.css' %}">
     <link rel="stylesheet" href="{% static 'css/catalogo.css' %}">
+    <style>
+    .cat-filtros { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 28px; }
+    .cat-filtro {
+        padding: 8px 18px; border-radius: 20px; font-size: 13px; font-weight: 700;
+        text-decoration: none; border: 2px solid #e5e7eb; color: #555;
+        background: #fff; transition: .15s;
+    }
+    .cat-filtro:hover,
+    .cat-filtro.active { background: #d40000; color: #fff; border-color: #d40000; }
+
+    .Prodcts-content {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 22px;
+    }
+    .Prodcts-1 {
+        background: #fff; border-radius: 16px; overflow: hidden;
+        box-shadow: 0 2px 10px rgba(0,0,0,.08);
+        transition: transform .2s, box-shadow .2s;
+        display: flex; flex-direction: column;
+        padding: 0;
+    }
+    .Prodcts-1:hover { transform: translateY(-5px); box-shadow: 0 10px 24px rgba(0,0,0,.14); }
+    .Prodcts-1 img { width: 100%; height: 210px; object-fit: cover; display: block; }
+    .Prodcts-1 h4 {
+        font-size: 15px; font-weight: 700; color: #111;
+        padding: 12px 14px 4px;
+    }
+    .Prodcts-1 p {
+        font-size: 17px; font-weight: 800; color: #008f39;
+        padding: 0 14px 12px;
+    }
+    .btn-1 {
+        display: block; margin: 0 14px 14px;
+        padding: 10px 16px; background: #d40000; color: #fff;
+        border-radius: 8px; text-decoration: none;
+        font-size: 13px; font-weight: 700; text-align: center;
+        transition: .2s; margin-top: auto;
+    }
+    .btn-1:hover { background: #8b0000; }
+    </style>
 </head>
 
 <body>
@@ -39,32 +80,45 @@
     <div class="container">
     <h2>Catálogo de Productos</h2>
 
+    <div class="cat-filtros">
+        <a href="{% url 'catalogoindex' %}"
+           class="cat-filtro {% if not categoria %}active{% endif %}">Todos</a>
+        <a href="{% url 'catalogoindex' %}?categoria=HOMBRE"
+           class="cat-filtro {% if categoria == 'HOMBRE' %}active{% endif %}">Hombre</a>
+        <a href="{% url 'catalogoindex' %}?categoria=MUJER"
+           class="cat-filtro {% if categoria == 'MUJER' %}active{% endif %}">Mujer</a>
+        <a href="{% url 'catalogoindex' %}?categoria=MIXTO"
+           class="cat-filtro {% if categoria == 'MIXTO' %}active{% endif %}">Mixto</a>
+    </div>
+
     <div class="Prodcts-content">
 
         {% for producto in productos %}
+        <div class="Prodcts-1" {% if producto.stock_total == 0 %}style="position:relative;opacity:.7;"{% endif %}>
 
-        <div class="Prodcts-1">
+            {% if producto.stock_total == 0 %}
+            <div style="position:absolute;top:10px;left:10px;background:#dc2626;color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:20px;z-index:2;">Se acabó</div>
+            {% endif %}
 
-            <!-- IMAGEN -->
+            {% if producto.imagen %}
             <img src="{{ producto.imagen.url }}" alt="{{ producto.nombre }}"/>
-
-            <!-- NOMBRE -->
+            {% else %}
+            {% include 'snippets/producto_placeholder.html' %}
+            {% endif %}
             <h4>{{ producto.nombre }}</h4>
-
-            <!-- PRECIO -->
             <p>${{ producto.precio }}</p>
 
-            <!-- BOTÓN DETALLE -->
+            {% if producto.stock_total == 0 %}
+            <span class="btn-1" style="background:#aaa;cursor:not-allowed;pointer-events:none;">Sin stock</span>
+            {% else %}
             <a href="{% url 'login' %}?next={% url 'detalle_producto' producto.id %}" class="btn-1">
                 Más Información
             </a>
+            {% endif %}
 
         </div>
-
         {% empty %}
-
         <p>No hay productos disponibles</p>
-
         {% endfor %}
 
     </div>

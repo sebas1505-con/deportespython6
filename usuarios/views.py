@@ -32,7 +32,7 @@ def index(request):
     usuario_id = request.session.get('usuario_id')
     usuario = Usuario.objects.get(id=usuario_id) if usuario_id else None
     from inventario.models import Producto
-    productos = Producto.objects.filter(descontinuado=False)[:6]
+    productos = Producto.objects.filter(descontinuado=False).exclude(imagen='').exclude(imagen__isnull=True)[:6]
     return render(request, 'index.html', {
         'usuario': usuario,
         'productos': productos
@@ -113,66 +113,46 @@ def registro_pendiente(request):
 
 def registro_cliente(request):
     if request.method == 'POST':
-        first_name         = request.POST.get('first_name', '').strip()
-        email              = request.POST.get('email', '').strip()
-        username           = request.POST.get('username', '').strip()
-        password           = request.POST.get('password', '')
-        confirmar_password = request.POST.get('confirmar_password', '')
-        telefono           = request.POST.get('telefono', '').strip()
-        tipo_documento     = request.POST.get('tipo_documento', '').strip()
-        cedula             = request.POST.get('cedula', '').strip()
+        datos          = request.POST
+        first_name     = datos.get('first_name', '').strip()
+        email          = datos.get('email', '').strip()
+        username       = datos.get('username', '').strip()
+        password       = datos.get('password', '')
+        confirmar_password = datos.get('confirmar_password', '')
+        telefono       = datos.get('telefono', '').strip()
+        tipo_documento = datos.get('tipo_documento', '').strip()
+        cedula         = datos.get('cedula', '').strip()
+
+        def volver(msg):
+            messages.error(request, msg)
+            return render(request, 'registro.html', {'datos': datos})
 
         if not all([first_name, email, username, password, confirmar_password, telefono, tipo_documento, cedula]):
-            messages.error(request, 'Todos los campos son obligatorios.')
-            return redirect('registro')
-
+            return volver('Todos los campos son obligatorios.')
         if len(first_name) < 3 or len(first_name) > 60:
-            messages.error(request, 'El nombre debe tener entre 3 y 60 caracteres.')
-            return redirect('registro')
-
+            return volver('El nombre debe tener entre 3 y 60 caracteres.')
         if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$', first_name):
-            messages.error(request, 'El nombre completo solo puede contener letras y espacios.')
-            return redirect('registro')
-
+            return volver('El nombre completo solo puede contener letras y espacios.')
         if tipo_documento not in ['CC', 'TI', 'CE', 'PAS']:
-            messages.error(request, 'Selecciona un tipo de identificación válido.')
-            return redirect('registro')
-
+            return volver('Selecciona un tipo de identificación válido.')
         if not cedula.isdigit() or len(cedula) < 6 or len(cedula) > 15:
-            messages.error(request, 'La cédula debe contener solo números (6–15 dígitos).')
-            return redirect('registro')
-
+            return volver('La cédula debe contener solo números (6–15 dígitos).')
         if not telefono.isdigit() or len(telefono) != 10:
-            messages.error(request, 'El teléfono debe contener exactamente 10 dígitos.')
-            return redirect('registro')
-
+            return volver('El teléfono debe contener exactamente 10 dígitos.')
         if len(username) < 4 or len(username) > 30:
-            messages.error(request, 'El usuario debe tener entre 4 y 30 caracteres.')
-            return redirect('registro')
-
+            return volver('El usuario debe tener entre 4 y 30 caracteres.')
         if not re.match(r'^[A-Za-z0-9_]+$', username):
-            messages.error(request, 'El usuario solo puede tener letras, números y guión bajo.')
-            return redirect('registro')
-
+            return volver('El usuario solo puede tener letras, números y guión bajo.')
         if len(password) < 8 or len(password) > 64:
-            messages.error(request, 'La contraseña debe tener entre 8 y 64 caracteres.')
-            return redirect('registro')
-
+            return volver('La contraseña debe tener entre 8 y 64 caracteres.')
         if password != confirmar_password:
-            messages.error(request, 'Las contraseñas no coinciden.')
-            return redirect('registro')
-
+            return volver('Las contraseñas no coinciden.')
         if Usuario.objects.filter(username=username).exists():
-            messages.error(request, 'Ese nombre de usuario ya está en uso.')
-            return redirect('registro')
-
+            return volver('Ese nombre de usuario ya está en uso.')
         if Usuario.objects.filter(email=email).exists():
-            messages.error(request, 'Ese correo ya está registrado.')
-            return redirect('registro')
-
+            return volver('Ese correo ya está registrado.')
         if Usuario.objects.filter(cedula=cedula).exists():
-            messages.error(request, 'Esa cédula ya está registrada.')
-            return redirect('registro')
+            return volver('Esa cédula ya está registrada.')
 
         Usuario.objects.create(
             first_name     = first_name,
@@ -184,84 +164,77 @@ def registro_cliente(request):
             cedula         = cedula,
             rol            = 'CLIENTE',
         )
+        Movimiento.objects.create(
+            tipo_movimiento = 'evento',
+            nombre_producto = 'Registro nuevo cliente',
+            motivo          = f'Nuevo cliente registrado: {first_name} | Usuario: {username} | Correo: {email} | Tel: {telefono} | Doc: {tipo_documento} {cedula}',
+            cantidad        = 0,
+        )
         messages.success(request, '✅ Cuenta creada. Ya puedes iniciar sesión.')
         return redirect('login')
 
-    return render(request, 'registro.html')
+    return render(request, 'registro.html', {'datos': {}})
 
 def crear_repartidor(request):
 
     if request.method == 'POST':
-        first_name = request.POST.get('first_name', '').strip()
-        email      = request.POST.get('email', '').strip()
-        username   = request.POST.get('username', '').strip()
-        cedula       = request.POST.get('cedula', '').strip()
-        tipo_doc     = request.POST.get('tipo_documento', '').strip()
-        telefono     = request.POST.get('telefono', '').strip()
-        password     = request.POST.get('password', '')
-        confirmar    = request.POST.get('confirmar', '')
-        vehiculo     = request.POST.get('vehiculo', '').strip()
-        placa        = request.POST.get('placa', '').strip()
+        datos      = request.POST
+        first_name = datos.get('first_name', '').strip()
+        email      = datos.get('email', '').strip()
+        username   = datos.get('username', '').strip()
+        cedula     = datos.get('cedula', '').strip()
+        tipo_doc   = datos.get('tipo_documento', '').strip()
+        telefono   = datos.get('telefono', '').strip()
+        password   = datos.get('password', '')
+        confirmar  = datos.get('confirmar', '')
+        vehiculo   = datos.get('vehiculo', '').strip()
+        placa      = datos.get('placa', '').strip()
 
-        if not all([first_name, email, username, password, confirmar, telefono, tipo_doc, cedula, vehiculo, placa]):
-            messages.error(request, 'Todos los campos son obligatorios.')
-            return redirect('crear_repartidor')
+        def volver(msg):
+            messages.error(request, msg)
+            return render(request, 'crear-repartidor.html', {'datos': datos})
 
+        # Placa solo es obligatoria para Moto y Carro
+        campos_base = [first_name, email, username, password, confirmar, telefono, tipo_doc, cedula, vehiculo]
+        if not all(campos_base):
+            return volver('Todos los campos son obligatorios.')
         if len(first_name) < 3 or len(first_name) > 60:
-            messages.error(request, 'El nombre debe tener entre 3 y 60 caracteres.')
-            return redirect('crear_repartidor')
-
+            return volver('El nombre debe tener entre 3 y 60 caracteres.')
         if not re.match(r'^[A-Za-zÁÉÍÓÚáéíóúÑñÜü ]+$', first_name):
-            messages.error(request, 'El nombre completo solo puede contener letras y espacios.')
-            return redirect('crear_repartidor')
-
+            return volver('El nombre completo solo puede contener letras y espacios.')
         if tipo_doc not in ['CC', 'TI', 'CE', 'PAS']:
-            messages.error(request, 'Selecciona un tipo de identificación válido.')
-            return redirect('crear_repartidor')
-
+            return volver('Selecciona un tipo de identificación válido.')
         if not cedula.isdigit() or len(cedula) < 6 or len(cedula) > 15:
-            messages.error(request, 'La cédula debe contener solo números (6–15 dígitos).')
-            return redirect('crear_repartidor')
-
+            return volver('La cédula debe contener solo números (6–15 dígitos).')
         if not telefono.isdigit() or len(telefono) != 10:
-            messages.error(request, 'El teléfono debe contener exactamente 10 dígitos.')
-            return redirect('crear_repartidor')
-
+            return volver('El teléfono debe contener exactamente 10 dígitos.')
         if len(username) < 4 or len(username) > 30:
-            messages.error(request, 'El usuario debe tener entre 4 y 30 caracteres.')
-            return redirect('crear_repartidor')
-
+            return volver('El usuario debe tener entre 4 y 30 caracteres.')
         if not re.match(r'^[A-Za-z0-9_]+$', username):
-            messages.error(request, 'El usuario solo puede tener letras, números y guión bajo.')
-            return redirect('crear_repartidor')
-
+            return volver('El usuario solo puede tener letras, números y guión bajo.')
         if len(password) < 8 or len(password) > 64:
-            messages.error(request, 'La contraseña debe tener entre 8 y 64 caracteres.')
-            return redirect('crear_repartidor')
-
+            return volver('La contraseña debe tener entre 8 y 64 caracteres.')
         if password != confirmar:
-            messages.error(request, 'Las contraseñas no coinciden.')
-            return redirect('crear_repartidor')
-
+            return volver('Las contraseñas no coinciden.')
         if vehiculo not in ['Moto', 'Bicicleta', 'Carro']:
-            messages.error(request, 'Selecciona un tipo de vehículo válido.')
-            return redirect('crear_repartidor')
-
-        if not re.match(r'^[A-Za-z0-9]{1,6}$', placa):
-            messages.error(request, 'La placa debe tener máximo 6 caracteres alfanuméricos.')
-            return redirect('crear_repartidor')
-
+            return volver('Selecciona un tipo de vehículo válido.')
+        if vehiculo != 'Bicicleta':
+            if not placa or not re.match(r'^[A-Za-z0-9]{1,6}$', placa):
+                return volver('La placa debe tener máximo 6 caracteres alfanuméricos.')
+            placa_upper = placa.upper()
+            if NotificacionRepartidor.objects.filter(placa__iexact=placa_upper).exists():
+                return volver('Esa placa ya está registrada por otro repartidor.')
+            if Repartidor.objects.filter(placa__iexact=placa_upper).exists():
+                return volver('Esa placa ya está registrada por otro repartidor.')
+            placa = placa_upper
+        else:
+            placa = None
         if Usuario.objects.filter(username=username).exists():
-            messages.error(request, 'Ese nombre de usuario ya está en uso.')
-            return redirect('crear_repartidor')
-
+            return volver('Ese nombre de usuario ya está en uso.')
         if Usuario.objects.filter(email=email).exists():
-            messages.error(request, 'Ese correo ya está registrado.')
-            return redirect('crear_repartidor')
-
+            return volver('Ese correo ya está registrado.')
         if cedula and Usuario.objects.filter(cedula=cedula).exists():
-            messages.error(request, 'Esa cédula ya está registrada.')
-            return redirect('crear_repartidor')
+            return volver('Esa cédula ya está registrada.')
 
         # Crear usuario inactivo (pendiente de aprobación)
         usuario = Usuario.objects.create(
@@ -281,6 +254,12 @@ def crear_repartidor(request):
             usuario  = usuario,
             vehiculo = vehiculo,
             placa    = placa,
+        )
+        Movimiento.objects.create(
+            tipo_movimiento = 'evento',
+            nombre_producto = 'Solicitud de repartidor',
+            motivo          = f'Nueva solicitud de repartidor pendiente de aprobación: {first_name} | Usuario: {username} | Correo: {email} | Tel: {telefono} | Vehículo: {vehiculo}{" | Placa: " + placa if placa else ""}',
+            cantidad        = 0,
         )
 
         # Enviar correo de confirmación al administrador
@@ -324,7 +303,7 @@ def crear_repartidor(request):
             'email': email
         })
 
-    return render(request, 'crear-repartidor.html', {})
+    return render(request, 'crear-repartidor.html', {'datos': {}})
 
 def crear_admin(request):
     admin_existe = Usuario.objects.filter(rol='ADMIN').exists()
@@ -387,6 +366,12 @@ def crear_admin(request):
             is_superuser=True
         )
         Administrador.objects.create(codigo=codigo, usuario=usuario)
+        Movimiento.objects.create(
+            tipo_movimiento = 'evento',
+            nombre_producto = 'Registro nuevo administrador',
+            motivo          = f'Nuevo administrador creado: {first_name} | Usuario: {usuario_val} | Correo: {correo} | Tel: {telefono} | Doc: {tipo_documento} {cedula}',
+            cantidad        = 0,
+        )
         messages.success(request, "Administrador creado exitosamente.")
         return redirect("login")
     return render(request, "crear_admin.html")
@@ -555,25 +540,43 @@ def usuario(request):
     categoria = request.GET.get("categoria")
 
     from inventario.models import Producto
+    base = Producto.objects.filter(descontinuado=False).exclude(imagen='').exclude(imagen__isnull=True)
     if categoria == "HOMBRE":
-        productos = Producto.objects.filter(categoria__in=["HOMBRE", "MIXTO"], descontinuado=False)
+        productos = base.filter(categoria__in=["HOMBRE", "MIXTO"])
     elif categoria == "MUJER":
-        productos = Producto.objects.filter(categoria__in=["MUJER", "MIXTO"], descontinuado=False)
+        productos = base.filter(categoria__in=["MUJER", "MIXTO"])
     elif categoria == "MIXTO":
-        productos = Producto.objects.filter(categoria="MIXTO", descontinuado=False)
+        productos = base.filter(categoria="MIXTO")
     else:
-        productos = Producto.objects.filter(descontinuado=False) 
+        productos = base
 
     return render(request, "usuario.html", {"usuario": usuario, "productos": productos})
 
 def catalogoindex(request):
-    categoria = request.GET.get('categoria')  # lee el parámetro de la URL
-    if categoria:
-        productos = Producto.objects.filter(categoria__iexact=categoria)
+    from inventario.models import TallaProducto
+    categoria = request.GET.get('categoria', '').upper()
+    if categoria == 'HOMBRE':
+        categorias = ['HOMBRE', 'MIXTO']
+    elif categoria == 'MUJER':
+        categorias = ['MUJER', 'MIXTO']
+    elif categoria == 'MIXTO':
+        categorias = ['MIXTO']
     else:
-        productos = Producto.objects.all()
+        categorias = None
 
-    return render(request, 'catalogoindex.html', {'productos': productos})
+    base = Producto.objects.filter(descontinuado=False).exclude(imagen='').exclude(imagen__isnull=True)
+    if categorias:
+        productos = base.filter(categoria__in=categorias)
+    else:
+        productos = base
+
+    for p in productos:
+        p.stock_total = sum(t.stock for t in TallaProducto.objects.filter(producto=p))
+
+    return render(request, 'catalogoindex.html', {
+        'productos': productos,
+        'categoria': categoria,
+    })
 
 def admin(request):
     usuario_id = request.session.get('usuario_id')
@@ -633,6 +636,16 @@ def admin(request):
                     talla=talla,
                     defaults={"stock": stock}
                 )
+
+                if stock > 0:
+                    Movimiento.objects.create(
+                        producto=producto,
+                        talla=talla,
+                        tipo_movimiento='entrada',
+                        cantidad=stock,
+                        motivo='Carga masiva',
+                        nombre_producto=producto.nombre,
+                    )
 
                 productos_actualizados.add(producto.pk)
                 filas_ok += 1
@@ -853,8 +866,17 @@ def perfil_admin(request):
             fecha_nac = request.POST.get('fecha_nacimiento', '')
             if fecha_nac:
                 try:
-                    from datetime import datetime
-                    admin.fecha_nacimiento = datetime.strptime(fecha_nac, '%Y-%m-%d').date()
+                    from datetime import datetime, date
+                    fecha = datetime.strptime(fecha_nac, '%Y-%m-%d').date()
+                    hoy = date.today()
+                    if fecha > hoy:
+                        messages.error(request, 'La fecha de nacimiento no puede ser futura.')
+                        return redirect('perfil_admin')
+                    edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+                    if edad < 18:
+                        messages.error(request, 'Debes tener al menos 18 años para actualizar el perfil.')
+                        return redirect('perfil_admin')
+                    admin.fecha_nacimiento = fecha
                 except ValueError:
                     pass
 
@@ -981,8 +1003,17 @@ def perfil_usuario(request):
             fecha_nac = request.POST.get('fecha_nacimiento', '')
             if fecha_nac:
                 try:
-                    from datetime import datetime
-                    usuario.fecha_nacimiento = datetime.strptime(fecha_nac, '%Y-%m-%d').date()
+                    from datetime import datetime, date
+                    fecha = datetime.strptime(fecha_nac, '%Y-%m-%d').date()
+                    hoy = date.today()
+                    if fecha > hoy:
+                        messages.error(request, 'La fecha de nacimiento no puede ser futura.')
+                        return redirect('perfil')
+                    edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+                    if edad < 18:
+                        messages.error(request, 'Debes tener al menos 18 años para actualizar el perfil.')
+                        return redirect('perfil')
+                    usuario.fecha_nacimiento = fecha
                 except ValueError:
                     pass
 
@@ -1066,8 +1097,17 @@ def perfil_repartidor(request):
             fecha_nac = request.POST.get('fecha_nacimiento', '')
             if fecha_nac:
                 try:
-                    from datetime import datetime
-                    usuario.fecha_nacimiento = datetime.strptime(fecha_nac, '%Y-%m-%d').date()
+                    from datetime import datetime, date
+                    fecha = datetime.strptime(fecha_nac, '%Y-%m-%d').date()
+                    hoy = date.today()
+                    if fecha > hoy:
+                        messages.error(request, 'La fecha de nacimiento no puede ser futura.')
+                        return redirect('perfil_repartidor')
+                    edad = hoy.year - fecha.year - ((hoy.month, hoy.day) < (fecha.month, fecha.day))
+                    if edad < 18:
+                        messages.error(request, 'Debes tener al menos 18 años para actualizar el perfil.')
+                        return redirect('perfil_repartidor')
+                    usuario.fecha_nacimiento = fecha
                 except ValueError:
                     pass
 

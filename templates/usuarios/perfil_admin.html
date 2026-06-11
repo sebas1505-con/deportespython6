@@ -268,7 +268,8 @@
           </div>
           <div class="cfg-campo">
             <label>Fecha de nacimiento</label>
-            <input type="date" name="fecha_nacimiento" value="{{ admin.fecha_nacimiento|date:'Y-m-d' }}">
+            <input type="date" id="fecha_nacimiento" name="fecha_nacimiento" value="{{ admin.fecha_nacimiento|date:'Y-m-d' }}">
+            <span id="err-fecha_nacimiento" style="color:#dc2626;font-size:12px;display:none;"></span>
           </div>
           <div class="cfg-campo">
             <label>Rol</label>
@@ -380,6 +381,41 @@ function togglePwd(id, btn) {
   if(inp.type === 'password'){ inp.type = 'text'; btn.textContent = '🙈'; }
   else { inp.type = 'password'; btn.textContent = '👁'; }
 }
+
+(function() {
+  var input = document.getElementById('fecha_nacimiento');
+  if (!input) return;
+  var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
+  var max18 = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+  input.max = max18.toISOString().split('T')[0];
+  input.min = '1900-01-01';
+
+  var form = input.closest('form');
+  var errSpan = document.getElementById('err-fecha_nacimiento');
+  if (!form) return;
+
+  form.addEventListener('submit', function(e) {
+    errSpan.style.display = 'none'; errSpan.textContent = '';
+    var val = input.value;
+    if (!val) return;
+    var fecha = new Date(val);
+    if (fecha > hoy) {
+      e.preventDefault();
+      errSpan.textContent = 'La fecha no puede ser futura.';
+      errSpan.style.display = 'block';
+      input.focus(); return;
+    }
+    if (fecha > max18) {
+      e.preventDefault();
+      errSpan.textContent = 'Debes tener al menos 18 años.';
+      errSpan.style.display = 'block';
+      input.focus();
+    }
+  });
+  input.addEventListener('change', function() {
+    errSpan.style.display = 'none'; errSpan.textContent = '';
+  });
+})();
 </script>
 </body>
 </html>

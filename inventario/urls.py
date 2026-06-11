@@ -31,17 +31,16 @@ urlpatterns = [
     path('validar-pago/', views.validar_pse, name='validar_pse'),
     path('sugerencias/responder/<int:sugerencia_id>/', views.responder_sugerencia, name='responder_sugerencia'),
     path('panel-sugerencias/', views.panel_sugerencias_chat, name='panel_sugerencias_chat'),
-    path('producto-descontinuar/<int:id>/', views.producto_discontinuar, name='producto_descontinuar'),
-    path('producto-reactivar/<int:id>/',    views.producto_reactivar,    name='producto_reactivar'),
-    path('sugerencias/responder/<int:sugerencia_id>/', views.responder_sugerencia, name='responder_sugerencia'),
+    path('producto-descontinuar/<int:producto_id>/', views.producto_discontinuar, name='producto_descontinuar'),
+    path('producto-reactivar/<int:id>/',             views.producto_reactivar,    name='producto_reactivar'),
     path('sugerencias/respuestas/<int:sugerencia_id>/', views.sugerencia_respuestas, name='sugerencia_respuestas'),
     path('sugerencias/lista/', views.sugerencias_lista, name='sugerencias_lista'),
     path('reportes-admin/', views.reportes_admin, name='reportes_admin'),
-    path('stock-insuficiente/<int:producto_id>/<str:talla>/<int:stock_disponible>/',views.stock_insuficiente, name='stock_insuficiente'),
+    path('stock-insuficiente/<int:producto_id>/<str:talla>/<int:stock_disponible>/', views.stock_insuficiente, name='stock_insuficiente'),
     path('carga-masiva/', views.carga_masiva_productos, name='carga_masiva'),
     path('carrito/agregar/<int:producto_id>/', views.agregar_al_carrito, name='agregar_al_carrito'),
-    path('producto/<int:producto_id>/discontinuar/', views.producto_discontinuar, name='producto_discontinuar'),
     path('pedidos/', views.pedidos, name='pedidos'),
+    path('resena/<int:venta_id>/', views.guardar_resena, name='guardar_resena'),
 ]
 
 

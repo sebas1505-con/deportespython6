@@ -14,32 +14,6 @@
             display: none;
         }
         .msg-error.visible { display: block; }
-
-        .campo-password { position: relative; }
-        .campo-password input { padding-right: 42px; }
-        .login-form .toggle-pwd {
-            position: absolute;
-            right: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none !important;
-            border: none;
-            cursor: pointer;
-            padding: 0 !important;
-            margin: 0 !important;
-            color: #6b7280 !important;
-            display: flex;
-            align-items: center;
-            grid-column: unset !important;
-            justify-self: unset !important;
-            font-weight: normal;
-            font-size: inherit;
-            width: auto;
-            border-radius: 0;
-            transition: color 0.2s ease;
-        }
-        .login-form .toggle-pwd:hover { color: #007bff !important; background: none !important; box-shadow: none !important; }
-        .login-form .toggle-pwd svg { width: 20px; height: 20px; pointer-events: none; }
     </style>
 </head>
 <body>
@@ -73,6 +47,7 @@
             <label>Nombre Completo</label>
             <input type="text" name="first_name" id="first_name"
                    placeholder="Ej: Juan Pérez"
+                   value="{{ datos.first_name|default:'' }}"
                    minlength="3" maxlength="60" required>
             <span class="msg-error" id="err-first_name"></span>
         </div>
@@ -81,10 +56,10 @@
             <label>Tipo de Identificación</label>
             <select name="tipo_documento" id="tipo_documento" required>
                 <option value="">Seleccione</option>
-                <option value="CC">Cédula de ciudadanía</option>
-                <option value="TI">Tarjeta de identidad</option>
-                <option value="CE">Cédula de extranjería</option>
-                <option value="PAS">Pasaporte</option>
+                <option value="CC"  {% if datos.tipo_documento == 'CC'  %}selected{% endif %}>Cédula de ciudadanía</option>
+                <option value="TI"  {% if datos.tipo_documento == 'TI'  %}selected{% endif %}>Tarjeta de identidad</option>
+                <option value="CE"  {% if datos.tipo_documento == 'CE'  %}selected{% endif %}>Cédula de extranjería</option>
+                <option value="PAS" {% if datos.tipo_documento == 'PAS' %}selected{% endif %}>Pasaporte</option>
             </select>
             <span class="msg-error" id="err-tipo_documento">Selecciona un tipo de identificación.</span>
         </div>
@@ -94,6 +69,7 @@
             <input type="text" name="cedula" id="cedula"
                    inputmode="numeric" pattern="[0-9]+"
                    placeholder="Ej: 12345678"
+                   value="{{ datos.cedula|default:'' }}"
                    minlength="6" maxlength="15" required>
             <span class="msg-error" id="err-cedula"></span>
         </div>
@@ -102,6 +78,7 @@
             <label>Correo Electrónico</label>
             <input type="email" name="email" id="email"
                    placeholder="correo@ejemplo.com"
+                   value="{{ datos.email|default:'' }}"
                    maxlength="150" required>
             <span class="msg-error" id="err-email">Ingresa un correo válido.</span>
         </div>
@@ -110,6 +87,7 @@
             <label>Usuario</label>
             <input type="text" name="username" id="username"
                    placeholder="nombre_usuario"
+                   value="{{ datos.username|default:'' }}"
                    minlength="4" maxlength="30"
                    pattern="[A-Za-z0-9_]+"
                    required autocomplete="off">
@@ -122,39 +100,24 @@
             <input type="text" name="telefono" id="telefono"
                    inputmode="numeric" pattern="[0-9]+"
                    placeholder="3001234567"
+                   value="{{ datos.telefono|default:'' }}"
                    minlength="10" maxlength="10" required>
             <span class="msg-error" id="err-telefono"></span>
         </div>
 
         <div>
             <label>Contraseña</label>
-            <div class="campo-password">
-                <input type="password" name="password" id="password"
-                       placeholder="Mínimo 8 caracteres"
-                       minlength="8" maxlength="64" required>
-                <button type="button" class="toggle-pwd" onclick="togglePwd('password', this)" tabindex="-1" aria-label="Mostrar contraseña">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                    </svg>
-                </button>
-            </div>
+            <input type="password" name="password" id="password"
+                   placeholder="Mínimo 8 caracteres"
+                   minlength="8" maxlength="64" required>
             <span class="msg-error" id="err-password"></span>
         </div>
 
         <div>
             <label>Confirmar Contraseña</label>
-            <div class="campo-password">
-                <input type="password" name="confirmar" id="confirmar"
-                       placeholder="Repite la contraseña"
-                       minlength="8" maxlength="64" required>
-                <button type="button" class="toggle-pwd" onclick="togglePwd('confirmar', this)" tabindex="-1" aria-label="Mostrar contraseña">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                    </svg>
-                </button>
-            </div>
+            <input type="password" name="confirmar" id="confirmar"
+                   placeholder="Repite la contraseña"
+                   minlength="8" maxlength="64" required>
             <span class="msg-error" id="err-confirmar">Las contraseñas no coinciden.</span>
         </div>
 
@@ -162,26 +125,27 @@
             <label>Tipo de Vehículo</label>
             <select name="vehiculo" id="vehiculo" required>
                 <option value="">Seleccione</option>
-                <option value="Moto">Moto</option>
-                <option value="Bicicleta">Bicicleta</option>
-                <option value="Carro">Carro</option>
+                <option value="Moto"      {% if datos.vehiculo == 'Moto'      %}selected{% endif %}>Moto</option>
+                <option value="Bicicleta" {% if datos.vehiculo == 'Bicicleta' %}selected{% endif %}>Bicicleta</option>
+                <option value="Carro"     {% if datos.vehiculo == 'Carro'     %}selected{% endif %}>Carro</option>
             </select>
             <span class="msg-error" id="err-vehiculo">Selecciona un tipo de vehículo.</span>
         </div>
 
-        <div>
+        <div id="campo-placa">
             <label>Número de Placa</label>
             <input type="text" name="placa" id="placa"
                    placeholder="Ej: ABC123"
-                   minlength="5" maxlength="6"
-                   pattern="[A-Za-z0-9]{5,6}" required>
+                   value="{{ datos.placa|default:'' }}"
+                   minlength="1" maxlength="6"
+                   pattern="[A-Za-z0-9]{1,6}">
             <span class="msg-error" id="err-placa"></span>
-            <small style="font-size:11px;color:#888;">5–6 caracteres, solo letras y números.</small>
+            <small style="font-size:11px;color:#888;">Máximo 6 caracteres, solo letras y números.</small>
         </div>
 
         <button type="submit" class="btn-login">Registrarse como Repartidor</button>
 
-        <p class="form-footer" style="grid-column:span 2;text-align:center;font-size:13px;color:#666;margin-top:4px;">
+        <p style="grid-column:span 2;text-align:center;font-size:13px;color:#666;margin-top:4px;">
             ¿Ya tienes cuenta?
             <a href="{% url 'login' %}" style="color:#007bff;font-weight:bold;">Inicia sesión</a>
         </p>
@@ -190,48 +154,37 @@
 </div>
 
 <script>
-function togglePwd(inputId, btn) {
-    var input = document.getElementById(inputId);
-    var mostrar = input.type === 'password';
-    input.type = mostrar ? 'text' : 'password';
-    btn.querySelector('svg').innerHTML = mostrar
-        ? '<path stroke-linecap="round" stroke-linejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.97 9.97 0 012.47-4.172M6.53 6.53A9.97 9.97 0 0112 5c4.477 0 8.268 2.943 9.542 7a10.05 10.05 0 01-1.413 2.612M6.53 6.53L3 3m3.53 3.53l10.94 10.94M16.47 16.47L20 20"/><path stroke-linecap="round" stroke-linejoin="round" d="M9.88 9.88A3 3 0 0014.12 14.12M9.88 9.88L14.12 14.12"/>'
-        : '<path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>';
+/* Mostrar/ocultar placa según vehículo */
+function actualizarPlaca() {
+    var vehiculo = document.getElementById('vehiculo').value;
+    var campoPl  = document.getElementById('campo-placa');
+    var inputPl  = document.getElementById('placa');
+    if (vehiculo === 'Bicicleta') {
+        campoPl.style.display = 'none';
+        inputPl.value = '';
+        limpiarError('placa');
+    } else {
+        campoPl.style.display = '';
+    }
 }
+document.getElementById('vehiculo').addEventListener('change', actualizarPlaca);
+// Aplicar al cargar si ya viene un valor (ej: al volver con error)
+actualizarPlaca();
 
-/* ── Filtros en tiempo real ── */
+/* Filtros de entrada */
 document.getElementById('first_name').addEventListener('input', function() {
     this.value = this.value.replace(/[^A-Za-zÁÉÍÓÚáéíóúÑñÜü ]/g, '');
-    limpiarError('first_name');
 });
 ['cedula', 'telefono'].forEach(function(id) {
     document.getElementById(id).addEventListener('input', function() {
         this.value = this.value.replace(/[^0-9]/g, '');
-        limpiarError(id);
     });
 });
 document.getElementById('username').addEventListener('input', function() {
     this.value = this.value.replace(/[^A-Za-z0-9_]/g, '');
-    limpiarError('username');
 });
 document.getElementById('placa').addEventListener('input', function() {
     this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-    limpiarError('placa');
-});
-document.getElementById('email').addEventListener('input', function() {
-    limpiarError('email');
-});
-document.getElementById('password').addEventListener('input', function() {
-    limpiarError('password');
-});
-document.getElementById('confirmar').addEventListener('input', function() {
-    limpiarError('confirmar');
-});
-document.getElementById('tipo_documento').addEventListener('change', function() {
-    limpiarError('tipo_documento');
-});
-document.getElementById('vehiculo').addEventListener('change', function() {
-    limpiarError('vehiculo');
 });
 
 function mostrarError(id, msg) {
@@ -254,7 +207,6 @@ function limpiarError(id) {
 document.getElementById('form-repartidor').addEventListener('submit', function(e) {
     var ok = true;
 
-    /* Nombre */
     var nombre = document.getElementById('first_name').value.trim();
     if (!nombre) {
         mostrarError('first_name', 'El nombre completo es obligatorio.'); ok = false;
@@ -264,12 +216,10 @@ document.getElementById('form-repartidor').addEventListener('submit', function(e
         mostrarError('first_name', 'Solo letras y espacios.'); ok = false;
     } else { limpiarError('first_name'); }
 
-    /* Tipo de documento */
     var tipoDoc = document.getElementById('tipo_documento').value;
     if (!tipoDoc) { mostrarError('tipo_documento', 'Selecciona un tipo de identificación.'); ok = false; }
     else { limpiarError('tipo_documento'); }
 
-    /* Cédula */
     var cedula = document.getElementById('cedula').value.trim();
     if (!cedula || !/^[0-9]+$/.test(cedula)) {
         mostrarError('cedula', 'La cédula solo puede contener números.'); ok = false;
@@ -279,7 +229,6 @@ document.getElementById('form-repartidor').addEventListener('submit', function(e
         mostrarError('cedula', 'Máximo 15 dígitos.'); ok = false;
     } else { limpiarError('cedula'); }
 
-    /* Email */
     var email = document.getElementById('email').value.trim();
     if (!email) {
         mostrarError('email', 'El correo es obligatorio.'); ok = false;
@@ -287,7 +236,6 @@ document.getElementById('form-repartidor').addEventListener('submit', function(e
         mostrarError('email', 'Ingresa un correo válido.'); ok = false;
     } else { limpiarError('email'); }
 
-    /* Usuario */
     var user = document.getElementById('username').value.trim();
     if (!user) {
         mostrarError('username', 'El usuario es obligatorio.'); ok = false;
@@ -299,7 +247,6 @@ document.getElementById('form-repartidor').addEventListener('submit', function(e
         mostrarError('username', 'Solo letras, números y guión bajo ( _ ).'); ok = false;
     } else { limpiarError('username'); }
 
-    /* Teléfono */
     var tel = document.getElementById('telefono').value.trim();
     if (!tel || !/^[0-9]+$/.test(tel)) {
         mostrarError('telefono', 'Solo se permiten números.'); ok = false;
@@ -307,7 +254,6 @@ document.getElementById('form-repartidor').addEventListener('submit', function(e
         mostrarError('telefono', 'El teléfono debe tener exactamente 10 dígitos.'); ok = false;
     } else { limpiarError('telefono'); }
 
-    /* Contraseña */
     var pwd = document.getElementById('password').value;
     if (pwd.length < 8) {
         mostrarError('password', 'Mínimo 8 caracteres.'); ok = false;
@@ -315,26 +261,24 @@ document.getElementById('form-repartidor').addEventListener('submit', function(e
         mostrarError('password', 'Máximo 64 caracteres.'); ok = false;
     } else { limpiarError('password'); }
 
-    /* Confirmar contraseña */
     var pwd2 = document.getElementById('confirmar').value;
     if (!pwd2 || pwd2 !== pwd) {
         mostrarError('confirmar', 'Las contraseñas no coinciden.'); ok = false;
     } else { limpiarError('confirmar'); }
 
-    /* Vehículo */
     var vehiculo = document.getElementById('vehiculo').value;
     if (!vehiculo) { mostrarError('vehiculo', 'Selecciona un tipo de vehículo.'); ok = false; }
     else { limpiarError('vehiculo'); }
 
-    /* Placa */
-    var placa = document.getElementById('placa').value.trim();
-    if (!placa) {
-        mostrarError('placa', 'La placa es obligatoria.'); ok = false;
-    } else if (placa.length < 5) {
-        mostrarError('placa', 'Mínimo 5 caracteres.'); ok = false;
-    } else if (!/^[A-Za-z0-9]{5,6}$/.test(placa)) {
-        mostrarError('placa', 'Solo letras y números, entre 5 y 6 caracteres.'); ok = false;
-    } else { limpiarError('placa'); }
+    var vehiculoVal = document.getElementById('vehiculo').value;
+    if (vehiculoVal !== 'Bicicleta') {
+        var placa = document.getElementById('placa').value.trim();
+        if (!placa) {
+            mostrarError('placa', 'La placa es obligatoria.'); ok = false;
+        } else if (!/^[A-Za-z0-9]{1,6}$/.test(placa)) {
+            mostrarError('placa', 'Máximo 6 caracteres, solo letras y números.'); ok = false;
+        } else { limpiarError('placa'); }
+    }
 
     if (!ok) e.preventDefault();
 });

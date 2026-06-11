@@ -35,7 +35,7 @@ class Cliente(models.Model):
 
 class Repartidor(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
-    placa = models.CharField(max_length=10)
+    placa = models.CharField(max_length=10, blank=True, null=True)
     vehiculo = models.CharField(max_length=20)
 
     def __str__(self):
@@ -60,7 +60,7 @@ class NotificacionRepartidor(models.Model):
     
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE, related_name='notificacion_repartidor')
     vehiculo = models.CharField(max_length=20)
-    placa = models.CharField(max_length=10)
+    placa = models.CharField(max_length=10, blank=True, null=True)
     estado = models.CharField(max_length=15, choices=ESTADO_CHOICES, default='pendiente')
     fecha_solicitud = models.DateTimeField(auto_now_add=True)
     fecha_respuesta = models.DateTimeField(null=True, blank=True)

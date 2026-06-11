@@ -31,6 +31,7 @@
 .mov-card.evento-aprobado  { border-left-color: #059669; }
 .mov-card.evento-rechazado { border-left-color: #f59e0b; }
 .mov-card.evento-eliminado { border-left-color: #dc2626; }
+.mov-card.evento-usuario   { border-left-color: #0ea5e9; }
 .mov-card:hover   { box-shadow: 0 4px 18px rgba(0,0,0,.13); }
 .mov-card-head {
   display: flex; align-items: center; gap: 12px;
@@ -47,6 +48,7 @@
 .mov-tipo-badge.evento-aprobado  { background: #d1fae5; color: #065f46; }
 .mov-tipo-badge.evento-rechazado { background: #fef3c7; color: #92400e; }
 .mov-tipo-badge.evento-eliminado { background: #fee2e2; color: #991b1b; }
+.mov-tipo-badge.evento-usuario   { background: #e0f2fe; color: #0369a1; }
 .mov-cant { font-size: 22px; font-weight: 800; margin-left: auto; }
 .mov-cant.entrada { color: #16a34a; }
 .mov-cant.salida  { color: #d40000; }
@@ -64,13 +66,50 @@
 .carga-cols {
   background: #f9f9f9; border-radius: 10px; padding: 16px 20px;
   margin-top: 16px; border: 1px solid #ebebeb;
+  overflow-x: auto;
 }
 .carga-cols h4 { font-size: 13px; font-weight: 700; color: #555; margin-bottom: 10px; }
-.carga-cols table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.carga-cols table { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 480px; }
 .carga-cols th { background: #0d0d0d; color: #fff; padding: 8px 12px; text-align: left; font-weight: 600; }
 .carga-cols td { padding: 7px 12px; border-bottom: 1px solid #eee; color: #444; }
 .carga-cols tr:last-child td { border-bottom: none; }
 .carga-cols code { background: #fff0f0; color: #d40000; padding: 1px 6px; border-radius: 4px; font-size: 12px; }
+
+/* Filtros movimientos responsive */
+.mov-filtro { padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 2px solid #e5e7eb; background: #fff; color: #555; cursor: pointer; transition: .15s; white-space: nowrap; }
+.mov-filtro:hover, .mov-filtro--active { background: #d40000; color: #fff; border-color: #d40000; }
+
+/* ── Talla picker colapsable ── */
+.talla-picker { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 8px; background: #fafafa; min-height: 42px; }
+.talla-picker-hint { font-size: 13px; color: #aaa; padding: 6px 4px; margin: 0; }
+.talla-grupo-wrap { margin-bottom: 6px; }
+.talla-grupo-btn {
+  width: 100%; background: #f3f4f6; border: 1.5px solid #e5e7eb; border-radius: 8px;
+  padding: 9px 14px; font-size: 13px; font-weight: 700; cursor: pointer; color: #333;
+  display: flex; justify-content: space-between; align-items: center; transition: .15s;
+}
+.talla-grupo-btn:hover { background: #111; color: #fff; border-color: #111; }
+.tg-arrow { font-size: 11px; transition: transform .2s; display: inline-block; }
+.talla-grupo-chips { display: none; flex-wrap: wrap; gap: 8px; padding: 10px 4px 4px; }
+.talla-grupo-chips.open { display: flex; }
+.talla-chip-btn {
+  padding: 7px 14px; border-radius: 8px; border: 2px solid #e5e7eb;
+  background: #fff; font-size: 13px; font-weight: 700; cursor: pointer; color: #333;
+  transition: .15s; line-height: 1;
+}
+.talla-chip-btn:hover { border-color: #d40000; color: #d40000; }
+.talla-chip-btn.selected { background: #d40000 !important; color: #fff !important; border-color: #d40000 !important; }
+.talla-chip-btn.sin-stock { border-color: #fca5a5; color: #b91c1c; background: #fff1f2; }
+.talla-chip-btn.nueva-talla { border-color: #c4b5fd; color: #6d28d9; background: #f5f3ff; }
+
+/* Carga masiva responsive */
+@media(max-width: 640px) {
+  #sec-carga .formulario { padding: 16px 14px; }
+  .upload-zone { padding: 20px 14px; }
+  #sec-carga .btn-submit { width: 100%; }
+  .carga-cols { padding: 12px 10px; }
+  #buscador-mov { width: 100% !important; }
+}
 </style>
 </head>
 <body>
@@ -414,7 +453,8 @@
       <p style="color:#888;font-size:13px;margin-bottom:16px;">Usa <strong>Entrada</strong> para agregar unidades al inventario y <strong>Salida</strong> para descontarlas.</p>
       {% if messages %}{% for message in messages %}<p class="mensaje {{ message.tags }}">{{ message }}</p>{% endfor %}{% endif %}
       <div class="form-container">
-        <form method="POST" action="{% url 'movimiento_nuevo' %}" class="formulario">
+        <form method="POST" action="{% url 'movimiento_nuevo' %}" class="formulario"
+              onsubmit="return validarMovimiento(this)">
           {% csrf_token %}
           <div class="form-row">
             <div class="campo"><label>Producto</label>
@@ -427,15 +467,32 @@
                 {% endfor %}
               </select>
             </div>
-            <div class="campo"><label>Talla</label>
-              <select name="talla" id="sel-talla" class="campo-input" required>
-                <option value="">Primero seleccione producto</option>
-              </select>
+            <div class="campo">
+              <label>Talla <span id="talla-sel-label" style="color:#d40000;font-weight:700;"></span></label>
+              <input type="hidden" name="talla" id="sel-talla-val">
+              <div class="talla-picker" id="talla-picker">
+                <p class="talla-picker-hint" id="talla-picker-hint">Primero seleccione un producto</p>
+                <div class="talla-grupo-wrap" id="tgr-adulto" style="display:none">
+                  <button type="button" class="talla-grupo-btn" onclick="toggleTallaGrupo('adulto')">
+                    <span>👕 Tallas Adulto</span>
+                    <span class="tg-arrow" id="tga-adulto">▶</span>
+                  </button>
+                  <div class="talla-grupo-chips" id="tgc-adulto"></div>
+                </div>
+                <div class="talla-grupo-wrap" id="tgr-nino" style="display:none">
+                  <button type="button" class="talla-grupo-btn" onclick="toggleTallaGrupo('nino')">
+                    <span>👦 Tallas Niño</span>
+                    <span class="tg-arrow" id="tga-nino">▶</span>
+                  </button>
+                  <div class="talla-grupo-chips" id="tgc-nino"></div>
+                </div>
+              </div>
             </div>
           </div>
           <div class="form-row">
             <div class="campo"><label>Tipo de Movimiento</label>
-              <select name="tipo_movimiento" class="campo-input" required>
+              <select name="tipo_movimiento" id="sel-tipo" class="campo-input" required
+                      onchange="cargarTallas(document.getElementById('sel-producto'))">
                 <option value="">Seleccione tipo</option>
                 <option value="entrada">↑ Entrada — ingreso de stock</option>
                 <option value="salida">↓ Salida — reducción de stock</option>
@@ -463,27 +520,33 @@
         <h2 style="margin:0;">Historial de Movimientos</h2>
         <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
           <input type="text" id="buscador-mov" placeholder="Buscar producto, talla, motivo..." oninput="filtrarMovimientos()" style="padding:8px 14px;border:1px solid #ccc;border-radius:8px;font-size:13px;width:240px;outline:none;">
-          <div style="display:flex;gap:6px;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <button class="mov-filtro mov-filtro--active" onclick="filtrarTipo('todos',this)">Todos</button>
             <button class="mov-filtro" onclick="filtrarTipo('entrada',this)">↑ Entradas</button>
             <button class="mov-filtro" onclick="filtrarTipo('salida',this)">↓ Salidas</button>
+            <button class="mov-filtro" onclick="filtrarTipo('evento',this)">⚙ Eventos</button>
+            <button class="mov-filtro" onclick="filtrarTipo('usuario',this)">👤 Usuarios</button>
           </div>
         </div>
       </div>
       <div id="lista-movimientos">
         {% for m in movimientos %}
         {% if m.tipo_movimiento == 'evento' and 'aprobado' in m.nombre_producto|lower %}
-        <div class="mov-card evento-aprobado" data-tipo="evento" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
+        <div class="mov-card evento-aprobado" data-tipo="usuario" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
           <div class="mov-card-head">
             <span class="mov-tipo-badge evento-aprobado">✓ Aprobado</span>
         {% elif m.tipo_movimiento == 'evento' and 'rechazado' in m.nombre_producto|lower %}
-        <div class="mov-card evento-rechazado" data-tipo="evento" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
+        <div class="mov-card evento-rechazado" data-tipo="usuario" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
           <div class="mov-card-head">
             <span class="mov-tipo-badge evento-rechazado">✕ Rechazado</span>
         {% elif m.tipo_movimiento == 'evento' and 'eliminado' in m.nombre_producto|lower %}
         <div class="mov-card evento-eliminado" data-tipo="evento" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
           <div class="mov-card-head">
             <span class="mov-tipo-badge evento-eliminado">🗑 Eliminado</span>
+        {% elif m.tipo_movimiento == 'evento' and 'cliente' in m.nombre_producto|lower or m.tipo_movimiento == 'evento' and 'repartidor' in m.nombre_producto|lower or m.tipo_movimiento == 'evento' and 'administrador' in m.nombre_producto|lower %}
+        <div class="mov-card evento-usuario" data-tipo="usuario" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
+          <div class="mov-card-head">
+            <span class="mov-tipo-badge evento-usuario">👤 Usuario</span>
         {% elif m.tipo_movimiento == 'evento' %}
         <div class="mov-card evento" data-tipo="evento" data-busq="{{ m.nombre_producto|lower }} {{ m.motivo|lower }}">
           <div class="mov-card-head">
@@ -692,14 +755,14 @@
       <div class="form-container">
         <form method="POST" action="{% url 'panel_admin' %}" enctype="multipart/form-data" class="formulario">
           {% csrf_token %}
-          <div class="upload-zone" onclick="document.getElementById('file-input').click()">
+          <div class="upload-zone" onclick="document.getElementById('file-input').click()" style="touch-action:manipulation;">
             <div class="icon">&#8679;</div>
             <div id="upload-text">Haz clic o arrastra tu archivo aquí</div>
             <div style="font-size:12px;margin-top:6px;color:#bbb;">Formatos: .csv · .xlsx</div>
             <input type="file" id="file-input" name="archivo" accept=".csv,.xlsx" style="display:none" onchange="updateFileName(this)">
           </div>
 
-          <button type="submit" class="btn-submit" style="margin-top:10px;">Subir Archivo</button>
+          <button type="submit" class="btn-submit" style="margin-top:10px;width:100%;">Subir Archivo</button>
 
           <!-- Columnas formato unificado -->
           <div class="carga-cols" style="display:block;margin-top:16px;">
@@ -1008,27 +1071,105 @@ document.getElementById('rpMesSig').addEventListener('click',function(){ rpRende
 rpRenderMes(rpMesIdx);
 
 /* ══ MOVIMIENTOS ══ */
+var _TALLAS_ADULTO = ['S','M','L','XL'];
+var _TALLAS_NINO   = ['6','8','10','12','14','16','18'];
+
 function cargarTallas(sel){
-  var opt=sel.options[sel.selectedIndex], raw=opt.getAttribute('data-tallas')||'';
-  var selT=document.getElementById('sel-talla');
-  selT.innerHTML='<option value="">Seleccione talla</option>';
-  var adulto=[], nino=[];
+  if(!sel || !sel.options[sel.selectedIndex]) return;
+  var opt  = sel.options[sel.selectedIndex];
+  var raw  = opt.getAttribute('data-tallas') || '';
+  var tipo = (document.getElementById('sel-tipo') || {}).value || '';
+
+  /* Reset selección */
+  document.getElementById('sel-talla-val').value = '';
+  document.getElementById('talla-sel-label').textContent = '';
+
+  /* Parsear tallas existentes */
+  var existentes = {};
   raw.split(',').forEach(function(par){
     if(!par.trim()) return;
-    var p=par.split(':'), talla=p[0], stock=p[1]||'0';
-    if(['S','M','L','XL'].indexOf(talla)!==-1){ adulto.push({talla:talla,stock:stock}); }
-    else { nino.push({talla:talla,stock:stock}); }
+    var p = par.split(':');
+    existentes[p[0]] = parseInt(p[1] || '0', 10);
   });
-  if(adulto.length){
-    var grpA=document.createElement('optgroup'); grpA.label='👕 Adulto';
-    adulto.forEach(function(t){ var o=document.createElement('option'); o.value=t.talla; o.textContent=t.talla+' (stock: '+t.stock+')'; grpA.appendChild(o); });
-    selT.appendChild(grpA);
+
+  var adulto = [], nino = [];
+  if(tipo === 'salida'){
+    Object.keys(existentes).forEach(function(t){
+      if(existentes[t] > 0){
+        if(_TALLAS_ADULTO.indexOf(t) !== -1) adulto.push({talla:t, stock:existentes[t]});
+        else nino.push({talla:t, stock:existentes[t]});
+      }
+    });
+  } else {
+    _TALLAS_ADULTO.forEach(function(t){ adulto.push({talla:t, stock:existentes.hasOwnProperty(t)?existentes[t]:null}); });
+    _TALLAS_NINO.forEach(function(t){   nino.push({talla:t,   stock:existentes.hasOwnProperty(t)?existentes[t]:null}); });
   }
-  if(nino.length){
-    var grpN=document.createElement('optgroup'); grpN.label='👦 Niño';
-    nino.forEach(function(t){ var o=document.createElement('option'); o.value=t.talla; o.textContent='Talla '+t.talla+' años (stock: '+t.stock+')'; grpN.appendChild(o); });
-    selT.appendChild(grpN);
+
+  /* Rellena un grupo */
+  function llenarGrupo(items, containerId, wrapId, esNino){
+    var wrap  = document.getElementById(wrapId);
+    var cont  = document.getElementById(containerId);
+    var arrowId = 'tga-' + (esNino ? 'nino' : 'adulto');
+    cont.innerHTML = '';
+    if(!items.length){ wrap.style.display = 'none'; return; }
+    wrap.style.display = '';
+    items.forEach(function(t){
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      var cls = 'talla-chip-btn';
+      if(t.stock === 0) cls += ' sin-stock';
+      else if(t.stock === null) cls += ' nueva-talla';
+      btn.className = cls;
+      btn.dataset.talla = t.talla;
+      var label = esNino ? 'T'+t.talla : t.talla;
+      if(t.stock === 0)    label += ' ⚠';
+      else if(t.stock === null) label += ' +';
+      btn.textContent = label;
+      btn.title = t.stock === null ? 'Nueva talla' : t.stock === 0 ? 'Sin stock — haz entrada' : 'Stock: '+t.stock;
+      btn.onclick = function(){ seleccionarTalla(this); };
+      cont.appendChild(btn);
+    });
+    /* Abrir automáticamente al cargar */
+    cont.classList.add('open');
+    document.getElementById(arrowId).style.transform = 'rotate(90deg)';
   }
+
+  llenarGrupo(adulto, 'tgc-adulto', 'tgr-adulto', false);
+  llenarGrupo(nino,   'tgc-nino',   'tgr-nino',   true);
+
+  var hint = document.getElementById('talla-picker-hint');
+  if(!adulto.length && !nino.length){
+    hint.textContent = 'Sin tallas disponibles'; hint.style.display = '';
+  } else {
+    hint.style.display = 'none';
+  }
+}
+
+function toggleTallaGrupo(grupo){
+  var cont  = document.getElementById('tgc-' + grupo);
+  var arrow = document.getElementById('tga-' + grupo);
+  var open  = cont.classList.toggle('open');
+  arrow.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
+}
+
+function seleccionarTalla(btn){
+  document.querySelectorAll('#talla-picker .talla-chip-btn').forEach(function(b){ b.classList.remove('selected'); });
+  btn.classList.add('selected');
+  document.getElementById('sel-talla-val').value = btn.dataset.talla;
+  document.getElementById('talla-sel-label').textContent = '— ' + btn.dataset.talla;
+}
+
+function validarMovimiento(form){
+  if(!document.getElementById('sel-talla-val').value){
+    var hint = document.getElementById('talla-picker-hint');
+    hint.textContent = '⚠ Selecciona una talla antes de guardar.';
+    hint.style.display = '';
+    hint.style.color = '#d40000';
+    hint.style.fontWeight = '700';
+    document.getElementById('talla-picker').scrollIntoView({behavior:'smooth', block:'center'});
+    return false;
+  }
+  return true;
 }
 
 var _tipoFiltro='todos';
@@ -1106,12 +1247,12 @@ function _applyLayout() {
         if (!_sidebarOpen) {
             _adminSidebar.style.transform  = 'translateX(-100%)';
             _adminSidebar.style.visibility = 'hidden';
-            _adminSidebar.style.position   = 'fixed';
-            _adminSidebar.style.top        = '0';
-            _adminSidebar.style.left       = '0';
-            _adminSidebar.style.height     = '100vh';
-            _adminSidebar.style.zIndex     = '1001';
         }
+        _adminSidebar.style.position   = 'fixed';
+        _adminSidebar.style.top        = '64px';
+        _adminSidebar.style.left       = '0';
+        _adminSidebar.style.height     = 'calc(100vh - 64px)';
+        _adminSidebar.style.zIndex     = '1001';
         _adminSidebar.style.transition = 'transform 0.3s ease, visibility 0.3s ease';
         document.querySelector('.dashboard').style.marginLeft = '0';
     } else {
