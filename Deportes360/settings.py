@@ -10,8 +10,16 @@ SECRET_KEY = os.environ.get(
 )
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-_raw_hosts = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1')
+_raw_hosts = os.environ.get(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1,68.211.112.60'
+)
+
 ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()]
+
+# Railway wildcard
+if not any('railway.app' in h for h in ALLOWED_HOSTS):
+    ALLOWED_HOSTS.append('.railway.app')
 # Subdomain wildcard de Railway — matchea cualquier *.up.railway.app
 if not any('railway.app' in h for h in ALLOWED_HOSTS):
     ALLOWED_HOSTS.append('.railway.app')
@@ -89,7 +97,7 @@ DATABASES = {
         'ENGINE': 'django.db.backends.mysql',
         'NAME':     os.environ.get('MYSQLDATABASE') or os.environ.get('DB_NAME',     '360deportes'),
         'USER':     os.environ.get('MYSQLUSER')     or os.environ.get('DB_USER',     'root'),
-        'PASSWORD': os.environ.get('MYSQLPASSWORD') or os.environ.get('DB_PASSWORD', '123456789'),
+        'PASSWORD': os.environ.get('MYSQLPASSWORD') or os.environ.get('DB_PASSWORD', ''),
         'HOST':     os.environ.get('MYSQLHOST')     or os.environ.get('DB_HOST',     'localhost'),
         'PORT':     os.environ.get('MYSQLPORT')     or os.environ.get('DB_PORT',     '3306'),
         'OPTIONS': {
