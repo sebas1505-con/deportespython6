@@ -4,62 +4,292 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Restablecer Contraseña</title>
-<link rel="stylesheet" href="{% static 'css/nueva_contrasena.css' %}">
-</head>
+<title>Nueva Contraseña — Deportes 360</title>
+<link rel="icon" type="image/x-icon" href="{% static 'images/usu.png' %}">
+<style>
+*,*::before,*::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+body {
+  min-height: 100vh;
+  font-family: 'Segoe UI', sans-serif;
+  background: #f2f3f5;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 20px;
+}
+
+.nc-card {
+  width: 100%; max-width: 420px;
+  background: #fff; border-radius: 20px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.12);
+  overflow: hidden;
+}
+
+/* Header */
+.nc-head {
+  background: linear-gradient(135deg, #0d0d0d, #1a1a1a);
+  border-bottom: 4px solid #d40000;
+  padding: 32px 32px 24px;
+  text-align: center;
+}
+.nc-logo {
+  display: inline-flex; align-items: center; gap: 10px;
+  text-decoration: none; margin-bottom: 20px;
+}
+.nc-logo-icon {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: linear-gradient(135deg, #d40000, #8b0000);
+  color: #fff; font-size: 15px; font-weight: 900;
+  display: flex; align-items: center; justify-content: center;
+}
+.nc-logo-txt strong { display: block; font-size: 16px; font-weight: 800; color: #fff; }
+.nc-logo-txt small  { font-size: 12px; color: rgba(255,255,255,.5); }
+.nc-head-icon {
+  width: 60px; height: 60px; border-radius: 50%;
+  background: rgba(212,0,0,.15); border: 2px solid rgba(212,0,0,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; margin: 0 auto 14px;
+}
+.nc-head h1 { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 6px; }
+.nc-head p  { font-size: 13px; color: rgba(255,255,255,.5); }
+
+/* Body */
+.nc-body { padding: 28px 32px 32px; }
+
+/* Alertas */
+.nc-alert {
+  padding: 12px 16px; border-radius: 10px;
+  font-size: 14px; font-weight: 600; margin-bottom: 18px;
+  display: flex; align-items: flex-start; gap: 10px;
+}
+.nc-alert.success { background: #f0fdf4; color: #15803d; border: 1px solid #86efac; }
+.nc-alert.error   { background: #fff1f2; color: #be123c; border: 1px solid #fca5a5; }
+
+/* Campo con ojo */
+.nc-campo { margin-bottom: 18px; }
+.nc-campo label {
+  display: block; font-size: 12px; font-weight: 700;
+  color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 7px;
+}
+.nc-pwd-wrap { position: relative; }
+.nc-pwd-wrap input {
+  width: 100%; padding: 13px 46px 13px 16px;
+  border: 1.5px solid #e5e7eb; border-radius: 11px;
+  font-size: 15px; color: #111; font-family: inherit;
+  outline: none; transition: .2s; background: #fafafa;
+}
+.nc-pwd-wrap input:focus {
+  border-color: #d40000; background: #fff;
+  box-shadow: 0 0 0 3px rgba(212,0,0,.08);
+}
+.nc-pwd-wrap input.ok  { border-color: #16a34a; }
+.nc-pwd-wrap input.bad { border-color: #d40000; }
+.nc-eye {
+  position: absolute; right: 13px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; color: #aaa; padding: 0; line-height: 1;
+}
+.nc-eye:hover { color: #555; }
+
+/* Barra de fuerza */
+.nc-strength { margin-top: 8px; display: none; }
+.nc-strength-bar {
+  height: 4px; border-radius: 4px; background: #f0f0f0;
+  overflow: hidden; margin-bottom: 4px;
+}
+.nc-strength-fill {
+  height: 100%; border-radius: 4px;
+  transition: width .3s, background .3s;
+  width: 0%;
+}
+.nc-strength-lbl { font-size: 11px; color: #999; }
+
+/* Requisitos */
+.nc-reqs { margin-top: 10px; }
+.nc-req {
+  font-size: 12px; color: #bbb; display: flex; align-items: center;
+  gap: 6px; margin-bottom: 3px; transition: color .2s;
+}
+.nc-req.met { color: #16a34a; }
+.nc-req-dot {
+  width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid #ddd;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 9px; flex-shrink: 0; transition: .2s;
+}
+.nc-req.met .nc-req-dot { background: #16a34a; border-color: #16a34a; color: #fff; }
+
+/* Match indicator */
+.nc-match { font-size: 12px; margin-top: 6px; display: none; }
+.nc-match.ok  { color: #16a34a; }
+.nc-match.bad { color: #d40000; }
+
+/* Botón */
+.nc-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(180deg, #d40000, #8b0000);
+  color: #fff; border: none; border-radius: 11px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: inherit; transition: .2s; margin-top: 6px;
+}
+.nc-btn:hover { opacity: .9; transform: translateY(-1px); }
+.nc-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+/* Footer */
+.nc-foot {
+  text-align: center; margin-top: 20px; padding-top: 18px;
+  border-top: 1px solid #f0f0f0;
+}
+.nc-foot a {
+  font-size: 14px; color: #666; text-decoration: none; font-weight: 600;
+}
+.nc-foot a:hover { color: #d40000; }
+
+@media(max-width:480px) {
+  .nc-head { padding: 24px 20px 20px; }
+  .nc-body { padding: 22px 20px 24px; }
+}
+</style>
+</head>
 <body>
 
-<div class="container">
+<div class="nc-card">
 
-    <div class="card">
+  <div class="nc-head">
+    <a href="{% url 'index' %}" class="nc-logo">
+      <div class="nc-logo-txt">
+        <strong>Deportes</strong>
+        <small>360</small>
+      </div>
+    </a>
+    <div class="nc-head-icon">&#128273;</div>
+    <h1>Nueva contraseña</h1>
+    <p>Elige una contraseña segura para tu cuenta</p>
+  </div>
 
-        <img src="{% static 'images/Cuenta.png' %}" class="logo">
+  <div class="nc-body">
 
-        <h2>Restablecer Contraseña</h2>
-        <p class="subtitle">Ingresa tu nueva contraseña para continuar</p>
+    {% if messages %}
+      {% for message in messages %}
+      <div class="nc-alert {{ message.tags }}">
+        <span>{{ message }}</span>
+      </div>
+      {% endfor %}
+    {% endif %}
 
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert {{ message.tags }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
+    <form method="POST" id="ncForm">
+      {% csrf_token %}
 
-        <form method="POST">
-            {% csrf_token %}
+      <!-- Nueva contraseña -->
+      <div class="nc-campo">
+        <label for="pwd1">Nueva contraseña</label>
+        <div class="nc-pwd-wrap">
+          <input type="password" id="pwd1" name="password"
+                 placeholder="Mínimo 8 caracteres" required autocomplete="new-password"
+                 oninput="checkStrength(this.value); checkMatch()">
+          <button type="button" class="nc-eye" onclick="toggleEye('pwd1',this)" tabindex="-1">&#128065;</button>
+        </div>
+        <!-- Barra de fuerza -->
+        <div class="nc-strength" id="strengthWrap">
+          <div class="nc-strength-bar">
+            <div class="nc-strength-fill" id="strengthFill"></div>
+          </div>
+          <span class="nc-strength-lbl" id="strengthLbl"></span>
+        </div>
+        <!-- Requisitos -->
+        <div class="nc-reqs" id="reqs">
+          <div class="nc-req" id="req-len"><span class="nc-req-dot">&#10003;</span> Mínimo 8 caracteres</div>
+          <div class="nc-req" id="req-num"><span class="nc-req-dot">&#10003;</span> Al menos un número</div>
+          <div class="nc-req" id="req-may"><span class="nc-req-dot">&#10003;</span> Al menos una mayúscula</div>
+        </div>
+      </div>
 
-            <div class="input-group">
-                <input type="password" name="password" id="password" required>
-                <label>Nueva contraseña</label>
-            </div>
+      <!-- Confirmar -->
+      <div class="nc-campo">
+        <label for="pwd2">Confirmar contraseña</label>
+        <div class="nc-pwd-wrap">
+          <input type="password" id="pwd2" name="confirm_password"
+                 placeholder="Repite la contraseña" required autocomplete="new-password"
+                 oninput="checkMatch()">
+          <button type="button" class="nc-eye" onclick="toggleEye('pwd2',this)" tabindex="-1">&#128065;</button>
+        </div>
+        <div class="nc-match" id="matchMsg"></div>
+      </div>
 
-            <div class="input-group">
-                <input type="password" name="confirm_password" id="confirm_password" required>
-                <label>Confirmar contraseña</label>
-            </div>
+      <button type="submit" class="nc-btn" id="ncSubmit" disabled>
+        Guardar nueva contraseña
+      </button>
+    </form>
 
-            <button type="submit">Guardar contraseña</button>
-
-        </form>
-
-        <a href="{% url 'login' %}" class="back">← Volver al login</a>
-
+    <div class="nc-foot">
+      <a href="{% url 'login' %}">&#8592; Volver al inicio de sesión</a>
     </div>
-
+  </div>
 </div>
 
 <script>
-const form = document.querySelector('form');
-const pass = document.getElementById('password');
-const confirm = document.getElementById('confirm_password');
+function toggleEye(id, btn) {
+  var inp = document.getElementById(id);
+  if (inp.type === 'password') { inp.type = 'text'; btn.innerHTML = '&#128064;'; }
+  else { inp.type = 'password'; btn.innerHTML = '&#128065;'; }
+}
 
-form.addEventListener('submit', (e) => {
-    if (pass.value !== confirm.value) {
-        e.preventDefault();
-        alert("Las contraseñas no coinciden");
-    }
-});
+function checkStrength(val) {
+  var wrap = document.getElementById('strengthWrap');
+  var fill = document.getElementById('strengthFill');
+  var lbl  = document.getElementById('strengthLbl');
+  if (!val) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'block';
+
+  var score = 0;
+  if (val.length >= 8) score++;
+  if (/[0-9]/.test(val)) score++;
+  if (/[A-Z]/.test(val)) score++;
+  if (/[^A-Za-z0-9]/.test(val)) score++;
+
+  var pct   = ['0%','25%','50%','75%','100%'][score];
+  var color = ['#e5e7eb','#d40000','#f59e0b','#3b82f6','#16a34a'][score];
+  var txt   = ['','Muy débil','Débil','Buena','Fuerte'][score];
+
+  fill.style.width = pct;
+  fill.style.background = color;
+  lbl.textContent = txt;
+  lbl.style.color = color;
+
+  // Requisitos
+  toggle('req-len', val.length >= 8);
+  toggle('req-num', /[0-9]/.test(val));
+  toggle('req-may', /[A-Z]/.test(val));
+
+  updateSubmit();
+}
+
+function toggle(id, met) {
+  var el = document.getElementById(id);
+  if (met) el.classList.add('met'); else el.classList.remove('met');
+}
+
+function checkMatch() {
+  var v1  = document.getElementById('pwd1').value;
+  var v2  = document.getElementById('pwd2').value;
+  var msg = document.getElementById('matchMsg');
+  if (!v2) { msg.style.display = 'none'; return; }
+  msg.style.display = 'block';
+  if (v1 === v2) {
+    msg.textContent = '✓ Las contraseñas coinciden';
+    msg.className   = 'nc-match ok';
+  } else {
+    msg.textContent = '✗ Las contraseñas no coinciden';
+    msg.className   = 'nc-match bad';
+  }
+  updateSubmit();
+}
+
+function updateSubmit() {
+  var v1  = document.getElementById('pwd1').value;
+  var v2  = document.getElementById('pwd2').value;
+  var ok  = v1.length >= 8 && v1 === v2;
+  document.getElementById('ncSubmit').disabled = !ok;
+}
 </script>
-
 </body>
 </html>

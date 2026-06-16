@@ -15,10 +15,14 @@ ALLOWED_HOSTS = [h.strip() for h in _raw_hosts.split(',') if h.strip()]
 # Subdomain wildcard de Railway — matchea cualquier *.up.railway.app
 if not any('railway.app' in h for h in ALLOWED_HOSTS):
     ALLOWED_HOSTS.append('.railway.app')
+# En desarrollo permitir cualquier host de la red local
+if DEBUG:
+    ALLOWED_HOSTS.append('*')
 
 CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'http://192.168.1.6:8000',
 ]
 for _h in ALLOWED_HOSTS:
     if _h.startswith('.') or _h in ('localhost', '127.0.0.1', '*'):

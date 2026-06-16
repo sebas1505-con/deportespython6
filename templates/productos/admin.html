@@ -858,7 +858,7 @@ function show(id, el) {
   var chatP   = params.get('chat');
   /* Si no hay parámetro en la URL (carga limpia / login), arrancar siempre en inicio */
   var secSS   = secUrl ? sessionStorage.getItem('adminSec') : null;
-  var target  = secUrl || secSS || 'productos';
+  var target  = secUrl || secSS || 'inicio';
 
   var elNav = document.querySelector('.nav-item[onclick*="show(\'' + target + '\'"]');
   show(target, elNav);

@@ -915,6 +915,15 @@ def perfil_admin(request):
             messages.success(request, '✅ Contraseña cambiada correctamente.')
             return redirect('perfil_admin')
 
+        # ── Foto de perfil ──────────────────────────────────────
+        elif accion == 'foto':
+            foto = request.FILES.get('foto_perfil')
+            if foto:
+                admin.foto_perfil = foto
+                admin.save()
+                messages.success(request, '✅ Foto de perfil actualizada.')
+            return redirect('perfil_admin')
+
     # ── Stats para el panel ──────────────────────────────────────
     total_ventas   = Venta.objects.count()
     total_usuarios = Usuario.objects.count()
@@ -1041,7 +1050,16 @@ def perfil_usuario(request):
             usuario.password = make_password(pwd_nueva)
             usuario.save()
             messages.success(request, '✅ Contraseña cambiada correctamente.')
-            return redirect('perfil')          # ← antes: 'perfil_usuario'
+            return redirect('perfil')
+
+        # ── Foto de perfil ──────────────────────────────────────
+        elif accion == 'foto':
+            foto = request.FILES.get('foto_perfil')
+            if foto:
+                usuario.foto_perfil = foto
+                usuario.save()
+                messages.success(request, '✅ Foto de perfil actualizada.')
+            return redirect('perfil')
 
     campos = [
         usuario.first_name, usuario.email, usuario.telefono,
@@ -1145,6 +1163,15 @@ def perfil_repartidor(request):
             usuario.password = make_password(pwd_nueva)
             usuario.save()
             messages.success(request, '✅ Contraseña cambiada correctamente.')
+            return redirect('perfil_repartidor')
+
+        # ── Foto de perfil ──────────────────────────────────────
+        elif accion == 'foto':
+            foto = request.FILES.get('foto_perfil')
+            if foto:
+                usuario.foto_perfil = foto
+                usuario.save()
+                messages.success(request, '✅ Foto de perfil actualizada.')
             return redirect('perfil_repartidor')
 
     # ── Progreso del perfil ──────────────────────────────────────
@@ -1275,6 +1302,71 @@ def detalle_pedido(request, pedido_id):
 
 # ── Sugerencias ───────────────────────────────────────────────────────────────
 
+import re as _re
+import unicodedata as _ud
+
+def _normalizar(texto):
+    """Minúsculas, sin acentos, sin caracteres especiales comunes de evasión."""
+    t = texto.lower()
+    t = _ud.normalize('NFD', t)
+    t = ''.join(c for c in t if _ud.category(c) != 'Mn')  # quitar tildes
+    # sustituir números por letras que parecen (0→o, 1→i/l, 3→e, 4→a, @→a, $→s)
+    for src, dst in [('0','o'),('1','i'),('3','e'),('4','a'),('@','a'),('$','s'),('!','i')]:
+        t = t.replace(src, dst)
+    # colapsar espacios/puntos/guiones entre letras para evitar e-v-a-s-i-o-n
+    t = _re.sub(r'[\s._\-*]+', '', t)
+    return t
+
+_GROSERIAS = [
+    # palabras fuertes generales
+    'hijueputa','hijuepucha','hp','mierda','mierd',
+    'puta','puto','perra','perro','zorra','zorro',
+    'gonorrea','gonorre','gonorr',
+    'malparido','malparida',
+    'culiao','culiado','culiada',
+    'marica','maricon','maricas',
+    'culo','culos',
+    'verga','vergas',
+    'pene','penes',
+    'vagina',
+    'coño','cono',
+    'carajo','carajos',
+    'idiota','idiotas',
+    'estupido','estupida',
+    'imbecil',
+    'cabron','cabrona',
+    'pendejo','pendeja',
+    'maldito','maldita',
+    'bastardo','bastarda',
+    'hdp','hpta',
+    'chingada','chinga','chingo',
+    'pinche','pinches',
+    'guevon','huevon','gueva','hueva',
+    'joder',
+    'polla',
+    'mamao','mamada',
+    'hdpm',
+    'puñetero','puñetera',
+    'fornico','fornicio',
+    'follador','folladora',
+    'cabreo',
+    'ojete',
+    'mamon','mamona',
+    'lameculos',
+    'sorete',
+    'boludo','boluda',
+    'pelotudo',
+    'conchudo','conchuda',
+]
+
+def _tiene_groseria(texto):
+    """Devuelve la palabra encontrada o None."""
+    normalizado = _normalizar(texto)
+    for palabra in _GROSERIAS:
+        if palabra in normalizado:
+            return palabra
+    return None
+
 def sugerencias(request):
     from django.http import JsonResponse
 
@@ -1290,6 +1382,10 @@ def sugerencias(request):
 
             if not texto:
                 return JsonResponse({'ok': False, 'error': 'Mensaje vacío'})
+
+            groseria = _tiene_groseria(texto)
+            if groseria:
+                return JsonResponse({'ok': False, 'error': 'Por favor usa un lenguaje respetuoso. No se permiten groserías o palabras ofensivas.'})
 
             # Si ya tenemos el hilo, solo agregar respuesta
             if sugerencia_id:
@@ -1425,8 +1521,8 @@ def nueva_contrasena(request, token=None):
             messages.error(request, 'Completa ambos campos.')
         elif password1 != password2:
             messages.error(request, 'Las contraseñas no coinciden.')
-        elif len(password1) < 6:
-            messages.error(request, 'Debe tener mínimo 6 caracteres.')
+        elif len(password1) < 8:
+            messages.error(request, 'Debe tener mínimo 8 caracteres.')
         else:
             usuario.password = make_password(password1)
             usuario.token_recuperacion = None

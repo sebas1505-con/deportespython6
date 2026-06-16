@@ -18,6 +18,7 @@ class Usuario(models.Model):
     cedula = models.CharField(max_length=20, unique=True, null=True, blank=True)
     localidad = models.CharField(max_length=50, null=True, blank=True)
     token_recuperacion = models.CharField(max_length=100, null=True, blank=True)
+    foto_perfil = models.ImageField(upload_to='perfiles/', blank=True, null=True)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)

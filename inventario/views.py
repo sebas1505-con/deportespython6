@@ -22,6 +22,17 @@ import pandas as pd
 import json
 from decimal import Decimal
 
+# ── Helpers ──────────────────────────────────────────────────────────────────
+
+def _perfil_completo(usuario):
+    """Devuelve True si el usuario tiene los datos mínimos para comprar."""
+    return all([
+        usuario.first_name and usuario.first_name.strip(),
+        usuario.telefono   and usuario.telefono.strip(),
+        usuario.tipo_documento,
+        usuario.cedula     and usuario.cedula.strip(),
+    ])
+
 # ── Catálogo y productos ──────────────────────────────────────────────────────
 
 def catalogo(request):
@@ -483,6 +494,18 @@ def carrito(request):
 
         elif 'finalizar' in request.POST:
 
+            # Verificar que el usuario tenga perfil completo
+            usuario_id = request.session.get('usuario_id')
+            usuario_fin = Usuario.objects.filter(id=usuario_id).first() if usuario_id else None
+            if not usuario_fin:
+                messages.error(request, 'Debes iniciar sesión para realizar una compra.')
+                return redirect('login')
+            if not _perfil_completo(usuario_fin):
+                messages.error(request,
+                    '⚠️ Completa tu perfil antes de comprar. '
+                    'Necesitamos tu nombre, teléfono, tipo de documento y cédula.')
+                return redirect('perfil')
+
             for key, item in carrito.items():
                 producto_id = int(key.split('_')[0])
                 talla = item['talla']
@@ -500,9 +523,14 @@ def carrito(request):
             return redirect('formulario_compra')
     total = sum(item['precio'] * item['cantidad'] for item in carrito.values())
 
+    usuario_id = request.session.get('usuario_id')
+    usuario_carrito = Usuario.objects.filter(id=usuario_id).first() if usuario_id else None
+    perfil_ok = usuario_carrito and _perfil_completo(usuario_carrito)
+
     return render(request, 'productos/carrito.html', {
         'productos': carrito,
-        'total': total
+        'total': total,
+        'perfil_incompleto': usuario_carrito and not perfil_ok,
     })
 
 def agregar_al_carrito(request, producto_id):
@@ -589,9 +617,20 @@ def formulario_compra(request):
 
     usuario_id = request.session.get('usuario_id')
     usuario = Usuario.objects.filter(id=usuario_id).first() if usuario_id else None
-    cliente = Cliente.objects.filter(usuario=usuario).first() if usuario else None
 
-    if usuario and not cliente:
+    if not usuario:
+        messages.error(request, 'Debes iniciar sesión para realizar una compra.')
+        return redirect('login')
+
+    if not _perfil_completo(usuario):
+        messages.error(request,
+            '⚠️ Completa tu perfil antes de comprar. '
+            'Necesitamos tu nombre, teléfono, tipo de documento y cédula.')
+        return redirect('perfil')
+
+    cliente = Cliente.objects.filter(usuario=usuario).first()
+
+    if not cliente:
         cliente = Cliente.objects.create(usuario=usuario)
 
     if request.method == 'POST':

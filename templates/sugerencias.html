@@ -214,6 +214,12 @@ body {
 
     </div>
 
+    <div id="chat-error-bar" style="display:none;background:#fff1f2;border-top:2px solid #fca5a5;
+         padding:8px 16px;font-size:13px;color:#be123c;font-weight:600;
+         display:none;align-items:center;gap:8px;">
+        <span>&#9888;&#65039;</span>
+        <span id="chat-error-txt"></span>
+    </div>
     <div class="wa-input-bar">
         <form class="wa-input-form" id="form-msg" onsubmit="enviarMensaje(event)">
             {% csrf_token %}
@@ -244,11 +250,43 @@ function escapeHtml(str){
     return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
+function mostrarErrorChat(msg) {
+    var bar = document.getElementById('chat-error-bar');
+    document.getElementById('chat-error-txt').textContent = msg;
+    bar.style.display = 'flex';
+    clearTimeout(bar._t);
+    bar._t = setTimeout(function(){ bar.style.display = 'none'; }, 4000);
+}
+
+/* ── Filtro de groserías (cliente) ── */
+var _GR = ['hijueputa','hijuepucha','mierda','puta','puto','perra','perro','zorra',
+  'gonorrea','malparido','malparida','culiao','culiado','culiada','marica','maricon',
+  'culo','verga','pene','vagina','coño','cono','carajo','idiota','estupido','estupida',
+  'imbecil','cabron','cabrona','pendejo','pendeja','maldito','maldita','bastardo',
+  'bastarda','hdp','hpta','chingada','chinga','pinche','guevon','huevon','joder',
+  'polla','mamao','mamada','boludo','boluda','pelotudo','sorete','hp','zorro'];
+function _normJS(t){
+  return t.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/0/g,'o').replace(/1/g,'i').replace(/3/g,'e')
+    .replace(/4/g,'a').replace(/@/g,'a').replace(/\$/g,'s')
+    .replace(/[\s._\-*]+/g,'');
+}
+function _tieneGroseria(t){
+  var n = _normJS(t);
+  return _GR.some(function(p){ return n.indexOf(p) !== -1; });
+}
+
 function enviarMensaje(e){
     e.preventDefault();
     var input = document.getElementById('wa-input');
     var texto = input.value.trim();
     if (!texto) return;
+
+    if (_tieneGroseria(texto)) {
+        mostrarErrorChat('Por favor usa un lenguaje respetuoso 🙏');
+        return;
+    }
 
     var form  = document.getElementById('form-msg');
     var sugId = form.querySelector('input[name="sugerencia_id"]');
@@ -298,10 +336,10 @@ function enviarMensaje(e){
                 form.appendChild(hidden);
             }
         } else {
-            alert('Error: ' + (data.error || 'No se pudo enviar'));
+            mostrarErrorChat(data.error || 'No se pudo enviar el mensaje.');
         }
     })
-    .catch(function(err){ alert('Error al enviar: ' + err); })
+    .catch(function(err){ mostrarErrorChat('Error al enviar: ' + err); })
     .finally(function(){ btn.disabled = false; });
 }
 

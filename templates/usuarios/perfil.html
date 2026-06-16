@@ -50,6 +50,21 @@
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; box-shadow: 0 4px 14px rgba(212,0,0,.4);
 }
+.pf-avatar-foto {
+  width: 68px; height: 68px; border-radius: 50%; object-fit: cover;
+  box-shadow: 0 4px 14px rgba(212,0,0,.4); flex-shrink: 0; display: block;
+}
+.avatar-wrap {
+  position: relative; flex-shrink: 0; cursor: pointer;
+}
+.avatar-cam-btn {
+  position: absolute; bottom: 0; right: 0;
+  width: 22px; height: 22px; border-radius: 50%;
+  background: #d40000; color: #fff; border: 2px solid #fff;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px; cursor: pointer; line-height: 1;
+}
+.avatar-wrap:hover .avatar-cam-btn { background: #8b0000; }
 .pf-hero-info h2 { font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 2px; }
 .pf-hero-info p  { font-size: 13px; color: rgba(255,255,255,.5); margin-bottom: 8px; }
 .pf-badge {
@@ -195,7 +210,20 @@
 
   <!-- Hero -->
   <div class="pf-hero">
-    <div class="pf-avatar">{{ usuario.first_name|slice:":1"|upper|default:"U" }}</div>
+    <form method="POST" action="{% url 'perfil' %}" enctype="multipart/form-data" style="line-height:0;">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="foto">
+      <label class="avatar-wrap" for="foto-inp" title="Cambiar foto de perfil">
+        {% if usuario.foto_perfil %}
+          <img src="{{ usuario.foto_perfil.url }}" class="pf-avatar-foto" alt="Foto de perfil">
+        {% else %}
+          <div class="pf-avatar">{{ usuario.first_name|slice:":1"|upper|default:"U" }}</div>
+        {% endif %}
+        <span class="avatar-cam-btn">&#128247;</span>
+      </label>
+      <input type="file" id="foto-inp" name="foto_perfil" accept="image/*"
+             style="display:none" onchange="this.form.submit()">
+    </form>
     <div class="pf-hero-info">
       <h2>{{ usuario.first_name|default:usuario.username }}</h2>
       <p>@{{ usuario.username }} &nbsp;·&nbsp; {{ usuario.email }}</p>

@@ -28,6 +28,21 @@
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0; box-shadow: 0 4px 16px rgba(212,0,0,.4);
 }
+.cfg-avatar-foto {
+  width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+  box-shadow: 0 4px 16px rgba(212,0,0,.4); flex-shrink: 0; display: block;
+}
+.avatar-wrap {
+  position: relative; flex-shrink: 0; cursor: pointer;
+}
+.avatar-cam-btn {
+  position: absolute; bottom: 0; right: 0;
+  width: 24px; height: 24px; border-radius: 50%;
+  background: #d40000; color: #fff; border: 2px solid #1a1a1a;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; cursor: pointer; line-height: 1;
+}
+.avatar-wrap:hover .avatar-cam-btn { background: #8b0000; }
 .cfg-hero-info h2 { font-size: 22px; font-weight: 800; color: #fff; margin-bottom: 4px; }
 .cfg-hero-info p  { font-size: 13px; color: rgba(255,255,255,.55); margin-bottom: 8px; }
 .cfg-badge {
@@ -214,7 +229,20 @@
 
   <!-- Hero perfil -->
   <div class="cfg-hero">
-    <div class="cfg-avatar">{{ admin.first_name|slice:":1"|upper|default:"A" }}</div>
+    <form method="POST" action="{% url 'perfil_admin' %}" enctype="multipart/form-data" style="line-height:0;">
+      {% csrf_token %}
+      <input type="hidden" name="accion" value="foto">
+      <label class="avatar-wrap" for="foto-inp-admin" title="Cambiar foto de perfil">
+        {% if admin.foto_perfil %}
+          <img src="{{ admin.foto_perfil.url }}" class="cfg-avatar-foto" alt="Foto de perfil">
+        {% else %}
+          <div class="cfg-avatar">{{ admin.first_name|slice:":1"|upper|default:"A" }}</div>
+        {% endif %}
+        <span class="avatar-cam-btn">&#128247;</span>
+      </label>
+      <input type="file" id="foto-inp-admin" name="foto_perfil" accept="image/*"
+             style="display:none" onchange="this.form.submit()">
+    </form>
     <div class="cfg-hero-info">
       <h2>{{ admin.first_name|default:admin.username }}</h2>
       <p>@{{ admin.username }} &nbsp;·&nbsp; {{ admin.email }}</p>

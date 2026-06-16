@@ -51,6 +51,21 @@ body { background: #f2f3f5; color: #222; }
     display: flex; align-items: center; justify-content: center;
     flex-shrink: 0;
 }
+.perfil-avatar-foto {
+    width: 80px; height: 80px; border-radius: 50%; object-fit: cover;
+    flex-shrink: 0; display: block;
+}
+.avatar-wrap {
+    position: relative; flex-shrink: 0; cursor: pointer;
+}
+.avatar-cam-btn {
+    position: absolute; bottom: 0; right: 0;
+    width: 24px; height: 24px; border-radius: 50%;
+    background: #d40000; color: #fff; border: 2px solid #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; cursor: pointer; line-height: 1;
+}
+.avatar-wrap:hover .avatar-cam-btn { background: #8b0000; }
 .perfil-info h2 { font-size: 22px; font-weight: 700; color: #0d1a26; margin-bottom: 6px; }
 .perfil-info p  { font-size: 14px; color: #555; margin-bottom: 4px; }
 .perfil-badge {
@@ -167,7 +182,20 @@ body { background: #f2f3f5; color: #222; }
 
     <!-- Hero -->
     <div class="perfil-card">
-        <div class="perfil-avatar">{{ usuario.first_name|slice:":1"|upper|default:"R" }}</div>
+        <form method="POST" action="{% url 'perfil_repartidor' %}" enctype="multipart/form-data" style="line-height:0;">
+            {% csrf_token %}
+            <input type="hidden" name="accion" value="foto">
+            <label class="avatar-wrap" for="foto-inp-rep" title="Cambiar foto de perfil">
+                {% if usuario.foto_perfil %}
+                    <img src="{{ usuario.foto_perfil.url }}" class="perfil-avatar-foto" alt="Foto de perfil">
+                {% else %}
+                    <div class="perfil-avatar">{{ usuario.first_name|slice:":1"|upper|default:"R" }}</div>
+                {% endif %}
+                <span class="avatar-cam-btn">&#128247;</span>
+            </label>
+            <input type="file" id="foto-inp-rep" name="foto_perfil" accept="image/*"
+                   style="display:none" onchange="this.form.submit()">
+        </form>
         <div class="perfil-info">
             <h2>{{ usuario.first_name|default:usuario.username }}</h2>
             <p><strong>Usuario:</strong> {{ usuario.username }}</p>

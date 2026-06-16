@@ -97,6 +97,25 @@
         transition: .2s; font-family: inherit;
     }
     .btn-finalizar:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-finalizar:disabled {
+        background: #ccc; cursor: not-allowed; opacity: 1; transform: none;
+    }
+
+    /* Aviso perfil incompleto */
+    .perfil-aviso {
+        background: #fffbeb; border: 1.5px solid #fcd34d; border-radius: 12px;
+        padding: 14px 16px; margin-bottom: 14px;
+        display: flex; align-items: flex-start; gap: 12px;
+    }
+    .perfil-aviso-icon { font-size: 20px; flex-shrink: 0; }
+    .perfil-aviso-txt  { font-size: 13px; color: #92400e; line-height: 1.5; }
+    .perfil-aviso-txt strong { display: block; margin-bottom: 4px; font-size: 14px; }
+    .perfil-aviso-link {
+        display: inline-block; margin-top: 8px; padding: 7px 16px;
+        background: #d40000; color: #fff; border-radius: 8px;
+        font-size: 13px; font-weight: 700; text-decoration: none; transition: .15s;
+    }
+    .perfil-aviso-link:hover { background: #8b0000; }
 
     .btn-seguir {
         width: 100%; padding: 12px;
@@ -197,8 +216,19 @@
                 <span>Total</span>
                 <span>${{ total }}</span>
             </div>
+            {% if perfil_incompleto %}
+            <div class="perfil-aviso">
+                <span class="perfil-aviso-icon">&#9888;&#65039;</span>
+                <div class="perfil-aviso-txt">
+                    <strong>Perfil incompleto</strong>
+                    Para comprar necesitamos tu nombre, teléfono, tipo de documento y cédula.
+                    <a href="{% url 'perfil' %}" class="perfil-aviso-link">Completar perfil</a>
+                </div>
+            </div>
+            {% endif %}
             <div class="resumen-btns">
-                <button type="submit" name="finalizar" value="1" class="btn-finalizar">
+                <button type="submit" name="finalizar" value="1" class="btn-finalizar"
+                        {% if perfil_incompleto %}disabled title="Completa tu perfil primero"{% endif %}>
                      Finalizar compra
                 </button>
                 <a href="{% url 'catalogo' %}" class="btn-seguir">
