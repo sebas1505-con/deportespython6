@@ -21,6 +21,7 @@ urlpatterns = [
     path('perfil-admin/', views.perfil_admin, name='perfil_admin'),
     path('sinacceso/', views.sinacceso, name='sinacceso'),
     path('perfil/', views.perfil_usuario, name='perfil'),
+    path('perfil-incompleto/', views.perfil_incompleto, name='perfil_incompleto'),
     path('actualizar/', views.actualizar_usuario, name='actualizar_usuario'),
     path('eliminar-usuario/<int:id>/', views.eliminar_usuario, name='eliminar_usuario'),
     path('mis_pedidos/', views.mis_pedidos, name='mis_pedidos'),

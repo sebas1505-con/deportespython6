@@ -214,38 +214,65 @@ def movimiento_nuevo(request):
 
     if request.method == "POST":
         producto_id = request.POST.get("producto")
-        talla       = request.POST.get("talla")
         tipo        = request.POST.get("tipo_movimiento")
-        cantidad    = int(request.POST.get("cantidad", 0))
         motivo      = request.POST.get("motivo", "")
         proveedor   = request.POST.get("proveedor", "")
+        tallas_raw  = request.POST.get("tallas_data", "[]")
 
         producto = get_object_or_404(Producto, id=producto_id)
 
         try:
-            Movimiento.objects.create(
-                producto=producto,
-                talla=talla,
-                cantidad=cantidad,
-                tipo_movimiento=tipo,
-                motivo=motivo,
-                proveedor=proveedor,
-            )
-            messages.success(request, f"Movimiento registrado: {tipo} de {cantidad} uds — {producto.nombre} talla {talla}.")
+            pares   = json.loads(tallas_raw)
+            creados = 0
+            for par in pares:
+                talla    = par.get("talla", "").strip()
+                cantidad = int(par.get("cantidad", 0))
+                if not talla or cantidad <= 0:
+                    continue
+                Movimiento.objects.create(
+                    producto=producto,
+                    talla=talla,
+                    cantidad=cantidad,
+                    tipo_movimiento=tipo,
+                    motivo=motivo,
+                    proveedor=proveedor,
+                    nombre_producto=producto.nombre,
+                )
+                creados += 1
+            if creados:
+                messages.success(request, f"✅ {creados} movimiento(s) registrado(s) — {producto.nombre}.")
+            else:
+                messages.error(request, "Selecciona al menos una talla con cantidad válida.")
         except Exception as e:
             messages.error(request, f"Error: {e}")
 
-        return redirect('panel_admin')   # ← vuelve al panel
+        return redirect('panel_admin')
 
     return render(request, 'productos/movimiento_nuevo.html', {'productos': productos_qs})
 
 
+_TALLAS_STD_ADULTO = ['S', 'M', 'L', 'XL']
+_TALLAS_STD_NINO   = ['6', '8', '10', '12', '14', '16', '18']
+
 def productos(request):
-    productos = Producto.objects.all()
-    for producto in productos:
-        tallas = TallaProducto.objects.filter(producto=producto)
-        producto.stock_total = sum(t.stock for t in tallas)  # cálculo dinámico
-    return render(request, 'productos/productos.html', {'productos': productos})
+    prods = Producto.objects.prefetch_related('tallas').all()
+    for p in prods:
+        tallas_qs = list(p.tallas.all())
+        por_nombre = {t.talla: t for t in tallas_qs}
+        p.stock_total = sum(t.stock for t in tallas_qs)
+
+        def _row(nombre):
+            t = por_nombre.get(nombre)
+            return {'nombre': nombre, 'stock': t.stock if t else 0,
+                    'existe': t is not None, 'id': t.id if t else None}
+
+        p.tallas_adulto = [_row(n) for n in _TALLAS_STD_ADULTO]
+        p.tallas_nino   = [_row(n) for n in _TALLAS_STD_NINO]
+        p.tallas_faltantes = sum(
+            1 for row in p.tallas_adulto + p.tallas_nino
+            if not row['existe'] or row['stock'] == 0
+        )
+    return render(request, 'productos/productos.html', {'productos': prods})
 
 
 def detalle_producto(request, id):
@@ -490,6 +517,27 @@ def carrito(request):
                     if carrito[key]['cantidad'] <= 0:
                         carrito.pop(key)
 
+            elif accion.startswith('set_'):
+                key = accion.replace('set_', '')
+                if key in carrito:
+                    try:
+                        qty = int(request.POST.get('nueva_cant', 1))
+                        if qty > 0:
+                            # Respetar el stock disponible
+                            try:
+                                pid = int(key.split('_')[0])
+                                talla = carrito[key].get('talla', '')
+                                stock = TallaProducto.objects.get(
+                                    producto_id=pid, talla=talla).stock
+                                qty = min(qty, stock)
+                            except TallaProducto.DoesNotExist:
+                                pass
+                            carrito[key]['cantidad'] = max(1, qty)
+                        else:
+                            carrito.pop(key)
+                    except (ValueError, TypeError):
+                        pass
+
             request.session['carrito'] = carrito
 
         elif 'finalizar' in request.POST:
@@ -502,9 +550,9 @@ def carrito(request):
                 return redirect('login')
             if not _perfil_completo(usuario_fin):
                 messages.error(request,
-                    '⚠️ Completa tu perfil antes de comprar. '
+                    'Debes completar tu perfil antes de comprar. '
                     'Necesitamos tu nombre, teléfono, tipo de documento y cédula.')
-                return redirect('perfil')
+                return redirect('perfil_incompleto')
 
             for key, item in carrito.items():
                 producto_id = int(key.split('_')[0])
@@ -527,8 +575,39 @@ def carrito(request):
     usuario_carrito = Usuario.objects.filter(id=usuario_id).first() if usuario_id else None
     perfil_ok = usuario_carrito and _perfil_completo(usuario_carrito)
 
+    # Tallas disponibles y stock por producto
+    pids_en_carrito = set()
+    for key in carrito:
+        try:
+            pids_en_carrito.add(int(key.split('_')[0]))
+        except (ValueError, IndexError):
+            pass
+
+    # {pid: {talla: stock}}
+    stock_por_producto = {}
+    for pid in pids_en_carrito:
+        stock_por_producto[pid] = {
+            t.talla: t.stock
+            for t in TallaProducto.objects.filter(producto_id=pid)
+        }
+
+    # Enriquecer carrito con producto_id, tallas disponibles y stock límite
+    carrito_enriquecido = {}
+    for key, item in carrito.items():
+        try:
+            pid = int(key.split('_')[0])
+        except (ValueError, IndexError):
+            pid = None
+        stocks = stock_por_producto.get(pid, {})
+        talla_item = item.get('talla', '')
+        stock_disp = stocks.get(talla_item, 0)
+        tallas_disp = [t for t, s in stocks.items() if s > 0 and t != talla_item]
+        carrito_enriquecido[key] = dict(item, producto_id=pid,
+                                        tallas_disp=tallas_disp,
+                                        stock_disp=stock_disp)
+
     return render(request, 'productos/carrito.html', {
-        'productos': carrito,
+        'productos': carrito_enriquecido,
         'total': total,
         'perfil_incompleto': usuario_carrito and not perfil_ok,
     })
@@ -624,9 +703,9 @@ def formulario_compra(request):
 
     if not _perfil_completo(usuario):
         messages.error(request,
-            '⚠️ Completa tu perfil antes de comprar. '
+            'Debes completar tu perfil antes de comprar. '
             'Necesitamos tu nombre, teléfono, tipo de documento y cédula.')
-        return redirect('perfil')
+        return redirect('perfil_incompleto')
 
     cliente = Cliente.objects.filter(usuario=usuario).first()
 
@@ -963,6 +1042,10 @@ def pedidos_disponibles(request):
 def tomar_pedido(request, pedido_id):
     usuario_id = request.session.get('usuario_id')
     repartidor = get_object_or_404(Repartidor, usuario__id=usuario_id)
+
+    if not _perfil_completo(repartidor.usuario):
+        messages.error(request, 'Debes completar tu perfil antes de tomar pedidos.')
+        return redirect('repartidor')
 
     pedido = get_object_or_404(Pedido, id=pedido_id, estado='Disponible', repartidor=None)
     pedido.repartidor = repartidor

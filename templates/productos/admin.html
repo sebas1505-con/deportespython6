@@ -79,28 +79,45 @@
 .mov-filtro { padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 2px solid #e5e7eb; background: #fff; color: #555; cursor: pointer; transition: .15s; white-space: nowrap; }
 .mov-filtro:hover, .mov-filtro--active { background: #d40000; color: #fff; border-color: #d40000; }
 
-/* ── Talla picker colapsable ── */
-.talla-picker { border: 1.5px solid #e5e7eb; border-radius: 10px; padding: 8px; background: #fafafa; min-height: 42px; }
-.talla-picker-hint { font-size: 13px; color: #aaa; padding: 6px 4px; margin: 0; }
-.talla-grupo-wrap { margin-bottom: 6px; }
-.talla-grupo-btn {
-  width: 100%; background: #f3f4f6; border: 1.5px solid #e5e7eb; border-radius: 8px;
-  padding: 9px 14px; font-size: 13px; font-weight: 700; cursor: pointer; color: #333;
-  display: flex; justify-content: space-between; align-items: center; transition: .15s;
+/* ── Talla picker en filas ── */
+.talla-picker { border: 1.5px solid #e5e7eb; border-radius: 10px; background: #fff; min-height: 42px; overflow: hidden; }
+.talla-picker-hint { font-size: 13px; color: #aaa; padding: 12px 16px; margin: 0; }
+.talla-picker-header {
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; padding: 0; margin-bottom: 6px; user-select: none;
 }
-.talla-grupo-btn:hover { background: #111; color: #fff; border-color: #111; }
-.tg-arrow { font-size: 11px; transition: transform .2s; display: inline-block; }
-.talla-grupo-chips { display: none; flex-wrap: wrap; gap: 8px; padding: 10px 4px 4px; }
-.talla-grupo-chips.open { display: flex; }
-.talla-chip-btn {
-  padding: 7px 14px; border-radius: 8px; border: 2px solid #e5e7eb;
-  background: #fff; font-size: 13px; font-weight: 700; cursor: pointer; color: #333;
-  transition: .15s; line-height: 1;
+.talla-picker-header label { cursor: pointer; font-weight: 700; font-size: 14px; color: #333; margin: 0; }
+.talla-picker-arrow { font-size: 11px; color: #aaa; transition: transform .2s; margin-left: 6px; }
+.talla-grupo-label {
+  display: block; font-size: 10px; font-weight: 800; text-transform: uppercase;
+  letter-spacing: .7px; color: #bbb; padding: 9px 16px 5px;
+  background: #fafafa; border-top: 1px solid #f0f0f0;
 }
-.talla-chip-btn:hover { border-color: #d40000; color: #d40000; }
-.talla-chip-btn.selected { background: #d40000 !important; color: #fff !important; border-color: #d40000 !important; }
-.talla-chip-btn.sin-stock { border-color: #fca5a5; color: #b91c1c; background: #fff1f2; }
-.talla-chip-btn.nueva-talla { border-color: #c4b5fd; color: #6d28d9; background: #f5f3ff; }
+.talla-fila {
+  display: flex; align-items: center;
+  padding: 10px 16px; cursor: default;
+  border-top: 1px solid #f5f5f5;
+  border-left: 3px solid transparent;
+  background: #fff; transition: background .1s, border-left-color .1s;
+}
+.talla-fila:hover { background: #fef2f2; border-left-color: #fca5a5; }
+.talla-fila.con-stock { background: #fef2f2; border-left-color: #d40000; }
+.talla-fila-nombre                    { font-size: 14px; font-weight: 700; color: #222; flex: 1; }
+.talla-fila-stock                     { font-size: 12px; color: #bbb; font-weight: 500; margin-right: 10px; }
+.talla-fila.con-stock .talla-fila-nombre { color: #d40000; font-weight: 800; }
+.talla-fila.con-stock .talla-fila-stock  { color: #fca5a5; }
+.talla-fila.sin-stock .talla-fila-nombre { color: #b91c1c; }
+.talla-fila.sin-stock .talla-fila-stock  { color: #fca5a5; }
+.talla-fila.nueva-talla .talla-fila-nombre { color: #6d28d9; }
+.talla-fila.nueva-talla .talla-fila-stock  { color: #a78bfa; }
+.talla-fila-qty {
+  width: 62px; padding: 5px 6px;
+  border: 1.5px solid #e0e0e0; border-radius: 7px;
+  font-size: 13px; font-weight: 700; text-align: center;
+  color: #999; background: #fff; outline: none; transition: border-color .15s, color .15s;
+}
+.talla-fila-qty:focus               { border-color: #d40000; color: #d40000; }
+.talla-fila.con-stock .talla-fila-qty { border-color: #d40000; color: #d40000; }
 
 /* Carga masiva responsive */
 @media(max-width: 640px) {
@@ -110,6 +127,81 @@
   .carga-cols { padding: 12px 10px; }
   #buscador-mov { width: 100% !important; }
 }
+
+/* ── Venta Card ────────────────────────────────────────────────── */
+.mov-card.venta                          { border-left-color: #f59e0b; }
+.mov-card.venta[data-estado="Entregado"] { border-left-color: #16a34a; }
+.mov-card.venta[data-estado="En camino"] { border-left-color: #7c3aed; }
+.mov-card.venta[data-estado="Disponible"]{ border-left-color: #0ea5e9; }
+
+.venta-head {
+  background: #fafafa;
+  padding: 14px 18px;
+  display: flex; align-items: center;
+  justify-content: space-between; gap: 12px; flex-wrap: wrap;
+  border-bottom: 1px solid #f0f0f0;
+}
+.venta-head-left { display: flex; flex-direction: column; gap: 3px; }
+.venta-id-row {
+  font-size: 15px; font-weight: 700; color: #111;
+  display: flex; align-items: center; gap: 7px;
+}
+.venta-fecha-row { font-size: 12px; color: #aaa; }
+.venta-estado-pill {
+  padding: 5px 14px; border-radius: 20px; font-size: 12px; font-weight: 700;
+  white-space: nowrap; align-self: flex-start;
+  background: #fef3c7; color: #92400e; border: 1px solid #fcd34d;
+}
+.venta-estado-pill[data-estado="Entregado"] { background: #d1fae5  !important; color: #065f46  !important; border-color: #6ee7b7  !important; }
+.venta-estado-pill[data-estado="En camino"] { background: #ede9fe  !important; color: #5b21b6  !important; border-color: #c4b5fd  !important; }
+.venta-estado-pill[data-estado="Disponible"]{ background: #e0f2fe  !important; color: #0369a1  !important; border-color: #7dd3fc  !important; }
+
+.venta-metrics {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  background: #fff; border-bottom: 1px solid #f0f0f0;
+}
+.venta-metric {
+  display: flex; flex-direction: column; gap: 3px;
+  padding: 14px 18px; border-right: 1px solid #f5f5f5;
+}
+.venta-metric:last-child { border-right: none; }
+.venta-metric-lbl {
+  font-size: 10px; font-weight: 700; color: #aaa;
+  text-transform: uppercase; letter-spacing: .4px;
+}
+.venta-metric-val { font-size: 17px; font-weight: 800; color: #111; line-height: 1.2; }
+.venta-metric-val.total { color: #16a34a; font-size: 24px; }
+
+.venta-prods {
+  padding: 11px 18px; display: flex; flex-wrap: wrap; gap: 7px;
+  background: #f8fafc; border-bottom: 1px solid #f0f0f0;
+}
+.venta-prod-chip {
+  display: inline-flex; align-items: center; gap: 5px;
+  background: #fff; border: 1.5px solid #e2e8f0; border-radius: 20px;
+  padding: 4px 10px 4px 8px; font-size: 12px; font-weight: 600;
+  color: #333; transition: .15s;
+}
+.venta-prod-chip:hover { border-color: #0ea5e9; }
+.venta-prod-chip-nombre {
+  font-weight: 700; color: #111;
+  max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.venta-prod-chip-talla {
+  background: #f1f5f9; padding: 2px 7px; border-radius: 5px;
+  font-size: 10px; color: #64748b; font-weight: 700;
+}
+.venta-prod-chip-cant { color: #0ea5e9; font-weight: 900; font-size: 13px; }
+
+.venta-footer {
+  padding: 10px 18px; display: flex; align-items: center;
+  gap: 16px; flex-wrap: wrap; background: #fff;
+}
+.venta-footer-item {
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 12px; color: #64748b; font-weight: 500;
+}
+.venta-footer-item strong { color: #374151; font-weight: 700; }
 </style>
 </head>
 <body>
@@ -468,23 +560,20 @@
               </select>
             </div>
             <div class="campo">
-              <label>Talla <span id="talla-sel-label" style="color:#d40000;font-weight:700;"></span></label>
-              <input type="hidden" name="talla" id="sel-talla-val">
+              <div class="talla-picker-header" onclick="toggleTallaPicker()">
+                <label>Tallas <span style="font-size:11px;color:#aaa;font-weight:400;">— escribe cantidad, deja en 0 las que no</span></label>
+                <span class="talla-picker-arrow" id="talla-picker-arrow">▼</span>
+              </div>
+              <input type="hidden" name="tallas_data" id="tallas-data-val" value="[]">
               <div class="talla-picker" id="talla-picker">
                 <p class="talla-picker-hint" id="talla-picker-hint">Primero seleccione un producto</p>
-                <div class="talla-grupo-wrap" id="tgr-adulto" style="display:none">
-                  <button type="button" class="talla-grupo-btn" onclick="toggleTallaGrupo('adulto')">
-                    <span>👕 Tallas Adulto</span>
-                    <span class="tg-arrow" id="tga-adulto">▶</span>
-                  </button>
-                  <div class="talla-grupo-chips" id="tgc-adulto"></div>
+                <div id="tgr-adulto" style="display:none">
+                  <span class="talla-grupo-label">👕 Adulto</span>
+                  <div id="tgc-adulto"></div>
                 </div>
-                <div class="talla-grupo-wrap" id="tgr-nino" style="display:none">
-                  <button type="button" class="talla-grupo-btn" onclick="toggleTallaGrupo('nino')">
-                    <span>👦 Tallas Niño</span>
-                    <span class="tg-arrow" id="tga-nino">▶</span>
-                  </button>
-                  <div class="talla-grupo-chips" id="tgc-nino"></div>
+                <div id="tgr-nino" style="display:none">
+                  <span class="talla-grupo-label">👦 Niño</span>
+                  <div id="tgc-nino"></div>
                 </div>
               </div>
             </div>
@@ -492,14 +581,11 @@
           <div class="form-row">
             <div class="campo"><label>Tipo de Movimiento</label>
               <select name="tipo_movimiento" id="sel-tipo" class="campo-input" required
-                      onchange="cargarTallas(document.getElementById('sel-producto'))">
+                      onchange="filtrarTipoTallas(this.value)">
                 <option value="">Seleccione tipo</option>
                 <option value="entrada">↑ Entrada — ingreso de stock</option>
                 <option value="salida">↓ Salida — reducción de stock</option>
               </select>
-            </div>
-            <div class="campo"><label>Cantidad</label>
-              <input type="number" name="cantidad" class="campo-input" min="1" placeholder="Ej: 10" required>
             </div>
           </div>
           <div class="campo"><label>Proveedor (opcional)</label><input type="text" name="proveedor" class="campo-input" placeholder="Ej: Nike, Adidas..."></div>
@@ -526,6 +612,7 @@
             <button class="mov-filtro" onclick="filtrarTipo('salida',this)">↓ Salidas</button>
             <button class="mov-filtro" onclick="filtrarTipo('evento',this)">⚙ Eventos</button>
             <button class="mov-filtro" onclick="filtrarTipo('usuario',this)">👤 Usuarios</button>
+            <button class="mov-filtro" onclick="filtrarTipo('venta',this)">💰 Ventas</button>
           </div>
         </div>
       </div>
@@ -609,6 +696,74 @@
           No hay movimientos registrados todavía.
         </div>
         {% endfor %}
+
+        {% for v in ventas %}
+        <div class="mov-card venta"
+             data-tipo="venta"
+             data-estado="{{ v.estado }}"
+             data-busq="venta #{{ v.id }} {{ v.cliente.usuario.first_name|lower }} {{ v.cliente.usuario.username|lower }} {{ v.metodo_de_pago|lower }} {{ v.metodoEnvio|lower }} {% for d in v.detalleventaproductos_set.all %}{{ d.producto.nombre|lower }} {% endfor %}">
+          <!-- Header oscuro -->
+          <div class="venta-head">
+            <div class="venta-head-left">
+              <div class="venta-id-row">
+                <span>💰</span>
+                <span>Venta&nbsp;#{{ v.id }}</span>
+              </div>
+              <div class="venta-fecha-row">{{ v.fecha_venta|date:"d M Y · H:i" }}</div>
+            </div>
+            <div class="venta-estado-pill" data-estado="{{ v.estado }}">{{ v.estado }}</div>
+          </div>
+          <!-- Métricas clave -->
+          <div class="venta-metrics">
+            <div class="venta-metric">
+              <span class="venta-metric-lbl">Total Venta</span>
+              <span class="venta-metric-val total">${{ v.totalVenta|floatformat:0 }}</span>
+            </div>
+            <div class="venta-metric">
+              <span class="venta-metric-lbl">Cliente</span>
+              <span class="venta-metric-val">{{ v.cliente.usuario.first_name|default:v.cliente.usuario.username }}</span>
+            </div>
+            <div class="venta-metric">
+              <span class="venta-metric-lbl">Artículos</span>
+              <span class="venta-metric-val">{{ v.cantProducto }}&nbsp;ud{{ v.cantProducto|pluralize }}</span>
+            </div>
+            <div class="venta-metric">
+              <span class="venta-metric-lbl">Método de pago</span>
+              <span class="venta-metric-val" style="font-size:13px;font-weight:700;">
+                {% if v.metodo_de_pago == 'PSE' or v.metodo_de_pago == 'PAGO_EN_LINEA' %}{% else %}{% endif %}&nbsp;{{ v.metodo_de_pago }}
+              </span>
+            </div>
+          </div>
+          <!-- Chips de productos -->
+          {% with detalles=v.detalleventaproductos_set.all %}
+          {% if detalles %}
+          <div class="venta-prods">
+            {% for d in detalles %}
+            <div class="venta-prod-chip">
+              <span class="venta-prod-chip-nombre">{{ d.producto.nombre }}</span>
+              <span class="venta-prod-chip-talla">{{ d.talla }}</span>
+              <span class="venta-prod-chip-cant">×{{ d.cantidad }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}
+          {% endwith %}
+          <!-- Footer info -->
+          <div class="venta-footer">
+            <span class="venta-footer-item">&nbsp;<strong>{{ v.metodoEnvio }}</strong></span>
+            {% if v.direccionEnvio %}
+            <span class="venta-footer-item">&nbsp;{{ v.direccionEnvio|truncatechars:45 }}</span>
+            {% endif %}
+            {% if v.telefonoContacto %}
+            <span class="venta-footer-item">&nbsp;{{ v.telefonoContacto }}</span>
+            {% endif %}
+            {% if v.observaciones %}
+            <span class="venta-footer-item" style="font-style:italic;color:#94a3b8;">💬&nbsp;{{ v.observaciones|truncatechars:50 }}</span>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+
       </div>
       <p id="mov-sin-resultados" style="display:none;text-align:center;color:#aaa;padding:20px;font-style:italic;">No se encontraron movimientos.</p>
     </div>
@@ -1080,9 +1235,9 @@ function cargarTallas(sel){
   var raw  = opt.getAttribute('data-tallas') || '';
   var tipo = (document.getElementById('sel-tipo') || {}).value || '';
 
-  /* Reset selección */
-  document.getElementById('sel-talla-val').value = '';
-  document.getElementById('talla-sel-label').textContent = '';
+  /* Reset cantidades */
+  document.getElementById('tallas-data-val').value = '[]';
+  document.querySelectorAll('#talla-picker .talla-fila-qty').forEach(function(inp){ inp.value = ''; });
 
   /* Parsear tallas existentes */
   var existentes = {};
@@ -1105,33 +1260,45 @@ function cargarTallas(sel){
     _TALLAS_NINO.forEach(function(t){   nino.push({talla:t,   stock:existentes.hasOwnProperty(t)?existentes[t]:null}); });
   }
 
-  /* Rellena un grupo */
+  /* Rellena un grupo como filas */
   function llenarGrupo(items, containerId, wrapId, esNino){
-    var wrap  = document.getElementById(wrapId);
-    var cont  = document.getElementById(containerId);
-    var arrowId = 'tga-' + (esNino ? 'nino' : 'adulto');
+    var wrap = document.getElementById(wrapId);
+    var cont = document.getElementById(containerId);
     cont.innerHTML = '';
     if(!items.length){ wrap.style.display = 'none'; return; }
     wrap.style.display = '';
     items.forEach(function(t){
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      var cls = 'talla-chip-btn';
-      if(t.stock === 0) cls += ' sin-stock';
+      var fila = document.createElement('div');
+      var cls = 'talla-fila';
+      if(t.stock === 0)         cls += ' sin-stock';
       else if(t.stock === null) cls += ' nueva-talla';
-      btn.className = cls;
-      btn.dataset.talla = t.talla;
-      var label = esNino ? 'T'+t.talla : t.talla;
-      if(t.stock === 0)    label += ' ⚠';
-      else if(t.stock === null) label += ' +';
-      btn.textContent = label;
-      btn.title = t.stock === null ? 'Nueva talla' : t.stock === 0 ? 'Sin stock — haz entrada' : 'Stock: '+t.stock;
-      btn.onclick = function(){ seleccionarTalla(this); };
-      cont.appendChild(btn);
+      fila.className = cls;
+      fila.dataset.talla = t.talla;
+
+      var sNombre = document.createElement('span');
+      sNombre.className = 'talla-fila-nombre';
+      sNombre.textContent = esNino ? 'Talla ' + t.talla : t.talla;
+
+      var sStock = document.createElement('span');
+      sStock.className = 'talla-fila-stock';
+      if(t.stock === null)   sStock.textContent = 'nueva';
+      else if(t.stock === 0) sStock.textContent = 'sin stock';
+      else                   sStock.textContent = t.stock + ' uds';
+
+      var inputQty = document.createElement('input');
+      inputQty.type = 'number'; inputQty.min = '0'; inputQty.placeholder = '0';
+      inputQty.className = 'talla-fila-qty';
+      inputQty.dataset.talla = t.talla;
+      inputQty.addEventListener('input', function(){
+        var v = parseInt(this.value || '0', 10);
+        fila.classList.toggle('con-stock', v > 0);
+      });
+
+      fila.appendChild(sNombre);
+      fila.appendChild(sStock);
+      fila.appendChild(inputQty);
+      cont.appendChild(fila);
     });
-    /* Abrir automáticamente al cargar */
-    cont.classList.add('open');
-    document.getElementById(arrowId).style.transform = 'rotate(90deg)';
   }
 
   llenarGrupo(adulto, 'tgc-adulto', 'tgr-adulto', false);
@@ -1145,30 +1312,45 @@ function cargarTallas(sel){
   }
 }
 
-function toggleTallaGrupo(grupo){
-  var cont  = document.getElementById('tgc-' + grupo);
-  var arrow = document.getElementById('tga-' + grupo);
-  var open  = cont.classList.toggle('open');
-  arrow.style.transform = open ? 'rotate(90deg)' : 'rotate(0deg)';
+function filtrarTipoTallas(tipo){
+  /* Para salida: oculta tallas sin stock (nueva-talla) y limpia su qty */
+  document.querySelectorAll('#talla-picker .talla-fila').forEach(function(fila){
+    var esSinStock = fila.classList.contains('nueva-talla') || fila.classList.contains('sin-stock');
+    if(tipo === 'salida' && esSinStock){
+      fila.style.display = 'none';
+      var inp = fila.querySelector('.talla-fila-qty');
+      if(inp){ inp.value = ''; fila.classList.remove('con-stock'); }
+    } else {
+      fila.style.display = '';
+    }
+  });
 }
 
-function seleccionarTalla(btn){
-  document.querySelectorAll('#talla-picker .talla-chip-btn').forEach(function(b){ b.classList.remove('selected'); });
-  btn.classList.add('selected');
-  document.getElementById('sel-talla-val').value = btn.dataset.talla;
-  document.getElementById('talla-sel-label').textContent = '— ' + btn.dataset.talla;
+function toggleTallaPicker(){
+  var picker = document.getElementById('talla-picker');
+  var arrow  = document.getElementById('talla-picker-arrow');
+  var cerrado = picker.style.display === 'none';
+  picker.style.display = cerrado ? '' : 'none';
+  arrow.style.transform = cerrado ? 'rotate(0deg)' : 'rotate(-90deg)';
 }
 
 function validarMovimiento(form){
-  if(!document.getElementById('sel-talla-val').value){
+  var inputs = document.querySelectorAll('#talla-picker .talla-fila-qty');
+  var data   = [];
+  inputs.forEach(function(inp){
+    var qty = parseInt(inp.value || '0', 10);
+    if(inp.dataset.talla && qty > 0) data.push({talla: inp.dataset.talla, cantidad: qty});
+  });
+  if(!data.length){
+    document.getElementById('talla-picker').style.display = '';
+    document.getElementById('talla-picker-arrow').style.transform = 'rotate(0deg)';
     var hint = document.getElementById('talla-picker-hint');
-    hint.textContent = '⚠ Selecciona una talla antes de guardar.';
-    hint.style.display = '';
-    hint.style.color = '#d40000';
-    hint.style.fontWeight = '700';
+    hint.textContent = '⚠ Escribe la cantidad en al menos una talla.';
+    hint.style.display = ''; hint.style.color = '#d40000'; hint.style.fontWeight = '700';
     document.getElementById('talla-picker').scrollIntoView({behavior:'smooth', block:'center'});
     return false;
   }
+  document.getElementById('tallas-data-val').value = JSON.stringify(data);
   return true;
 }
 

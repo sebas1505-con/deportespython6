@@ -1,0 +1,191 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Completa tu perfil — Deportes 360</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'images/usu.png' %}">
+    <link rel="stylesheet" href="{% static 'css/usuario.css' %}">
+    <style>
+    .pi-wrap {
+        max-width: 520px; margin: 48px auto 80px; padding: 0 20px;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    .pi-card {
+        background: #fff; border-radius: 18px;
+        box-shadow: 0 4px 24px rgba(0,0,0,.10);
+        padding: 36px 36px 28px; border-top: 5px solid #d40000;
+    }
+    .pi-titulo {
+        font-size: 22px; font-weight: 800; color: #111;
+        margin-bottom: 6px; display: flex; align-items: center; gap: 10px;
+    }
+    .pi-subtitulo {
+        font-size: 14px; color: #6b7280; margin-bottom: 24px; line-height: 1.5;
+    }
+    .pi-alert {
+        background: #fff7ed; border: 1.5px solid #fdba74;
+        border-radius: 10px; padding: 14px 16px; margin-bottom: 24px;
+    }
+    .pi-alert p { font-size: 13px; color: #92400e; margin: 0 0 6px; font-weight: 600; }
+    .pi-alert ul { margin: 0; padding-left: 18px; }
+    .pi-alert li { font-size: 13px; color: #78350f; }
+
+    .pi-group { margin-bottom: 18px; }
+    .pi-group label {
+        display: block; font-size: 13px; font-weight: 700; color: #374151;
+        margin-bottom: 6px;
+    }
+    .pi-group input,
+    .pi-group select {
+        width: 100%; padding: 10px 14px; border-radius: 10px;
+        border: 1.5px solid #e5e7eb; font-size: 14px; color: #111;
+        background: #fafafa; outline: none; box-sizing: border-box;
+        transition: border-color .15s;
+        font-family: inherit;
+    }
+    .pi-group input:focus,
+    .pi-group select:focus { border-color: #d40000; background: #fff; }
+
+    .pi-btns { display: flex; flex-direction: column; gap: 10px; margin-top: 28px; }
+    .btn-guardar {
+        width: 100%; padding: 13px; border: none; border-radius: 10px;
+        background: linear-gradient(180deg, #d40000, #8b0000);
+        color: #fff; font-size: 15px; font-weight: 700; cursor: pointer;
+        font-family: inherit; transition: .2s;
+    }
+    .btn-guardar:hover { opacity: .9; transform: translateY(-1px); }
+    .btn-volver {
+        width: 100%; padding: 12px; border-radius: 10px;
+        border: 1.5px solid #e5e7eb; background: #f9f9f9;
+        color: #555; font-size: 14px; font-weight: 600; cursor: pointer;
+        text-decoration: none; text-align: center; display: block;
+        font-family: inherit; transition: .2s;
+    }
+    .btn-volver:hover { background: #e5e7eb; }
+    </style>
+</head>
+<body>
+
+<header class="header">
+    <div class="container">
+        <div class="menu">
+            <a href="{% url 'usuario' %}" class="logo-wrapper">
+                <div class="logo-icon"><span>360</span></div>
+                <div class="logo-text">
+                    <strong>Deportes</strong>
+                    <small>360</small>
+                </div>
+            </a>
+            <input type="checkbox" id="menu" />
+            <label for="menu" class="menu-btn">
+                <span></span><span></span><span></span>
+            </label>
+            <div class="nav-overlay"></div>
+            <nav class="navbar">
+                <ul>
+                    <li><a href="{% url 'perfil' %}">Perfil</a></li>
+                    <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
+                    <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
+                    <li><a href="{% url 'sugerencias' %}">Sugerencias</a></li>
+                    <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
+                    <li><a href="{% url 'carrito' %}" style="color:#d40000;font-weight:700;">🛒</a></li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</header>
+
+{% if messages %}
+{% for message in messages %}
+<div style="background:linear-gradient(90deg,#14532d,#166534);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:300;box-shadow:0 2px 10px rgba(0,0,0,.3);">
+    <span style="font-size:22px;">✅</span>
+    <p style="font-size:14px;font-weight:700;margin:0;flex:1;">{{ message }}</p>
+    <a href="{% url 'carrito' %}" style="background:#fff;color:#166534;padding:8px 16px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;">Ir al carrito →</a>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="pi-wrap">
+    <div class="pi-card">
+
+        <h1 class="pi-titulo">⚠️ Perfil incompleto</h1>
+        <p class="pi-subtitulo">
+            Para finalizar tu compra necesitamos los siguientes datos.
+            Solo toma un momento.
+        </p>
+
+        {% if faltan %}
+        <div class="pi-alert">
+            <p>Campos que faltan completar:</p>
+            <ul>
+                {% for campo in faltan %}
+                <li>{{ campo }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form method="POST" action="{% url 'perfil_incompleto' %}">
+            {% csrf_token %}
+
+            <div class="pi-group">
+                <label for="nombre">Nombre completo</label>
+                <input type="text" id="nombre" name="nombre"
+                       value="{{ usuario.first_name }}"
+                       placeholder="Ej: Juan Pérez" required>
+            </div>
+
+            <div class="pi-group">
+                <label for="telefono">Teléfono</label>
+                <input type="text" id="telefono" name="telefono"
+                       value="{{ usuario.telefono|default:'' }}"
+                       placeholder="Ej: 3001234567" required>
+            </div>
+
+            <div class="pi-group">
+                <label for="tipo_documento">Tipo de documento</label>
+                <select id="tipo_documento" name="tipo_documento" required>
+                    <option value="">-- Selecciona --</option>
+                    <option value="CC" {% if usuario.tipo_documento == 'CC' %}selected{% endif %}>Cédula de Ciudadanía (CC)</option>
+                    <option value="CE" {% if usuario.tipo_documento == 'CE' %}selected{% endif %}>Cédula de Extranjería (CE)</option>
+                    <option value="TI" {% if usuario.tipo_documento == 'TI' %}selected{% endif %}>Tarjeta de Identidad (TI)</option>
+                    <option value="PA" {% if usuario.tipo_documento == 'PA' %}selected{% endif %}>Pasaporte (PA)</option>
+                </select>
+            </div>
+
+            <div class="pi-group">
+                <label for="cedula">Número de documento</label>
+                <input type="text" id="cedula" name="cedula"
+                       value="{{ usuario.cedula|default:'' }}"
+                       placeholder="Ej: 1012345678" required>
+            </div>
+
+            <div class="pi-btns">
+                <button type="submit" class="btn-guardar">Guardar y continuar →</button>
+                <a href="{% url 'carrito' %}" class="btn-volver">← Volver al carrito</a>
+            </div>
+        </form>
+
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="footer-content container">
+        <a href="{% url 'index' %}" class="logo-wrapper">
+            <div class="logo-icon"><span>360</span></div>
+            <div class="logo-text">
+                <strong>Deportes</strong>
+                <small>360</small>
+            </div>
+        </a>
+        <ul>
+            <li><a href="{% url 'usuario' %}">Inicio</a></li>
+            <li><a href="{% url 'contactousu' %}">Contacto</a></li>
+        </ul>
+    </div>
+</footer>
+
+</body>
+</html>

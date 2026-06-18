@@ -100,8 +100,6 @@
             <div class="nav-overlay" onclick="cerrarMenu()"></div>
             <nav class="navbar">
               <div class="nav-close">
-                <span class="nav-close-logo">Deportes <span>360</span></span>
-                <label for="menu" class="nav-close-btn" aria-label="Cerrar menú">&#x2715;</label>
               </div>
               <ul>
                 <li><a href="{% url 'usuario' %}">Inicio</a></li>
@@ -161,7 +159,7 @@
 
         {% empty %}
         <div class="sin-productos">
-            <div style="font-size:48px;margin-bottom:12px;">👟</div>
+            <div style="font-size:48px;margin-bottom:12px;">🧥</div>
             <p>No hay productos disponibles.</p>
         </div>
         {% endfor %}

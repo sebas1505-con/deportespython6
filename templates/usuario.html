@@ -45,7 +45,13 @@
           <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
           <li><a href="{% url 'sugerencias' %}">Sugerencias</a></li>
           <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
-          <li><a href="{% url 'carrito' %}">🛒</a></li>
+          <li>
+            {% if perfil_completo %}
+            <a href="{% url 'carrito' %}">🛒</a>
+            {% else %}
+            <a href="{% url 'perfil' %}" title="Completa tu perfil para usar el carrito" style="opacity:.45;cursor:not-allowed;">🛒</a>
+            {% endif %}
+          </li>
         </ul>
       </nav>
 
@@ -53,6 +59,26 @@
   </div>
 </header>
 
+{% if messages %}
+{% for message in messages %}
+<div style="background:{% if message.tags == 'error' %}linear-gradient(90deg,#7f1d1d,#991b1b){% else %}linear-gradient(90deg,#14532d,#166534){% endif %};color:#fff;padding:16px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:300;box-shadow:0 2px 10px rgba(0,0,0,.3);">
+  <span style="font-size:22px;flex-shrink:0;">{% if message.tags == 'error' %}⚠️{% else %}✅{% endif %}</span>
+  <div style="flex:1;min-width:200px;">
+    <p style="font-size:14px;font-weight:700;margin:0;">{{ message }}</p>
+  </div>
+  <a href="{% url 'perfil' %}" style="background:#fff;color:#991b1b;padding:8px 18px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;flex-shrink:0;">Completar perfil →</a>
+</div>
+{% endfor %}
+{% elif not perfil_completo %}
+<div style="background:linear-gradient(90deg,#78350f,#92400e);color:#fff;padding:14px 24px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;position:sticky;top:0;z-index:200;box-shadow:0 2px 8px rgba(0,0,0,.25);">
+  <span style="font-size:22px;flex-shrink:0;">⚠️</span>
+  <div style="flex:1;min-width:200px;">
+    <p style="font-size:14px;font-weight:700;margin-bottom:2px;">Perfil incompleto — no puedes realizar compras</p>
+    <p style="font-size:12px;opacity:.9;">Faltan: <strong>{{ campos_faltantes|join:" · " }}</strong></p>
+  </div>
+  <a href="{% url 'perfil' %}" style="background:#fff;color:#92400e;padding:8px 18px;border-radius:8px;font-weight:700;font-size:13px;text-decoration:none;white-space:nowrap;flex-shrink:0;">Completar perfil →</a>
+</div>
+{% endif %}
 
 <div class="hero-section">
     <div class="container hero-content">
@@ -134,6 +160,8 @@
             <p>${{ producto.precio }}</p>
             {% if producto.stock_total == 0 %}
             <span class="btn-1" style="background:#aaa;cursor:not-allowed;pointer-events:none;">Sin stock</span>
+            {% elif not perfil_completo %}
+            <a href="{% url 'perfil' %}" class="btn-1" style="background:#f59e0b;" title="Completa tu perfil para comprar">Completar perfil</a>
             {% else %}
             <a href="{% url 'detalle_producto' producto.id %}" class="btn-1">Más Información</a>
             {% endif %}

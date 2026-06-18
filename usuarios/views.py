@@ -550,7 +550,22 @@ def usuario(request):
     else:
         productos = base
 
-    return render(request, "usuario.html", {"usuario": usuario, "productos": productos})
+    campos_faltantes = []
+    if not (usuario.first_name and usuario.first_name.strip()):
+        campos_faltantes.append('Nombre completo')
+    if not (usuario.telefono and usuario.telefono.strip()):
+        campos_faltantes.append('Teléfono')
+    if not usuario.tipo_documento:
+        campos_faltantes.append('Tipo de documento')
+    if not (usuario.cedula and usuario.cedula.strip()):
+        campos_faltantes.append('Número de documento')
+
+    return render(request, "usuario.html", {
+        "usuario":          usuario,
+        "productos":        productos,
+        "perfil_completo":  len(campos_faltantes) == 0,
+        "campos_faltantes": campos_faltantes,
+    })
 
 def catalogoindex(request):
     from inventario.models import TallaProducto
@@ -702,7 +717,7 @@ def admin(request):
 
     # ── Ventas filtradas ──────────────────────────────────────────────────────
     ventas = Venta.objects.select_related('cliente__usuario').order_by('-fecha_venta')
-    ventas = ventas.filter(fecha_venta__gte=fi_aware, fecha_venta__lte=ff_aware)
+    ventas = ventas.filter(fecha_venta__gte=fi_aware, fecha_venta__lte=ff_aware).prefetch_related('detalleventaproductos_set__producto')
 
     cantidad_ventas   = ventas.count()
     total_general     = ventas.aggregate(t=Sum('totalVenta'))['t'] or 0
@@ -967,6 +982,16 @@ def repartidor(request):
         "Ya voy en camino con su pedido, pronto lo estaré entregando. 🚀"
     )
 
+    campos_faltantes = []
+    if not (usuario.first_name and usuario.first_name.strip()):
+        campos_faltantes.append('Nombre completo')
+    if not (usuario.telefono and usuario.telefono.strip()):
+        campos_faltantes.append('Teléfono')
+    if not usuario.tipo_documento:
+        campos_faltantes.append('Tipo de documento')
+    if not (usuario.cedula and usuario.cedula.strip()):
+        campos_faltantes.append('Número de documento')
+
     return render(request, 'repartidor.html', {
         'Nombre':            usuario.first_name,
         'usuario':           usuario,
@@ -976,10 +1001,48 @@ def repartidor(request):
         'mis_pedidos':       mis_pedidos,
         'total_ganancias':   total_ganancias,
         'mensaje_wa':        mensaje_wa,
+        'perfil_completo':   len(campos_faltantes) == 0,
+        'campos_faltantes':  campos_faltantes,
     })
 
 
 # ── Perfil y cuenta ───────────────────────────────────────────────────────────
+
+def perfil_incompleto(request):
+    usuario_id = request.session.get('usuario_id')
+    if not usuario_id:
+        return redirect('login')
+
+    usuario = get_object_or_404(Usuario, id=usuario_id)
+
+    if request.method == 'POST':
+        usuario.first_name     = request.POST.get('nombre', '').strip()
+        usuario.telefono       = request.POST.get('telefono', '').strip()
+        usuario.tipo_documento = request.POST.get('tipo_documento', '').strip()
+        usuario.cedula         = request.POST.get('cedula', '').strip()
+        usuario.save()
+        from django.contrib import messages as msg
+        msg.success(request, '✅ Perfil actualizado. Ya puedes continuar con tu compra.')
+        return redirect('carrito')
+
+    faltan = []
+    if not (usuario.first_name and usuario.first_name.strip()):
+        faltan.append('Nombre completo')
+    if not (usuario.telefono and usuario.telefono.strip()):
+        faltan.append('Teléfono')
+    if not usuario.tipo_documento:
+        faltan.append('Tipo de documento')
+    if not (usuario.cedula and usuario.cedula.strip()):
+        faltan.append('Cédula')
+
+    if not faltan:
+        return redirect('formulario_compra')
+
+    return render(request, 'usuarios/perfil_incompleto.html', {
+        'usuario': usuario,
+        'faltan': faltan,
+    })
+
 
 def perfil_usuario(request):
 

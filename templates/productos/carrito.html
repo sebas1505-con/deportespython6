@@ -52,7 +52,31 @@
         color: #111;
     }
     .btn-cant:hover { background: #d40000; color: #fff; border-color: #d40000; }
-    .cant-num { font-size: 15px; font-weight: 700; color: #111; min-width: 24px; text-align: center; }
+    .cant-input {
+        width: 52px; height: 32px; border-radius: 8px; border: 1.5px solid #e5e7eb;
+        font-size: 15px; font-weight: 700; color: #111; text-align: center;
+        background: #fff; outline: none; transition: border-color .15s;
+    }
+    .cant-input:focus { border-color: #d40000; color: #d40000; }
+
+    /* Agregar otra talla */
+    .item-add-talla {
+        display: flex; align-items: center; gap: 8px; margin-top: 10px;
+        padding-top: 10px; border-top: 1px solid #f0f0f0; flex-wrap: wrap;
+    }
+    .add-talla-label { font-size: 12px; color: #888; font-weight: 600; white-space: nowrap; }
+    .add-talla-sel {
+        padding: 5px 10px; border-radius: 8px; border: 1.5px solid #e5e7eb;
+        font-size: 13px; font-weight: 600; color: #333; background: #fff;
+        outline: none; cursor: pointer;
+    }
+    .add-talla-sel:focus { border-color: #d40000; }
+    .btn-add-talla {
+        padding: 5px 14px; border-radius: 8px; border: none;
+        background: #d40000; color: #fff; font-size: 13px; font-weight: 700;
+        cursor: pointer; transition: .15s; white-space: nowrap;
+    }
+    .btn-add-talla:hover { background: #8b0000; }
 
     /* ── Carrito vacío ── */
     .carrito-vacio {
@@ -178,21 +202,57 @@
 
     <h1 class="carrito-titulo">🛒 Tu <span>Carrito</span></h1>
 
+    {% if perfil_incompleto %}
+    <div style="background:#fff7ed;border:1.5px solid #fdba74;border-radius:12px;padding:16px 18px;margin-bottom:20px;display:flex;align-items:flex-start;gap:14px;">
+        <span style="font-size:22px;flex-shrink:0;">⚠️</span>
+        <div style="flex:1;">
+            <p style="font-size:14px;font-weight:700;color:#92400e;margin-bottom:4px;">Perfil incompleto</p>
+            <p style="font-size:13px;color:#78350f;line-height:1.5;margin-bottom:10px;">Necesitamos tu nombre, teléfono, tipo de documento y cédula antes de comprar.</p>
+            <a href="{% url 'perfil_incompleto' %}" style="display:inline-block;background:#d40000;color:#fff;padding:8px 18px;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;">Completar perfil →</a>
+        </div>
+    </div>
+    {% endif %}
+
     <form method="POST">
         {% csrf_token %}
 
         {% for slug, p in productos.items %}
         <div class="item-carrito">
             <img src="{{ p.imagen }}" alt="{{ p.nombre }}">
-            <div class="item-info">
+            <div class="item-info" style="flex:1;">
                 <h4>{{ p.nombre }}</h4>
                 <p>Talla: <strong>{{ p.talla }}</strong></p>
                 <p class="item-precio">${{ p.precio }}</p>
+
+                {% if p.tallas_disp %}
+                <div class="item-add-talla">
+                    <span class="add-talla-label">Agregar otra talla:</span>
+                    <select class="add-talla-sel" id="sel-talla-{{ slug }}">
+                        {% for t in p.tallas_disp %}
+                        {% if t != p.talla %}
+                        <option value="{{ t }}">{{ t }}</option>
+                        {% endif %}
+                        {% endfor %}
+                    </select>
+                    <button type="button" class="btn-add-talla"
+                            onclick="agregarTalla('{{ p.producto_id }}', 'sel-talla-{{ slug }}')">
+                        + Agregar
+                    </button>
+                </div>
+                {% endif %}
             </div>
             <div class="item-controles">
                 <button type="submit" name="accion" value="disminuir_{{ slug }}" class="btn-cant">−</button>
-                <span class="cant-num">{{ p.cantidad }}</span>
-                <button type="submit" name="accion" value="aumentar_{{ slug }}" class="btn-cant">+</button>
+                <input type="number" class="cant-input" value="{{ p.cantidad }}"
+                       min="1" max="{{ p.stock_disp }}"
+                       title="Máximo disponible: {{ p.stock_disp }}"
+                       onkeydown="if(event.key==='Enter'){event.preventDefault();setCantidad('{{ slug }}',this.value,{{ p.stock_disp }});}"
+                       onblur="setCantidad('{{ slug }}',this.value,{{ p.stock_disp }})">
+                <button type="submit" name="accion" value="aumentar_{{ slug }}" class="btn-cant"
+                        {% if p.cantidad >= p.stock_disp %}disabled style="opacity:.4;cursor:not-allowed;"{% endif %}>+</button>
+            </div>
+            <div style="font-size:11px;color:#aaa;text-align:right;margin-top:4px;">
+                máx. {{ p.stock_disp }}
             </div>
         </div>
         {% endfor %}
@@ -216,21 +276,10 @@
                 <span>Total</span>
                 <span>${{ total }}</span>
             </div>
-            {% if perfil_incompleto %}
-            <div class="perfil-aviso">
-                <span class="perfil-aviso-icon">&#9888;&#65039;</span>
-                <div class="perfil-aviso-txt">
-                    <strong>Perfil incompleto</strong>
-                    Para comprar necesitamos tu nombre, teléfono, tipo de documento y cédula.
-                    <a href="{% url 'perfil' %}" class="perfil-aviso-link">Completar perfil</a>
-                </div>
-            </div>
-            {% endif %}
             <div class="resumen-btns">
-                <button type="submit" name="finalizar" value="1" class="btn-finalizar"
-                        {% if perfil_incompleto %}disabled title="Completa tu perfil primero"{% endif %}>
-                     Finalizar compra
-                </button>
+                <a href="{% url 'perfil_incompleto' %}" class="btn-finalizar">
+                    Finalizar compra
+                </a>
                 <a href="{% url 'catalogo' %}" class="btn-seguir">
                      Seguir comprando
                 </a>
@@ -261,5 +310,40 @@
     </div>
 </footer>
 
+<form id="form-set-cant" method="POST" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="accion" id="fsc-accion">
+    <input type="hidden" name="nueva_cant" id="fsc-cant">
+</form>
+
+<form id="form-add-talla" method="POST" style="display:none;">
+    {% csrf_token %}
+    <input type="hidden" name="talla" id="fat-talla">
+</form>
+
+<script>
+function setCantidad(slug, val, maxStock) {
+    var qty = parseInt(val, 10);
+    if(isNaN(qty) || qty < 1) return;
+    if(maxStock && qty > maxStock) {
+        qty = maxStock;
+        /* corregir el input visualmente */
+        var inp = document.querySelector('input[onblur*="' + slug + '"]');
+        if(inp) inp.value = qty;
+    }
+    document.getElementById('fsc-accion').value = 'set_' + slug;
+    document.getElementById('fsc-cant').value   = qty;
+    document.getElementById('form-set-cant').submit();
+}
+
+function agregarTalla(productoId, selId) {
+    var talla = document.getElementById(selId).value;
+    if(!talla) return;
+    var form = document.getElementById('form-add-talla');
+    form.action = '{% url "agregar_al_carrito" 0 %}'.replace('/0/', '/' + productoId + '/');
+    document.getElementById('fat-talla').value = talla;
+    form.submit();
+}
+</script>
 </body>
 </html>

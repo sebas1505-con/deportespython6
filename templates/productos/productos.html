@@ -65,16 +65,23 @@
         .stock-bar-fill.warn-color { background: #f59e0b; }
 
         /* Tallas */
-        .btn-ver-tallas { width: 100%; padding: 9px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #333; cursor: pointer; transition: .15s; text-align: center; margin-bottom: 10px; }
-        .btn-ver-tallas:hover, .btn-ver-tallas.open { background: #111; color: #fff; border-color: #111; }
+        .btn-ver-tallas { width: 100%; padding: 9px 14px; background: #f5f5f5; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 13px; font-weight: 600; color: #333; cursor: pointer; transition: .15s; text-align: left; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; }
+        .btn-ver-tallas:hover { background: #ebebeb; }
+        .btn-ver-tallas.open { background: #111; color: #fff; border-color: #111; }
+        .btn-ver-tallas .flecha { font-size: 11px; transition: transform .2s; }
+        .btn-ver-tallas.open .flecha { transform: rotate(180deg); }
+        .tallas-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
         .tallas-panel { display: none; padding: 12px; background: #fafafa; border: 1px solid #eee; border-radius: 10px; margin-bottom: 10px; }
         .tallas-panel.open { display: block; }
-        .tallas-panel-title { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .5px; margin-bottom: 8px; }
+        .tallas-panel-title { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: .5px; }
+        .tallas-faltantes-badge { font-size: 11px; font-weight: 700; background: #fff1f2; color: #b91c1c; border: 1px solid #fca5a5; border-radius: 20px; padding: 2px 8px; }
+        .tallas-grupo-sep { font-size: 10px; font-weight: 700; color: #bbb; text-transform: uppercase; letter-spacing: .6px; margin: 8px 0 5px; }
         .tallas-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 6px; }
         .talla-chip { display: flex; flex-direction: column; align-items: center; padding: 8px 4px; border-radius: 8px; border: 1.5px solid; }
         .talla-chip.ok   { background: #f0fdf4; border-color: #86efac; color: #15803d; }
         .talla-chip.poco { background: #fffbeb; border-color: #fcd34d; color: #b45309; }
         .talla-chip.cero { background: #fff1f2; border-color: #fca5a5; color: #b91c1c; }
+        .talla-chip.falta { background: #f9f9f9; border: 1.5px dashed #d1d5db; color: #9ca3af; }
         .talla-nombre { font-size: 13px; font-weight: 800; }
         .talla-cant   { font-size: 10px; font-weight: 500; margin-top: 1px; }
         .talla-estado { font-size: 9px; margin-top: 1px; }
@@ -207,27 +214,49 @@
 
         <div class="prod-desc">{{ producto.descripcion|truncatechars:70 }}</div>
 
-        <button class="btn-ver-tallas" onclick="toggleTallas(this, {{ producto.id }})">
-            Ver tallas y stock ▾
+        <button class="btn-ver-tallas open" onclick="toggleTallas(this, {{ producto.id }})">
+            <span>👕 Tallas y stock
+                {% if producto.tallas_faltantes > 0 %}
+                <span class="tallas-faltantes-badge">{{ producto.tallas_faltantes }} faltan</span>
+                {% endif %}
+            </span>
+            <span class="flecha">▼</span>
         </button>
 
-        <div class="tallas-panel" id="tallas-{{ producto.id }}">
-            <div class="tallas-panel-title">Stock por talla — 🗑 elimina talla individual</div>
+        <div class="tallas-panel open" id="tallas-{{ producto.id }}">
+            <div class="tallas-grupo-sep">Adulto — S M L XL</div>
             <div class="tallas-grid">
-                {% for t in producto.tallas.all %}
-                <div class="talla-chip {% if t.stock == 0 %}cero{% elif t.stock <= 5 %}poco{% else %}ok{% endif %}"
-                     data-talla-id="{{ t.id }}">
-                    <span class="talla-nombre">{{ t.talla }}</span>
+                {% for t in producto.tallas_adulto %}
+                <div class="talla-chip {% if not t.existe %}falta{% elif t.stock == 0 %}cero{% elif t.stock <= 5 %}poco{% else %}ok{% endif %}"
+                     {% if t.id %}data-talla-id="{{ t.id }}"{% endif %}>
+                    <span class="talla-nombre">{{ t.nombre }}</span>
+                    {% if t.existe %}
                     <span class="talla-cant">{{ t.stock }} uds</span>
-                    <span class="talla-estado">
-                        {% if t.talla == 'S' or t.talla == 'M' or t.talla == 'L' or t.talla == 'XL' %}👕{% else %}👦{% endif %}
-                    </span>
                     <button class="btn-del-talla"
-                        onclick="abrirModalUnaTalla('{{ producto.nombre|escapejs }}','{{ t.talla }}','{{ t.stock }}','{{ t.id }}')"
-                        title="Eliminar talla {{ t.talla }}">🗑</button>
+                        onclick="abrirModalUnaTalla('{{ producto.nombre|escapejs }}','{{ t.nombre }}','{{ t.stock }}','{{ t.id }}')"
+                        title="Eliminar talla {{ t.nombre }}">🗑</button>
+                    {% else %}
+                    <span class="talla-cant" style="font-size:9px;">sin registrar</span>
+                    {% endif %}
                 </div>
-                {% empty %}
-                <div style="grid-column:1/-1;text-align:center;color:#aaa;font-size:12px;padding:8px;">Sin tallas registradas</div>
+                {% endfor %}
+            </div>
+
+            <div class="tallas-grupo-sep" style="margin-top:10px;">Niño — 6 8 10 12 14 16 18</div>
+            <div class="tallas-grid" style="grid-template-columns:repeat(4,1fr);">
+                {% for t in producto.tallas_nino %}
+                <div class="talla-chip {% if not t.existe %}falta{% elif t.stock == 0 %}cero{% elif t.stock <= 5 %}poco{% else %}ok{% endif %}"
+                     {% if t.id %}data-talla-id="{{ t.id }}"{% endif %}>
+                    <span class="talla-nombre">{{ t.nombre }}</span>
+                    {% if t.existe %}
+                    <span class="talla-cant">{{ t.stock }} uds</span>
+                    <button class="btn-del-talla"
+                        onclick="abrirModalUnaTalla('{{ producto.nombre|escapejs }}','{{ t.nombre }}','{{ t.stock }}','{{ t.id }}')"
+                        title="Eliminar talla {{ t.nombre }}">🗑</button>
+                    {% else %}
+                    <span class="talla-cant" style="font-size:9px;">sin registrar</span>
+                    {% endif %}
+                </div>
                 {% endfor %}
             </div>
         </div>
@@ -332,9 +361,8 @@
 /* ── Toggle tallas ── */
 function toggleTallas(btn, id) {
     var panel = document.getElementById('tallas-' + id);
-    var isOpen = panel.classList.toggle('open');
-    btn.classList.toggle('open', isOpen);
-    btn.textContent = isOpen ? 'Ocultar tallas ▴' : 'Ver tallas y stock ▾';
+    var open  = panel.classList.toggle('open');
+    btn.classList.toggle('open', open);
 }
 
 /* ── Modal descontinuar/reactivar ── */
