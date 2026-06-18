@@ -270,6 +270,9 @@
     <nav class="nav-rep">
         <a href="{% url 'repartidor' %}" class="btn">Inicio</a>
         <a href="{% url 'perfil_repartidor' %}" class="btn">Mi Perfil</a>
+        <a href="{% url 'mensajes_repartidor' %}" class="btn" id="btn-nav-mensajes">
+            Mensajes <span id="rep-nav-badge" style="display:none;background:#d40000;color:#fff;border-radius:20px;padding:1px 7px;font-size:11px;font-weight:700;margin-left:4px;"></span>
+        </a>
         <a href="{% url 'logout' %}" class="btn btn-logout">Cerrar Sesión</a>
     </nav>
 </div>
@@ -479,16 +482,24 @@
 
     <!-- HISTORIAL -->
     <div class="card">
-        <h2>Historial de Entregas</h2>
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+            <h2 style="margin:0;">Historial de Entregas — {{ usuario.first_name|default:usuario.username }}</h2>
+            {% if mis_pedidos %}
+            <span style="background:#e8f5e9;color:#2e7d32;font-size:13px;font-weight:700;padding:5px 14px;border-radius:20px;">
+                {{ mis_pedidos|length }} entrega{{ mis_pedidos|length|pluralize }}
+            </span>
+            {% endif %}
+        </div>
+        <div style="overflow-x:auto;">
         <table class="table">
             <thead>
                 <tr>
                     <th>ID</th>
                     <th>Cliente</th>
                     <th>Dirección</th>
-                    <th>Total</th>
-                    <th>Ganancia</th>
-                    <th>Fecha</th>
+                    <th>Total pedido</th>
+                    <th>Tu ganancia</th>
+                    <th>Fecha entrega</th>
                     <th>Estado</th>
                 </tr>
             </thead>
@@ -496,26 +507,50 @@
                 {% if mis_pedidos %}
                     {% for pedido in mis_pedidos %}
                     <tr>
-                        <td>#{{ pedido.id }}</td>
-                        <td>{{ pedido.venta.cliente.usuario.username }}</td>
-                        <td>{{ pedido.venta.direccionEnvio }}</td>
-                        <td>${{ pedido.venta.totalVenta }}</td>
-                        <td style="color:#2e7d32;font-weight:700;">${{ pedido.valor_domicilio }}</td>
-                        <td>{{ pedido.fecha_pedido|date:"d/m/Y" }}</td>
+                        <td><span style="font-family:monospace;color:#888;">#{{ pedido.id }}</span></td>
+                        <td>
+                            <strong>{{ pedido.venta.cliente.usuario.first_name|default:pedido.venta.cliente.usuario.username }}</strong>
+                            <div style="font-size:11px;color:#aaa;">@{{ pedido.venta.cliente.usuario.username }}</div>
+                        </td>
+                        <td style="font-size:13px;color:#555;">{{ pedido.venta.direccionEnvio }}</td>
+                        <td><strong>${{ pedido.venta.totalVenta|floatformat:0 }}</strong></td>
+                        <td style="color:#2e7d32;font-weight:700;">${{ pedido.valor_domicilio|floatformat:0 }}</td>
+                        <td style="font-size:13px;color:#888;white-space:nowrap;">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
                         <td><span class="badge badge-entregado">Entregado</span></td>
                     </tr>
                     {% endfor %}
                 {% else %}
                     <tr>
-                        <td colspan="7" style="text-align:center;color:#aaa;padding:20px;">
+                        <td colspan="7" style="text-align:center;color:#aaa;padding:28px;font-style:italic;">
                             No hay entregas realizadas aún.
                         </td>
                     </tr>
                 {% endif %}
             </tbody>
         </table>
+        </div>
     </div>
 
 </div>
+<script>
+/* Polling de mensajes no leídos para el badge del botón nav */
+function repPollNoLeidos() {
+  fetch('/mensajes/inbox/')
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (!data.ok) return;
+    var navBadge = document.getElementById('rep-nav-badge');
+    if (data.no_leidos > 0) {
+      navBadge.textContent   = data.no_leidos;
+      navBadge.style.display = 'inline';
+    } else {
+      navBadge.style.display = 'none';
+    }
+  })
+  .catch(function(){});
+}
+repPollNoLeidos();
+setInterval(repPollNoLeidos, 8000);
+</script>
 </body>
 </html>

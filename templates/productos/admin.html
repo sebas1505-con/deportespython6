@@ -247,6 +247,10 @@
       <a class="nav-item" onclick="show('carga', this)">
         <span class="material-symbols-outlined">upload_file</span><span>Carga Masiva</span>
       </a>
+      <a class="nav-item" onclick="show('mensajes', this)" id="nav-mensajes">
+        <span class="material-symbols-outlined">forum</span>
+        <span>Mensajes <span id="badge-msgs-total" style="background:#d40000;color:#fff;border-radius:50%;width:20px;height:20px;display:none;align-items:center;justify-content:center;font-size:12px;font-weight:700;margin-left:4px;"></span></span>
+      </a>
     </div>
     <div class="sidebar-nav-bottom">
       <a class="nav-item" href="{% url 'perfil_admin' %}">
@@ -343,9 +347,10 @@
 
     <div class="card-section">
       <h2>Últimos Pedidos</h2>
+      <div style="overflow-x:auto;">
       <table class="tabla-admin">
         <thead>
-          <tr><th>#</th><th>Cliente</th><th>Producto</th><th>Dirección envío</th><th>Teléfono</th><th>Fecha</th><th>Total</th><th>Estado</th></tr>
+          <tr><th>#</th><th>Cliente</th><th>Producto</th><th>Dirección envío</th><th>Teléfono</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Repartidor</th></tr>
         </thead>
         <tbody>
           {% for pedido in ultimos_pedidos %}
@@ -363,12 +368,21 @@
               {% elif pedido.estado == 'Disponible' %}<span class="badge badge-amber">Disponible</span>
               {% else %}<span class="badge badge-amber">{{ pedido.estado }}</span>{% endif %}
             </td>
+            <td>
+              {% if pedido.repartidor %}
+                <div style="font-size:13px;font-weight:600;color:#111;">{{ pedido.repartidor.usuario.first_name|default:pedido.repartidor.usuario.username }}</div>
+                <div style="font-size:11px;color:#aaa;">@{{ pedido.repartidor.usuario.username }}</div>
+              {% else %}
+                <span style="color:#ccc;font-size:13px;">—</span>
+              {% endif %}
+            </td>
           </tr>
           {% empty %}
-          <tr><td colspan="8" style="text-align:center;color:#aaa;padding:20px;">Sin pedidos</td></tr>
+          <tr><td colspan="9" style="text-align:center;color:#aaa;padding:20px;">Sin pedidos</td></tr>
           {% endfor %}
         </tbody>
       </table>
+      </div>
     </div>
   </div>
 
@@ -941,6 +955,74 @@
     </div>
   </div>
 
+  <!-- ══ MENSAJES CON REPARTIDORES ══ -->
+  <div class="section" id="sec-mensajes">
+    <style>
+      .msg-layout { display:flex; gap:0; height:calc(100vh - 120px); min-height:400px; background:#fff; border-radius:16px; box-shadow:0 4px 18px rgba(0,0,0,.08); overflow:hidden; }
+      .msg-lista { width:260px; flex-shrink:0; border-right:1px solid #f0f0f0; display:flex; flex-direction:column; }
+      .msg-lista-header { padding:16px 18px; font-size:14px; font-weight:700; color:#111; border-bottom:1px solid #f0f0f0; background:#fafafa; }
+      .msg-lista-scroll { flex:1; overflow-y:auto; }
+      .msg-rep-item { display:flex; align-items:center; gap:12px; padding:14px 16px; cursor:pointer; border-bottom:1px solid #f8f8f8; transition:.15s; }
+      .msg-rep-item:hover { background:#fef2f2; }
+      .msg-rep-item.active { background:#fff0f0; border-left:3px solid #d40000; }
+      .msg-rep-avatar { width:40px; height:40px; border-radius:50%; background:linear-gradient(135deg,#0d1a26,#d40000); color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; font-weight:700; flex-shrink:0; }
+      .msg-rep-info { flex:1; min-width:0; }
+      .msg-rep-nombre { font-size:14px; font-weight:700; color:#111; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+      .msg-rep-preview { font-size:12px; color:#aaa; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; margin-top:2px; }
+      .msg-rep-badge { background:#d40000; color:#fff; border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; flex-shrink:0; }
+      .msg-chat { flex:1; display:flex; flex-direction:column; }
+      .msg-chat-empty { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; color:#bbb; gap:10px; }
+      .msg-chat-top { padding:14px 20px; border-bottom:1px solid #f0f0f0; background:#fafafa; display:flex; align-items:center; gap:12px; }
+      .msg-chat-top-nombre { font-size:15px; font-weight:700; color:#111; }
+      .msg-bubbles { flex:1; overflow-y:auto; padding:16px 20px; display:flex; flex-direction:column; gap:8px; background:#f8fafc; }
+      .msg-burbuja { max-width:70%; padding:10px 14px; border-radius:14px; font-size:14px; line-height:1.5; }
+      .msg-burbuja.admin { background:#0d1a26; color:#fff; align-self:flex-end; border-bottom-right-radius:4px; }
+      .msg-burbuja.rep { background:#fff; color:#111; align-self:flex-start; border-bottom-left-radius:4px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+      .msg-burbuja .msg-hora { display:block; font-size:10px; opacity:.6; margin-top:4px; }
+      .msg-label { font-size:11px; font-weight:700; color:#aaa; text-transform:uppercase; letter-spacing:.4px; }
+      .msg-label.right { text-align:right; }
+      .msg-footer { padding:12px 16px; border-top:1px solid #f0f0f0; display:flex; gap:10px; background:#fff; }
+      .msg-footer input { flex:1; padding:10px 14px; border:1.5px solid #e5e7eb; border-radius:10px; font-size:14px; outline:none; }
+      .msg-footer input:focus { border-color:#d40000; }
+      .msg-footer button { padding:10px 20px; background:#d40000; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; }
+      .msg-footer button:hover { background:#b00000; }
+      .msg-content { display:none; flex-direction:column; flex:1; }
+      .msg-content.visible { display:flex; }
+      @media(max-width:700px){
+        .msg-layout { flex-direction:column; height:auto; }
+        .msg-lista { width:100%; height:220px; }
+        .msg-bubbles { min-height:200px; }
+      }
+    </style>
+    <div class="msg-layout">
+      <!-- Lista de repartidores -->
+      <div class="msg-lista">
+        <div class="msg-lista-header">Repartidores</div>
+        <div class="msg-lista-scroll" id="msg-rep-lista">
+          <div style="padding:20px;text-align:center;color:#bbb;font-size:13px;">Cargando…</div>
+        </div>
+      </div>
+      <!-- Panel de chat -->
+      <div class="msg-chat" id="msg-chat-panel">
+        <div class="msg-chat-empty" id="msg-empty-state">
+          <span class="material-symbols-outlined" style="font-size:48px;">forum</span>
+          <p style="font-size:14px;">Selecciona un repartidor para chatear</p>
+        </div>
+        <div class="msg-content" id="msg-chat-activo">
+          <div class="msg-chat-top">
+            <div class="msg-rep-avatar" id="msg-chat-avatar">?</div>
+            <span class="msg-chat-top-nombre" id="msg-chat-nombre">—</span>
+          </div>
+          <div class="msg-bubbles" id="msg-bubbles"></div>
+          <div class="msg-footer">
+            <input type="text" id="msg-input" placeholder="Escribe un mensaje al repartidor…" autocomplete="off">
+            <button onclick="msgEnviar()">Enviar &#10148;</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <script>
@@ -1476,6 +1558,135 @@ _adminOverlay.addEventListener('click', function() {
 
 window.addEventListener('resize', _applyLayout);
 _applyLayout();
+
+/* ══ MENSAJES REPARTIDORES ══ */
+var _msgRepActivo = null;
+var _msgRendered  = 0;
+
+function msgAbrirRepartidor(repId, nombre) {
+  _msgRepActivo = repId;
+  _msgRendered  = 0;
+  document.getElementById('msg-empty-state').style.display = 'none';
+  var activo = document.getElementById('msg-chat-activo');
+  activo.classList.add('visible');
+  document.getElementById('msg-chat-nombre').textContent = nombre;
+  document.getElementById('msg-chat-avatar').textContent = nombre.charAt(0).toUpperCase();
+  document.getElementById('msg-bubbles').innerHTML = '';
+  document.querySelectorAll('.msg-rep-item').forEach(function(el){ el.classList.remove('active'); });
+  var item = document.getElementById('msg-rep-' + repId);
+  if (item) {
+    item.classList.add('active');
+    var badge = item.querySelector('.msg-rep-badge');
+    if (badge) badge.remove();
+  }
+  msgCargarMensajes();
+}
+
+function msgCargarMensajes() {
+  if (!_msgRepActivo) return;
+  fetch('/mensajes/repartidor/' + _msgRepActivo + '/')
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (!data.ok) return;
+    var bubbles = document.getElementById('msg-bubbles');
+    var msgs = data.mensajes;
+    if (msgs.length <= _msgRendered) return;
+    var nuevos = msgs.slice(_msgRendered);
+    nuevos.forEach(function(m){
+      var label = document.createElement('div');
+      label.className = 'msg-label' + (m.es_admin ? ' right' : '');
+      label.textContent = m.es_admin ? 'Tú (Admin)' : data.nombre;
+      var burbuja = document.createElement('div');
+      burbuja.className = 'msg-burbuja ' + (m.es_admin ? 'admin' : 'rep');
+      burbuja.innerHTML = escapeHtml(m.mensaje) + '<span class="msg-hora">' + m.hora + '</span>';
+      bubbles.appendChild(label);
+      bubbles.appendChild(burbuja);
+    });
+    _msgRendered = msgs.length;
+    bubbles.scrollTop = bubbles.scrollHeight;
+  })
+  .catch(function(){});
+}
+
+function msgEnviar() {
+  if (!_msgRepActivo) return;
+  var input = document.getElementById('msg-input');
+  var texto = input.value.trim();
+  if (!texto) return;
+  var fd = new FormData();
+  fd.append('mensaje', texto);
+  fd.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+  fetch('/mensajes/repartidor/' + _msgRepActivo + '/', { method:'POST', body: fd })
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (!data.ok) return;
+    input.value = '';
+    msgCargarMensajes();
+  })
+  .catch(function(){});
+}
+
+document.getElementById('msg-input') && document.getElementById('msg-input').addEventListener('keydown', function(e){
+  if (e.key === 'Enter') { e.preventDefault(); msgEnviar(); }
+});
+
+function msgActualizarLista() {
+  fetch('/mensajes/repartidores/')
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    if (!data.ok) return;
+    var lista = document.getElementById('msg-rep-lista');
+    var totalNoLeidos = 0;
+    data.repartidores.forEach(function(rep){
+      totalNoLeidos += rep.no_leidos;
+      var existing = document.getElementById('msg-rep-' + rep.id);
+      if (existing) {
+        existing.querySelector('.msg-rep-preview').textContent = rep.ultimo || 'Sin mensajes';
+        var badge = existing.querySelector('.msg-rep-badge');
+        if (rep.no_leidos > 0 && rep.id !== _msgRepActivo) {
+          if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'msg-rep-badge';
+            existing.appendChild(badge);
+          }
+          badge.textContent = rep.no_leidos;
+        } else if (badge && rep.id === _msgRepActivo) {
+          badge.remove();
+        }
+        return;
+      }
+      var item = document.createElement('div');
+      item.className = 'msg-rep-item';
+      item.id = 'msg-rep-' + rep.id;
+      item.setAttribute('onclick', 'msgAbrirRepartidor(' + rep.id + ', "' + escapeHtml(rep.nombre) + '")');
+      item.innerHTML = '<div class="msg-rep-avatar">' + rep.nombre.charAt(0).toUpperCase() + '</div>'
+        + '<div class="msg-rep-info"><div class="msg-rep-nombre">' + escapeHtml(rep.nombre) + '</div>'
+        + '<div class="msg-rep-preview">' + escapeHtml(rep.ultimo || 'Sin mensajes') + '</div></div>'
+        + (rep.no_leidos > 0 ? '<span class="msg-rep-badge">' + rep.no_leidos + '</span>' : '');
+      lista.appendChild(item);
+    });
+    if (lista.children.length === 0) {
+      lista.innerHTML = '<div style="padding:20px;text-align:center;color:#bbb;font-size:13px;">No hay repartidores registrados.</div>';
+    } else {
+      var loadingMsg = lista.querySelector('div[style]');
+      if (loadingMsg && loadingMsg.textContent === 'Cargando…') loadingMsg.remove();
+    }
+    var badge = document.getElementById('badge-msgs-total');
+    if (badge) {
+      if (totalNoLeidos > 0) {
+        badge.textContent = totalNoLeidos;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+  })
+  .catch(function(){});
+}
+
+msgActualizarLista();
+setInterval(msgActualizarLista, 8000);
+setInterval(function(){ if (_msgRepActivo) msgCargarMensajes(); }, 4000);
 </script>
 </body>
 </html>

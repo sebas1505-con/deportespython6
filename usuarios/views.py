@@ -1,6 +1,6 @@
 from email.mime.image import MIMEImage
 from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto, DetalleVentaProductos, RespuestaSugerencia, Sugerencia as SugerenciaInventario
-from .models import Usuario, Cliente, Repartidor, Administrador, NotificacionRepartidor
+from .models import Usuario, Cliente, Repartidor, Administrador, NotificacionRepartidor, MensajeRepartidor
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.decorators import login_required
@@ -15,7 +15,7 @@ from datetime import date, timedelta
 from .barrios import BARRIOS_BOGOTA
 from django.core.mail import EmailMessage
 from django.contrib import messages
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.db.models import Sum, F
 from django.utils.text import slugify
 import datetime as dt_mod
@@ -799,8 +799,8 @@ def admin(request):
 
     # ── Resto de datos ────────────────────────────────────────────────────────
     ultimos_pedidos = Pedido.objects.select_related(
-        'usuario', 'producto', 'venta__cliente__usuario'
-    ).order_by('-fecha_pedido')[:10]
+        'usuario', 'producto', 'venta__cliente__usuario', 'repartidor__usuario'
+    ).order_by('-fecha_pedido')[:20]
 
     usuarios    = Usuario.objects.all()
     primeras_ids = SugerenciaInventario.objects.values('nombre').annotate(pid=Min('id')).values_list('pid', flat=True)
@@ -965,11 +965,14 @@ def repartidor(request):
     usuario = Usuario.objects.get(id=usuario_id)
 
     ventas_pendientes = Pedido.objects.filter(estado='Disponible', repartidor=None)\
-                              .select_related('venta__cliente__usuario')
+                              .select_related('venta__cliente__usuario')\
+                              .order_by('-fecha_pedido')
     pedidos_activos   = Pedido.objects.filter(repartidor=repartidor_obj, estado='En camino')\
-                              .select_related('venta__cliente__usuario')
+                              .select_related('venta__cliente__usuario')\
+                              .order_by('-fecha_pedido')
     mis_pedidos       = Pedido.objects.filter(repartidor=repartidor_obj, estado='Entregado')\
-                              .select_related('venta__cliente__usuario')
+                              .select_related('venta__cliente__usuario')\
+                              .order_by('-fecha_pedido')
 
     # Ganancias
     total_ganancias = mis_pedidos.aggregate(
@@ -1167,6 +1170,7 @@ def perfil_repartidor(request):
             usuario.tipo_documento = request.POST.get('tipo_documento', '').strip() or None
             usuario.cedula         = request.POST.get('cedula', '').strip() or None
             usuario.localidad      = request.POST.get('localidad', '').strip() or None
+            usuario.barrio         = request.POST.get('barrio', '').strip() or None
 
             nuevo_username = request.POST.get('username', usuario.username).strip()
             if nuevo_username and nuevo_username != usuario.username:
@@ -1241,7 +1245,7 @@ def perfil_repartidor(request):
     campos = [
         usuario.first_name, usuario.email, usuario.telefono,
         usuario.tipo_documento, usuario.cedula, usuario.localidad,
-        usuario.fecha_nacimiento, repartidor.vehiculo, repartidor.placa,
+        usuario.barrio, usuario.fecha_nacimiento, repartidor.vehiculo, repartidor.placa,
     ]
     completados = sum(1 for c in campos if c)
     progreso    = round(completados / len(campos) * 100)
@@ -1431,8 +1435,6 @@ def _tiene_groseria(texto):
     return None
 
 def sugerencias(request):
-    from django.http import JsonResponse
-
     usuario_id = request.session.get('usuario_id')
     usuario = get_object_or_404(Usuario, id=usuario_id)
     nombre = usuario.first_name or usuario.username
@@ -1659,4 +1661,81 @@ def prueba_correo(request):
     )
     correo.send(fail_silently=False)
     return HttpResponse("Correo enviado correctamente")
+
+
+# ── Mensajes Admin ↔ Repartidor ───────────────────────────────────────────────
+
+def mensajes_repartidores_lista(request):
+    if request.session.get('rol') != 'ADMIN':
+        return JsonResponse({'ok': False}, status=403)
+    repartidores = Repartidor.objects.select_related('usuario').all()
+    data = []
+    for r in repartidores:
+        ultimo = MensajeRepartidor.objects.filter(repartidor=r).order_by('-fecha').first()
+        no_leidos = MensajeRepartidor.objects.filter(repartidor=r, es_admin=False, leido=False).count()
+        data.append({
+            'id': r.id,
+            'nombre': r.usuario.first_name or r.usuario.username,
+            'username': r.usuario.username,
+            'no_leidos': no_leidos,
+            'ultimo': ultimo.mensaje[:60] if ultimo else '',
+            'ultima_hora': ultimo.fecha.strftime('%d/%m/%Y %H:%M') if ultimo else '',
+        })
+    return JsonResponse({'ok': True, 'repartidores': data})
+
+
+def mensajes_con_repartidor(request, repartidor_id):
+    if request.session.get('rol') != 'ADMIN':
+        return JsonResponse({'ok': False}, status=403)
+    repartidor = get_object_or_404(Repartidor, id=repartidor_id)
+
+    if request.method == 'POST':
+        texto = request.POST.get('mensaje', '').strip()
+        if not texto:
+            return JsonResponse({'ok': False, 'error': 'Mensaje vacío'})
+        msg = MensajeRepartidor.objects.create(repartidor=repartidor, mensaje=texto, es_admin=True)
+        return JsonResponse({'ok': True, 'id': msg.id, 'hora': msg.fecha.strftime('%d/%m/%Y %H:%M')})
+
+    MensajeRepartidor.objects.filter(repartidor=repartidor, es_admin=False, leido=False).update(leido=True)
+    msgs = MensajeRepartidor.objects.filter(repartidor=repartidor)
+    return JsonResponse({
+        'ok': True,
+        'nombre': repartidor.usuario.first_name or repartidor.usuario.username,
+        'mensajes': [
+            {'id': m.id, 'mensaje': m.mensaje, 'es_admin': m.es_admin, 'hora': m.fecha.strftime('%d/%m/%Y %H:%M')}
+            for m in msgs
+        ],
+    })
+
+
+def mensajes_repartidor_pagina(request):
+    if request.session.get('rol') != 'REPARTIDOR':
+        return redirect('sinacceso')
+    return render(request, 'mensajes_repartidor.html')
+
+
+def mensajes_repartidor_inbox(request):
+    usuario_id = request.session.get('usuario_id')
+    if request.session.get('rol') != 'REPARTIDOR':
+        return JsonResponse({'ok': False}, status=403)
+    repartidor = get_object_or_404(Repartidor, usuario__id=usuario_id)
+
+    if request.method == 'POST':
+        texto = request.POST.get('mensaje', '').strip()
+        if not texto:
+            return JsonResponse({'ok': False, 'error': 'Mensaje vacío'})
+        msg = MensajeRepartidor.objects.create(repartidor=repartidor, mensaje=texto, es_admin=False)
+        return JsonResponse({'ok': True, 'id': msg.id, 'hora': msg.fecha.strftime('%d/%m/%Y %H:%M')})
+
+    MensajeRepartidor.objects.filter(repartidor=repartidor, es_admin=True, leido=False).update(leido=True)
+    msgs = MensajeRepartidor.objects.filter(repartidor=repartidor)
+    no_leidos = MensajeRepartidor.objects.filter(repartidor=repartidor, es_admin=True, leido=False).count()
+    return JsonResponse({
+        'ok': True,
+        'mensajes': [
+            {'id': m.id, 'mensaje': m.mensaje, 'es_admin': m.es_admin, 'hora': m.fecha.strftime('%d/%m/%Y %H:%M')}
+            for m in msgs
+        ],
+        'no_leidos': no_leidos,
+    })
 

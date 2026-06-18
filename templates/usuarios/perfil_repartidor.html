@@ -234,11 +234,16 @@ body { background: #f2f3f5; color: #222; }
                 <div class="pf-grid">
                     <div class="pf-campo">
                         <label>Nombre completo</label>
-                        <input type="text" name="first_name" value="{{ usuario.first_name }}" placeholder="Tu nombre" required>
+                        <input type="text" name="first_name" id="first_name" value="{{ usuario.first_name }}"
+                               placeholder="Tu nombre" required
+                               pattern="[A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]+"
+                               title="Solo letras y espacios">
+                        <span id="err-nombre" style="color:#dc2626;font-size:12px;margin-top:3px;display:none;"></span>
                     </div>
                     <div class="pf-campo">
                         <label>Usuario</label>
-                        <input type="text" name="username" value="{{ usuario.username }}" placeholder="nombre_usuario" required>
+                        <input type="text" name="username" value="{{ usuario.username }}" placeholder="nombre_usuario" required
+                               pattern="[A-Za-z0-9_.]+" title="Solo letras, números, puntos y guiones bajos">
                     </div>
                     <div class="pf-campo">
                         <label>Correo electrónico</label>
@@ -246,7 +251,11 @@ body { background: #f2f3f5; color: #222; }
                     </div>
                     <div class="pf-campo">
                         <label>Teléfono</label>
-                        <input type="text" name="telefono" value="{{ usuario.telefono }}" placeholder="3001234567" required>
+                        <input type="text" id="telefono" name="telefono" value="{{ usuario.telefono }}"
+                               placeholder="3001234567" required
+                               inputmode="tel" maxlength="10" pattern="[0-9]{10}"
+                               title="10 dígitos numéricos, sin espacios">
+                        <span id="err-tel" style="color:#dc2626;font-size:12px;margin-top:3px;display:none;"></span>
                     </div>
                     <div class="pf-campo">
                         <label>Fecha de nacimiento</label>
@@ -269,7 +278,11 @@ body { background: #f2f3f5; color: #222; }
                     </div>
                     <div class="pf-campo">
                         <label>Número de documento</label>
-                        <input type="text" name="cedula" value="{{ usuario.cedula }}" placeholder="123456789">
+                        <input type="text" id="cedula" name="cedula" value="{{ usuario.cedula }}"
+                               placeholder="123456789" inputmode="numeric"
+                               maxlength="12" pattern="[0-9]+"
+                               title="Solo números, sin espacios ni puntos">
+                        <span id="err-cedula" style="color:#dc2626;font-size:12px;margin-top:3px;display:none;"></span>
                     </div>
                     <div class="pf-campo">
                         <label>Localidad</label>
@@ -278,6 +291,12 @@ body { background: #f2f3f5; color: #222; }
                             {% for loc in localidades %}
                             <option value="{{ loc }}" {% if usuario.localidad == loc %}selected{% endif %}>{{ loc }}</option>
                             {% endfor %}
+                        </select>
+                    </div>
+                    <div class="pf-campo">
+                        <label>Barrio</label>
+                        <select name="barrio" id="barrio">
+                            <option value="{{ usuario.barrio|default:'' }}">{{ usuario.barrio|default:"Seleccione barrio" }}</option>
                         </select>
                     </div>
                 </div>
@@ -296,7 +315,12 @@ body { background: #f2f3f5; color: #222; }
                     </div>
                     <div class="pf-campo">
                         <label>Número de placa</label>
-                        <input type="text" name="placa" value="{{ repartidor.placa }}" placeholder="Ej: ABC123">
+                        <input type="text" id="placa" name="placa" value="{{ repartidor.placa }}"
+                               placeholder="Ej: ABC123" maxlength="7"
+                               pattern="[A-Za-z0-9]{3,7}"
+                               title="Entre 3 y 7 caracteres alfanuméricos, sin espacios"
+                               style="text-transform:uppercase">
+                        <span id="err-placa" style="color:#dc2626;font-size:12px;margin-top:3px;display:none;"></span>
                     </div>
                 </div>
 
@@ -350,46 +374,127 @@ body { background: #f2f3f5; color: #222; }
 </div>
 
 <script>
+/* ── Ojo contraseña ── */
 function togglePwd(id, btn) {
     var inp = document.getElementById(id);
     if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
     else { inp.type = 'password'; btn.textContent = '👁'; }
 }
 
+/* ── Fecha de nacimiento ── */
 (function() {
   var input = document.getElementById('fecha_nacimiento');
   if (!input) return;
-  var hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-  var max18 = new Date(hoy.getFullYear() - 18, hoy.getMonth(), hoy.getDate());
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var max18 = new Date(hoy.getFullYear()-18, hoy.getMonth(), hoy.getDate());
   input.max = max18.toISOString().split('T')[0];
   input.min = '1900-01-01';
-
-  var form = input.closest('form');
+  var form    = input.closest('form');
   var errSpan = document.getElementById('err-fecha_nacimiento');
   if (!form) return;
-
-  form.addEventListener('submit', function(e) {
-    errSpan.style.display = 'none'; errSpan.textContent = '';
-    var val = input.value;
-    if (!val) return;
-    var fecha = new Date(val);
-    if (fecha > hoy) {
-      e.preventDefault();
-      errSpan.textContent = 'La fecha no puede ser futura.';
-      errSpan.style.display = 'block';
-      input.focus(); return;
-    }
-    if (fecha > max18) {
-      e.preventDefault();
-      errSpan.textContent = 'Debes tener al menos 18 años.';
-      errSpan.style.display = 'block';
-      input.focus();
-    }
+  form.addEventListener('submit', function(e){
+    errSpan.style.display='none'; errSpan.textContent='';
+    var val=input.value; if(!val) return;
+    var fecha=new Date(val+'T00:00:00');
+    if(fecha>hoy){ e.preventDefault(); errSpan.textContent='La fecha no puede ser futura.'; errSpan.style.display='block'; input.focus(); return; }
+    if(fecha>max18){ e.preventDefault(); errSpan.textContent='Debes tener al menos 18 años.'; errSpan.style.display='block'; input.focus(); }
   });
-  input.addEventListener('change', function() {
-    errSpan.style.display = 'none'; errSpan.textContent = '';
-  });
+  input.addEventListener('change',function(){ errSpan.style.display='none'; });
 })();
+
+/* ── Solo números: teléfono y cédula ── */
+document.getElementById('telefono').addEventListener('input', function(){
+  this.value = this.value.replace(/\D/g,'').slice(0,10);
+  var err = document.getElementById('err-tel');
+  if(this.value.length > 0 && this.value.length < 10){
+    err.textContent='El teléfono debe tener 10 dígitos.'; err.style.display='block';
+  } else { err.style.display='none'; }
+});
+
+var cedulaInp = document.getElementById('cedula');
+var tipoDocSel = document.querySelector('select[name="tipo_documento"]');
+
+function actualizarCedula() {
+  var tipo = tipoDocSel ? tipoDocSel.value : '';
+  if (tipo === 'PAS') {
+    cedulaInp.inputMode = 'text';
+    cedulaInp.pattern   = '[A-Za-z0-9]+';
+    cedulaInp.maxLength = 20;
+    cedulaInp.title     = 'Solo letras y números, sin espacios';
+    cedulaInp.placeholder = 'Ej: AB123456';
+  } else {
+    cedulaInp.inputMode = 'numeric';
+    cedulaInp.pattern   = '[0-9]+';
+    cedulaInp.maxLength = 12;
+    cedulaInp.title     = 'Solo números, sin espacios ni puntos';
+    cedulaInp.placeholder = '123456789';
+  }
+}
+if(tipoDocSel){ tipoDocSel.addEventListener('change', actualizarCedula); actualizarCedula(); }
+
+cedulaInp.addEventListener('input', function(){
+  var tipo = tipoDocSel ? tipoDocSel.value : '';
+  if(tipo !== 'PAS') this.value = this.value.replace(/\D/g,'');
+  var err = document.getElementById('err-cedula');
+  if(this.value.length > 0 && this.value.length < 5){
+    err.textContent='Número de documento muy corto.'; err.style.display='block';
+  } else { err.style.display='none'; }
+});
+
+/* ── Placa: mayúsculas, alfanumérico ── */
+var placaInp = document.getElementById('placa');
+if(placaInp){
+  placaInp.addEventListener('input', function(){
+    this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,7);
+    var err = document.getElementById('err-placa');
+    if(this.value.length>0 && this.value.length<3){
+      err.textContent='La placa debe tener al menos 3 caracteres.'; err.style.display='block';
+    } else { err.style.display='none'; }
+  });
+}
+
+/* ── Nombre: solo letras y espacios ── */
+var nombreInp = document.getElementById('first_name');
+if(nombreInp){
+  nombreInp.addEventListener('input', function(){
+    var err = document.getElementById('err-nombre');
+    var invalido = /[^A-Za-záéíóúÁÉÍÓÚüÜñÑ\s]/.test(this.value);
+    if(invalido){
+      err.textContent='El nombre solo puede contener letras y espacios.'; err.style.display='block';
+    } else { err.style.display='none'; }
+  });
+}
+
+/* ── Barrios dinámicos según localidad ── */
+document.getElementById('localidad').addEventListener('change', function(){
+  var localidad = this.value;
+  var barrioSel = document.getElementById('barrio');
+  barrioSel.innerHTML = '<option value="">Cargando...</option>';
+  if(!localidad){ barrioSel.innerHTML='<option value="">Seleccione barrio</option>'; return; }
+  fetch('/api/barrios-bogota/?localidad=' + encodeURIComponent(localidad))
+  .then(function(r){ return r.json(); })
+  .then(function(data){
+    barrioSel.innerHTML = '<option value="">Seleccione barrio</option>';
+    data.forEach(function(b){
+      var o = document.createElement('option');
+      o.value = b.nombre; o.textContent = b.nombre;
+      barrioSel.appendChild(o);
+    });
+    var barrioActual = "{{ usuario.barrio|default:''|escapejs }}";
+    if(barrioActual){
+      Array.from(barrioSel.options).forEach(function(opt){
+        if(opt.value === barrioActual) opt.selected = true;
+      });
+    }
+  })
+  .catch(function(){ barrioSel.innerHTML='<option value="">Error al cargar</option>'; });
+});
+
+/* Cargar barrios automáticamente si ya hay localidad guardada */
+window.addEventListener('DOMContentLoaded', function(){
+  var locSel = document.getElementById('localidad');
+  if(locSel.value) locSel.dispatchEvent(new Event('change'));
+});
 </script>
 </body>
 </html>

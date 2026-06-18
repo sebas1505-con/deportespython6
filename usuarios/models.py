@@ -81,8 +81,23 @@ class Asignacion(models.Model):
     repartidor = models.ForeignKey(
         'Repartidor',
         on_delete=models.CASCADE,
-        related_name="usuarios_asignaciones"  
+        related_name="usuarios_asignaciones"
     )
     estado = models.CharField(max_length=20, default="pendiente")
+
+
+class MensajeRepartidor(models.Model):
+    repartidor = models.ForeignKey(Repartidor, on_delete=models.CASCADE, related_name='mensajes')
+    mensaje = models.TextField()
+    es_admin = models.BooleanField(default=False)
+    leido = models.BooleanField(default=False)
+    fecha = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['fecha']
+
+    def __str__(self):
+        origen = 'Admin' if self.es_admin else self.repartidor.usuario.username
+        return f"{origen} → #{self.id}"
    
 

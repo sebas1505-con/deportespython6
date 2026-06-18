@@ -40,5 +40,8 @@ urlpatterns = [
     path("prueba-correo/", views.prueba_correo),
     path('api/localidades-bogota/', views.localidades_bogota, name='api_localidades'),
     path('api/barrios-bogota/', views.barrios_bogota, name='api_barrios'),
-    
+    path('mensajes/', views.mensajes_repartidor_pagina, name='mensajes_repartidor'),
+    path('mensajes/repartidores/', views.mensajes_repartidores_lista, name='mensajes_repartidores_lista'),
+    path('mensajes/repartidor/<int:repartidor_id>/', views.mensajes_con_repartidor, name='mensajes_con_repartidor'),
+    path('mensajes/inbox/', views.mensajes_repartidor_inbox, name='mensajes_repartidor_inbox'),
 ]
