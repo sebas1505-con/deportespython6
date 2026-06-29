@@ -1,5 +1,5 @@
 from email.mime.image import MIMEImage
-from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto, DetalleVentaProductos, RespuestaSugerencia, Sugerencia as SugerenciaInventario
+from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto, DetalleVentaProductos, Envio, RespuestaSugerencia, Sugerencia as SugerenciaInventario
 from .models import Usuario, Cliente, Repartidor, Administrador, NotificacionRepartidor, MensajeRepartidor
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
@@ -855,6 +855,95 @@ def admin(request):
         'anio_ini':        anio_ini,
         'anio_fin':        anio_fin,
     })
+
+def venta_detalle_json(request, venta_id):
+    usuario_id = request.session.get('usuario_id')
+    rol = request.session.get('rol')
+    if not usuario_id or rol != 'ADMIN':
+        return JsonResponse({'ok': False}, status=403)
+
+    try:
+        venta = Venta.objects.select_related('cliente__usuario').get(pk=venta_id)
+    except Venta.DoesNotExist:
+        return JsonResponse({'ok': False}, status=404)
+
+    detalles = DetalleVentaProductos.objects.filter(venta=venta).select_related('producto')
+    envio    = Envio.objects.filter(venta=venta).select_related('repartidor__usuario').first()
+    resena   = getattr(venta, 'resena', None)
+
+    return JsonResponse({
+        'ok': True,
+        'id': venta.id,
+        'fecha': venta.fecha_venta.strftime('%d/%m/%Y %H:%M'),
+        'estado': venta.estado,
+        'cliente': {
+            'nombre':    venta.cliente.usuario.first_name or venta.cliente.usuario.username,
+            'username':  venta.cliente.usuario.username,
+            'email':     venta.cliente.usuario.email,
+            'telefono':  venta.cliente.usuario.telefono or '—',
+            'cedula':    venta.cliente.usuario.cedula or '—',
+            'direccion': venta.cliente.direccion or '—',
+        },
+        'telefonoContacto': venta.telefonoContacto or '—',
+        'direccionEnvio':   venta.direccionEnvio or '—',
+        'metodo_de_pago':   venta.metodo_de_pago,
+        'metodoEnvio':      venta.metodoEnvio,
+        'cantProducto':     venta.cantProducto,
+        'totalVenta':       str(venta.totalVenta),
+        'observaciones':    venta.observaciones or '',
+        'detalles': [
+            {
+                'producto':        d.producto.nombre,
+                'categoria':       d.producto.categoria,
+                'talla':           d.talla,
+                'cantidad':        d.cantidad,
+                'precio_unitario': str(d.precio_unitario),
+                'descuento':       str(d.descuento),
+                'subtotal':        str(d.subtotal),
+            }
+            for d in detalles
+        ],
+        'envio': {
+            'repartidor': envio.repartidor.usuario.first_name or envio.repartidor.usuario.username,
+            'vehiculo':   envio.repartidor.vehiculo,
+            'placa':      envio.repartidor.placa or '',
+            'fecha_envio': str(envio.fecha_envio),
+            'estado':     envio.estado,
+        } if envio else None,
+        'resena': {
+            'estado_llegada': resena.get_estado_llegada_display(),
+            'comentario':     resena.comentario or '',
+            'fecha':          resena.fecha.strftime('%d/%m/%Y %H:%M'),
+        } if resena else None,
+    })
+
+
+def venta_cambiar_estado(request, venta_id):
+    usuario_id = request.session.get('usuario_id')
+    rol = request.session.get('rol')
+    if not usuario_id or rol != 'ADMIN':
+        return JsonResponse({'ok': False}, status=403)
+    if request.method != 'POST':
+        return JsonResponse({'ok': False}, status=405)
+
+    try:
+        body   = json.loads(request.body)
+        estado = body.get('estado', '').strip()
+    except Exception:
+        return JsonResponse({'ok': False}, status=400)
+
+    if estado not in {'Pendiente', 'En proceso', 'Enviado', 'Entregado', 'Cancelado'}:
+        return JsonResponse({'ok': False, 'error': 'Estado inválido'}, status=400)
+
+    try:
+        venta = Venta.objects.get(pk=venta_id)
+    except Venta.DoesNotExist:
+        return JsonResponse({'ok': False}, status=404)
+
+    venta.estado = estado
+    venta.save(update_fields=['estado'])
+    return JsonResponse({'ok': True, 'estado': estado})
+
 
 def perfil_admin(request):
 

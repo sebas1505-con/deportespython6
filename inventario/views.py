@@ -296,6 +296,20 @@ def producto_nuevo(request):
         categoria   = request.POST.get('categoria', '')
         imagen      = request.FILES.get('imagen')
 
+        try:
+            precio_num = float(precio)
+        except (TypeError, ValueError):
+            messages.error(request, 'El precio debe ser un número válido.')
+            return redirect('panel_admin')
+
+        if precio_num < 1000:
+            messages.error(request, 'El precio mínimo es $1.000. Ingresa un precio válido.')
+            return redirect('panel_admin')
+
+        if precio_num > 9_999_999:
+            messages.error(request, 'El precio no puede superar $9.999.999. Verifica el valor ingresado.')
+            return redirect('panel_admin')
+
         producto = Producto.objects.create(
             nombre=nombre, precio=precio,
             descripcion=descripcion, categoria=categoria,
@@ -322,8 +336,23 @@ def producto_nuevo(request):
 def producto_editar(request, id):
     producto = get_object_or_404(Producto, id=id)
     if request.method == "POST":
+        precio_raw = request.POST.get("precio")
+        try:
+            precio_num = float(precio_raw)
+        except (TypeError, ValueError):
+            messages.error(request, 'El precio debe ser un número válido.')
+            return render(request, 'productos/producto_editar.html', {'producto': producto})
+
+        if precio_num < 1000:
+            messages.error(request, 'El precio mínimo es $1.000. Ingresa un precio válido.')
+            return render(request, 'productos/producto_editar.html', {'producto': producto})
+
+        if precio_num > 9_999_999:
+            messages.error(request, 'El precio no puede superar $9.999.999. Verifica el valor ingresado.')
+            return render(request, 'productos/producto_editar.html', {'producto': producto})
+
         producto.nombre      = request.POST.get("nombre")
-        producto.precio      = request.POST.get("precio")
+        producto.precio      = precio_num
         producto.descripcion = request.POST.get("descripcion")
         producto.categoria   = request.POST.get("categoria")
         if request.FILES.get("imagen"):
@@ -366,6 +395,13 @@ def inventario(request):
 
 def producto_eliminar(request, id):
     producto = get_object_or_404(Producto, id=id)
+
+    if DetalleVentaProductos.objects.filter(producto=producto).exists():
+        messages.error(
+            request,
+            f'No se puede eliminar "{producto.nombre}" porque está asociado a una o más ventas registradas.'
+        )
+        return redirect('productos')
 
     for talla in producto.tallas.all():
         if talla.stock > 0:
