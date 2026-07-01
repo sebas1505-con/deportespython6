@@ -1,10 +1,10 @@
 from email.mime.image import MIMEImage
-from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto, DetalleVentaProductos, Envio, RespuestaSugerencia, Sugerencia as SugerenciaInventario
+from inventario.models import Producto, Pedido, Movimiento, Venta, TallaProducto, DetalleVentaProductos, Envio, RespuestaSugerencia, Sugerencia as SugerenciaInventario, Asignacion
 from .models import Usuario, Cliente, Repartidor, Administrador, NotificacionRepartidor, MensajeRepartidor
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count, Avg, Sum, Min
+from django.db.models import Count, Avg, Sum, Min, Prefetch
 from django.db.models.functions import TruncDate, TruncMonth
 from .forms import RegistroClienteForm, RepartidorForm
 from rest_framework.decorators import api_view
@@ -29,17 +29,30 @@ import re
 # ── Páginas generales ─────────────────────────────────────────────────────────
 
 def index(request):
+    from inventario.models import Producto, TallaProducto
+    from django.db.models import Prefetch
     usuario_id = request.session.get('usuario_id')
     usuario = Usuario.objects.get(id=usuario_id) if usuario_id else None
-    from inventario.models import Producto
-    productos = Producto.objects.filter(descontinuado=False).exclude(imagen='').exclude(imagen__isnull=True)[:6]
+    productos = (
+        Producto.objects
+        .filter(descontinuado=False)
+        .exclude(imagen='').exclude(imagen__isnull=True)
+        .prefetch_related(
+            Prefetch('tallas', queryset=TallaProducto.objects.filter(stock__gt=0))
+        )[:6]
+    )
     return render(request, 'index.html', {
         'usuario': usuario,
-        'productos': productos
+        'productos': productos,
     })
 
 def quienes(request):
     return render(request, 'quienes.html')
+
+def checkout_auth(request):
+    if request.session.get('usuario_id'):
+        return redirect('carrito')
+    return render(request, 'checkout_auth.html')
 
 def contacto(request):
     return render(request, 'contacto.html')
@@ -88,6 +101,9 @@ def login_view(request):
                 request.session['usuario_id'] = usuario.id
                 request.session['rol'] = usuario.rol
                 if usuario.rol == 'CLIENTE':
+                    next_url = request.POST.get('next', '').strip() or request.GET.get('next', '').strip()
+                    if next_url and next_url.startswith('/'):
+                        return redirect(next_url)
                     return redirect('usuario')
                 elif usuario.rol == 'REPARTIDOR':
                     return redirect('repartidor')
@@ -154,7 +170,7 @@ def registro_cliente(request):
         if Usuario.objects.filter(cedula=cedula).exists():
             return volver('Esa cédula ya está registrada.')
 
-        Usuario.objects.create(
+        nuevo_usuario = Usuario.objects.create(
             first_name     = first_name,
             email          = email,
             username       = username,
@@ -170,10 +186,17 @@ def registro_cliente(request):
             motivo          = f'Nuevo cliente registrado: {first_name} | Usuario: {username} | Correo: {email} | Tel: {telefono} | Doc: {tipo_documento} {cedula}',
             cantidad        = 0,
         )
-        messages.success(request, '✅ Cuenta creada. Ya puedes iniciar sesión.')
-        return redirect('login')
+        # Auto-login después del registro
+        request.session['usuario_id'] = nuevo_usuario.id
+        request.session['rol'] = 'CLIENTE'
+        next_url = request.POST.get('next', '').strip() or request.GET.get('next', '').strip()
+        messages.success(request, f'✅ ¡Bienvenido, {first_name}! Tu cuenta ha sido creada.')
+        if next_url and next_url.startswith('/'):
+            return redirect(next_url)
+        return redirect('usuario')
 
-    return render(request, 'registro.html', {'datos': {}})
+    next_url = request.GET.get('next', '')
+    return render(request, 'registro.html', {'datos': {}, 'next_url': next_url})
 
 def crear_repartidor(request):
 
@@ -798,9 +821,21 @@ def admin(request):
     ])
 
     # ── Resto de datos ────────────────────────────────────────────────────────
-    ultimos_pedidos = Pedido.objects.select_related(
-        'usuario', 'producto', 'venta__cliente__usuario', 'repartidor__usuario'
-    ).order_by('-fecha_pedido')[:20]
+    ultimos_pedidos = (
+        Venta.objects
+        .select_related('cliente__usuario')
+        .prefetch_related(
+            Prefetch(
+                'detalleventaproductos_set',
+                queryset=DetalleVentaProductos.objects.select_related('producto'),
+            ),
+            Prefetch(
+                'inventario_asignaciones',
+                queryset=Asignacion.objects.select_related('repartidor__usuario'),
+            ),
+        )
+        .order_by('-fecha_venta')[:20]
+    )
 
     usuarios    = Usuario.objects.all()
     primeras_ids = SugerenciaInventario.objects.values('nombre').annotate(pid=Min('id')).values_list('pid', flat=True)
@@ -1428,6 +1463,19 @@ def entregar_pedido(request, pedido_id):
         pedido.venta.estado = 'Entregado'
         pedido.venta.save()
     messages.success(request, "Pedido marcado como entregado.")
+    return redirect('repartidor')
+
+def devolver_pedido(request, pedido_id):
+    usuario_id = request.session.get('usuario_id')
+    repartidor_obj = get_object_or_404(Repartidor, usuario__id=usuario_id)
+    pedido = get_object_or_404(Pedido, id=pedido_id, repartidor=repartidor_obj, estado='En camino')
+    pedido.estado = 'Disponible'
+    pedido.repartidor = None
+    pedido.save()
+    if pedido.venta:
+        pedido.venta.estado = 'Pendiente'
+        pedido.venta.save()
+    messages.success(request, f'Pedido #{pedido.id} devuelto. Ya está disponible para otro repartidor.')
     return redirect('repartidor')
 
 def mis_pedidos(request):

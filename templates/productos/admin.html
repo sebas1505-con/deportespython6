@@ -79,6 +79,63 @@
 .mov-filtro { padding: 7px 14px; border-radius: 20px; font-size: 12px; font-weight: 700; border: 2px solid #e5e7eb; background: #fff; color: #555; cursor: pointer; transition: .15s; white-space: nowrap; }
 .mov-filtro:hover, .mov-filtro--active { background: #d40000; color: #fff; border-color: #d40000; }
 
+/* ── Tarjetas Últimos Pedidos ── */
+.vp-card {
+  background: #fff; border-radius: 16px;
+  box-shadow: 0 4px 14px rgba(0,0,0,.1);
+  border-left: 4px solid #d40000;
+  margin-bottom: 16px; overflow: hidden;
+  transition: box-shadow .2s, transform .2s;
+}
+.vp-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,.14); transform: translateY(-2px); }
+
+.vp-head {
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 12px 18px; background: #f2f3f5;
+  border-bottom: 2px solid #d40000;
+}
+.vp-id { font-family: monospace; font-size: 15px; font-weight: 800; color: #111; }
+.vp-fecha { font-size: 12px; color: #888; }
+.vp-head-sep { flex: 1; }
+.vp-total { font-size: 17px; font-weight: 800; color: #d40000; }
+
+.vp-badge { display: inline-block; padding: 3px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; }
+.vp-badge--green { background: #e8f5e9; color: #2e7d32; }
+.vp-badge--blue  { background: #e3f2fd; color: #1565c0; }
+.vp-badge--amber { background: #fff8e1; color: #f57f17; }
+.vp-badge--red   { background: #ffebee; color: #c62828; }
+
+.vp-body {
+  display: grid; grid-template-columns: 220px 1fr;
+  gap: 0;
+}
+@media (max-width: 640px) { .vp-body { grid-template-columns: 1fr; } }
+
+.vp-col-info {
+  padding: 16px 18px; border-right: 1px solid #eee;
+  background: #f2f3f5;
+}
+.vp-col-productos { padding: 16px 18px; background: #fff; }
+
+.vp-section-lbl {
+  font-size: 10px; font-weight: 700; color: #d40000;
+  text-transform: uppercase; letter-spacing: .5px; margin-bottom: 6px;
+}
+.vp-nombre { font-size: 14px; font-weight: 700; color: #111; }
+.vp-sub    { font-size: 11px; color: #888; margin-top: 1px; }
+.vp-dato   { font-size: 12px; color: #555; margin-top: 4px; line-height: 1.4; }
+
+.vp-prod-row {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: 8px; padding: 9px 0;
+  border-bottom: 1px solid #eee;
+}
+.vp-prod-row:last-child { border-bottom: none; }
+.vp-prod-info { display: flex; flex-direction: column; gap: 2px; }
+.vp-prod-nombre { font-size: 14px; font-weight: 600; color: #111; }
+.vp-prod-meta   { font-size: 11px; color: #888; }
+.vp-prod-precio { font-size: 14px; font-weight: 700; color: #d40000; white-space: nowrap; }
+
 /* ── Talla picker en filas ── */
 .talla-picker { border: 1.5px solid #e5e7eb; border-radius: 10px; background: #fff; min-height: 42px; overflow: hidden; }
 .talla-picker-hint { font-size: 13px; color: #aaa; padding: 12px 16px; margin: 0; }
@@ -350,42 +407,72 @@
 
     <div class="card-section">
       <h2>Últimos Pedidos</h2>
-      <div style="overflow-x:auto;">
-      <table class="tabla-admin">
-        <thead>
-          <tr><th>#</th><th>Cliente</th><th>Producto</th><th>Dirección envío</th><th>Teléfono</th><th>Fecha</th><th>Total</th><th>Estado</th><th>Repartidor</th></tr>
-        </thead>
-        <tbody>
-          {% for pedido in ultimos_pedidos %}
-          <tr>
-            <td><span style="font-family:monospace;color:#888">#{{ pedido.id }}</span></td>
-            <td><strong>{{ pedido.usuario.first_name|default:pedido.usuario.username }}</strong><div style="font-size:11px;color:#aaa">{{ pedido.usuario.username }}</div></td>
-            <td style="font-size:13px">{{ pedido.producto.nombre }}</td>
-            <td style="font-size:13px;color:#555">{% if pedido.venta %}{{ pedido.venta.direccionEnvio|default:"—" }}{% else %}{{ pedido.usuario.barrio|default:"—" }}{% endif %}</td>
-            <td style="font-size:13px">{{ pedido.usuario.telefono|default:"-" }}</td>
-            <td style="font-size:13px;color:#888;white-space:nowrap">{{ pedido.fecha_pedido|date:"d/m/Y H:i" }}</td>
-            <td><strong>${{ pedido.total|floatformat:0 }}</strong></td>
-            <td>
-              {% if pedido.estado == 'Entregado' %}<span class="badge badge-green">Entregado</span>
-              {% elif pedido.estado == 'En camino' %}<span class="badge badge-blue">En camino</span>
-              {% elif pedido.estado == 'Disponible' %}<span class="badge badge-amber">Disponible</span>
-              {% else %}<span class="badge badge-amber">{{ pedido.estado }}</span>{% endif %}
-            </td>
-            <td>
-              {% if pedido.repartidor %}
-                <div style="font-size:13px;font-weight:600;color:#111;">{{ pedido.repartidor.usuario.first_name|default:pedido.repartidor.usuario.username }}</div>
-                <div style="font-size:11px;color:#aaa;">@{{ pedido.repartidor.usuario.username }}</div>
-              {% else %}
-                <span style="color:#ccc;font-size:13px;">—</span>
+
+      {% for venta in ultimos_pedidos %}
+      <div class="vp-card">
+
+        <!-- Cabecera: #ID · fecha · estado · total -->
+        <div class="vp-head">
+          <span class="vp-id">#{{ venta.id }}</span>
+          <span class="vp-fecha">📅 {{ venta.fecha_venta|date:"d/m/Y · H:i" }}</span>
+          <span class="vp-head-sep"></span>
+          {% if venta.estado == 'Entregado' %}
+            <span class="vp-badge vp-badge--green">Entregado</span>
+          {% elif venta.estado == 'En camino' %}
+            <span class="vp-badge vp-badge--blue">En camino</span>
+          {% elif venta.estado == 'Cancelado' %}
+            <span class="vp-badge vp-badge--red">Cancelado</span>
+          {% else %}
+            <span class="vp-badge vp-badge--amber">{{ venta.estado }}</span>
+          {% endif %}
+          <span class="vp-total">${{ venta.totalVenta|floatformat:0 }}</span>
+        </div>
+
+        <!-- Cuerpo: cliente + productos + envío -->
+        <div class="vp-body">
+
+          <!-- Columna izquierda: cliente y envío -->
+          <div class="vp-col-info">
+            <div class="vp-section-lbl">Cliente</div>
+            <div class="vp-nombre">{{ venta.cliente.usuario.first_name|default:venta.cliente.usuario.username }}</div>
+            <div class="vp-sub">@{{ venta.cliente.usuario.username }}</div>
+
+            <div class="vp-section-lbl" style="margin-top:12px;">Envío</div>
+            <div class="vp-dato">📍 {{ venta.direccionEnvio|default:"—" }}</div>
+            <div class="vp-dato">📞 {{ venta.telefonoContacto|default:"—" }}</div>
+            <div class="vp-dato">🚚 {{ venta.metodoEnvio|default:"—" }}</div>
+
+            {% for asig in venta.inventario_asignaciones.all %}
+              {% if forloop.first %}
+                <div class="vp-section-lbl" style="margin-top:12px;">Repartidor</div>
               {% endif %}
-            </td>
-          </tr>
-          {% empty %}
-          <tr><td colspan="9" style="text-align:center;color:#aaa;padding:20px;">Sin pedidos</td></tr>
-          {% endfor %}
-        </tbody>
-      </table>
+              <div class="vp-nombre" style="font-size:13px;">{{ asig.repartidor.usuario.first_name|default:asig.repartidor.usuario.username }}</div>
+              <div class="vp-sub">@{{ asig.repartidor.usuario.username }}</div>
+            {% endfor %}
+          </div>
+
+          <!-- Columna derecha: lista de productos -->
+          <div class="vp-col-productos">
+            <div class="vp-section-lbl">Productos ({{ venta.cantProducto }} art.)</div>
+            {% for detalle in venta.detalleventaproductos_set.all %}
+            <div class="vp-prod-row">
+              <div class="vp-prod-info">
+                <span class="vp-prod-nombre">{{ detalle.producto.nombre }}</span>
+                <span class="vp-prod-meta">Talla {{ detalle.talla }} · ×{{ detalle.cantidad }}</span>
+              </div>
+              <span class="vp-prod-precio">${{ detalle.subtotal|floatformat:0 }}</span>
+            </div>
+            {% empty %}
+            <div style="color:#aaa;font-size:13px;padding:8px 0;">Sin productos registrados</div>
+            {% endfor %}
+          </div>
+
+        </div>
       </div>
+      {% empty %}
+      <div style="text-align:center;color:#aaa;padding:40px 20px;font-size:15px;">Sin pedidos registrados</div>
+      {% endfor %}
+
     </div>
   </div>
 

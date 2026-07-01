@@ -40,6 +40,7 @@
 
     <form method="POST" class="login-form" id="form-registro" novalidate>
     {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next_url }}">
 
         <div>
             <label>Nombre Completo</label>

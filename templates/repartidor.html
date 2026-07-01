@@ -437,6 +437,13 @@
                         </button>
                     </form>
                 </div>
+                <div style="align-self:center;margin-top:6px;">
+                    <button type="button" class="btn"
+                        style="background:#fff;color:#b91c1c;border:2px solid #fca5a5;"
+                        onclick="abrirModalDevolver({{ pedido.id }})">
+                        Devolver pedido
+                    </button>
+                </div>
                 <!-- Botón WhatsApp -->
                 <div style="align-self:center;margin-top:6px;">
                     <a href="https://wa.me/57{{ pedido.venta.telefonoContacto|slugify }}?text={{ mensaje_wa|urlencode }}"
@@ -552,5 +559,45 @@ function repPollNoLeidos() {
 repPollNoLeidos();
 setInterval(repPollNoLeidos, 8000);
 </script>
+
+<!-- Modal confirmar devolución de pedido -->
+<div id="modal-devolver-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:32px 28px;max-width:380px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.18);text-align:center;">
+    <div style="font-size:48px;margin-bottom:10px;">↩️</div>
+    <h3 style="margin:0 0 10px;font-size:18px;color:#111;">¿Devolver este pedido?</h3>
+    <p style="color:#555;font-size:14px;margin-bottom:24px;">
+      El pedido volverá a estar <strong>disponible</strong> para que otro repartidor lo tome.
+      Esta acción no se puede deshacer.
+    </p>
+    <div style="display:flex;gap:12px;justify-content:center;">
+      <button onclick="cerrarModalDevolver()"
+        style="padding:10px 24px;border-radius:8px;border:2px solid #e5e7eb;background:#fff;color:#555;font-weight:600;cursor:pointer;font-size:14px;">
+        Cancelar
+      </button>
+      <form id="form-devolver" method="post" action="" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit"
+          style="padding:10px 24px;border-radius:8px;border:none;background:#b91c1c;color:#fff;font-weight:600;cursor:pointer;font-size:14px;">
+          Sí, devolver
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function abrirModalDevolver(pedidoId) {
+  document.getElementById('form-devolver').action = '/pedidos/devolver/' + pedidoId + '/';
+  var overlay = document.getElementById('modal-devolver-overlay');
+  overlay.style.display = 'flex';
+}
+function cerrarModalDevolver() {
+  document.getElementById('modal-devolver-overlay').style.display = 'none';
+}
+document.getElementById('modal-devolver-overlay').addEventListener('click', function(e) {
+  if (e.target === this) cerrarModalDevolver();
+});
+</script>
+
 </body>
 </html>

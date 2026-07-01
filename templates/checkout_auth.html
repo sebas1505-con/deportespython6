@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Continuar compra · Deportes 360</title>
+  <link rel="icon" type="image/x-icon" href="{% static 'images/admin.jpg' %}">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      min-height: 100vh;
+      background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 60%, #111 100%);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      padding: 24px;
+    }
+    .page-wrap {
+      width: 100%; max-width: 820px;
+    }
+    .logo-bar {
+      text-align: center; margin-bottom: 32px;
+    }
+    .logo-bar img { height: 56px; }
+    .page-title {
+      text-align: center; color: #fff; font-size: 22px; font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .page-sub {
+      text-align: center; color: #aaa; font-size: 14px; margin-bottom: 36px;
+    }
+    .cards-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+    }
+    @media (max-width: 560px) { .cards-row { grid-template-columns: 1fr; } }
+
+    .auth-card {
+      background: #fff; border-radius: 16px;
+      padding: 32px 28px;
+      box-shadow: 0 8px 32px rgba(0,0,0,.25);
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .card-badge {
+      display: inline-block; background: #fee2e2; color: #b91c1c;
+      font-size: 11px; font-weight: 700; padding: 3px 10px;
+      border-radius: 20px; text-transform: uppercase; letter-spacing: .5px;
+      align-self: flex-start;
+    }
+    .card-badge.new { background: #dcfce7; color: #15803d; }
+    .card-title { font-size: 20px; font-weight: 800; color: #111; }
+    .card-desc  { font-size: 13px; color: #666; line-height: 1.5; }
+    .divider { border: none; border-top: 1px solid #f0f0f0; margin: 0; }
+
+    .form-group { display: flex; flex-direction: column; gap: 5px; }
+    .form-group label { font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: .3px; }
+    .form-group input {
+      padding: 11px 14px; border: 1.5px solid #e5e7eb; border-radius: 8px;
+      font-size: 14px; color: #111; outline: none; transition: border-color .15s;
+    }
+    .form-group input:focus { border-color: #d40000; }
+
+    .btn-primary {
+      width: 100%; padding: 13px; border-radius: 10px; border: none;
+      background: #d40000; color: #fff; font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: background .15s;
+    }
+    .btn-primary:hover { background: #b91c1c; }
+
+    .btn-outline {
+      display: block; width: 100%; padding: 13px; border-radius: 10px;
+      border: 2px solid #d40000; background: #fff; color: #d40000;
+      font-size: 15px; font-weight: 700; text-align: center;
+      text-decoration: none; transition: .15s;
+    }
+    .btn-outline:hover { background: #d40000; color: #fff; }
+
+    .form-links {
+      text-align: center; font-size: 12px; color: #aaa;
+    }
+    .form-links a { color: #d40000; text-decoration: none; font-weight: 600; }
+    .form-links a:hover { text-decoration: underline; }
+
+    .alert-error {
+      background: #fff1f2; border: 1px solid #fca5a5; border-radius: 8px;
+      padding: 10px 14px; font-size: 13px; color: #b91c1c; font-weight: 600;
+    }
+    .back-link {
+      display: block; text-align: center; margin-top: 24px;
+      color: #888; font-size: 13px; text-decoration: none;
+    }
+    .back-link:hover { color: #fff; }
+    .cart-icon { font-size: 32px; text-align: center; margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <div class="logo-bar">
+    <img src="{% static 'images/Logo.png' %}" alt="Deportes 360">
+  </div>
+
+  <div class="cart-icon">🛒</div>
+  <h1 class="page-title">Para finalizar tu compra</h1>
+  <p class="page-sub">Tu carrito está guardado. Inicia sesión o crea tu cuenta para continuar.</p>
+
+  <div class="cards-row">
+
+    <!-- Tarjeta: Iniciar sesión -->
+    <div class="auth-card">
+      <span class="card-badge">Ya tengo cuenta</span>
+      <h2 class="card-title">Iniciar sesión</h2>
+      <p class="card-desc">Accede con tu correo y contraseña para completar tu pedido.</p>
+      <hr class="divider">
+
+      {% if messages %}
+        {% for message in messages %}
+          <div class="alert-error">{{ message }}</div>
+        {% endfor %}
+      {% endif %}
+
+      <form method="POST" action="{% url 'login' %}?next=/carrito/">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="/carrito/">
+        <div style="display:flex;flex-direction:column;gap:12px;">
+          <div class="form-group">
+            <label>Correo electrónico</label>
+            <input type="email" name="correo" placeholder="tucorreo@email.com" required>
+          </div>
+          <div class="form-group">
+            <label>Contraseña</label>
+            <input type="password" name="clave" placeholder="••••••••" required>
+          </div>
+          <button type="submit" class="btn-primary">Iniciar sesión y comprar</button>
+        </div>
+      </form>
+
+      <div class="form-links">
+        <a href="{% url 'restablecer' %}">¿Olvidaste tu contraseña?</a>
+      </div>
+    </div>
+
+    <!-- Tarjeta: Crear cuenta -->
+    <div class="auth-card">
+      <span class="card-badge new">Soy nuevo</span>
+      <h2 class="card-title">Crear cuenta</h2>
+      <p class="card-desc">
+        Regístrate gratis en menos de 2 minutos. Tu carrito se mantendrá guardado
+        y podrás completar tu compra de inmediato.
+      </p>
+      <hr class="divider">
+      <ul style="font-size:13px;color:#555;padding-left:18px;line-height:2;">
+        <li>Seguimiento de tus pedidos</li>
+        <li>Historial de compras</li>
+        <li>Datos prellenados en tu próxima compra</li>
+      </ul>
+      <a href="{% url 'registro' %}?next=/carrito/" class="btn-outline">
+        Crear cuenta gratis →
+      </a>
+      <div class="form-links">
+        Tu carrito se conserva mientras te registras.
+      </div>
+    </div>
+
+  </div>
+
+  <a href="{% url 'carrito' %}" class="back-link">← Volver al carrito</a>
+
+</div>
+</body>
+</html>

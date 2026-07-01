@@ -168,7 +168,7 @@
 </head>
 <body>
 
-<!-- Header igual a usuario.html -->
+<!-- Header contextual: distinto para usuarios logueados y visitantes -->
 <header class="header">
     <div class="container">
         <div class="menu">
@@ -185,6 +185,7 @@
             </label>
             <div class="nav-overlay"></div>
             <nav class="navbar">
+                {% if usuario %}
                 <ul>
                     <li><a href="{% url 'perfil' %}">Perfil</a></li>
                     <li><a href="{% url 'mis_compras' %}">Mis Compras</a></li>
@@ -193,6 +194,14 @@
                     <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
                     <li><a href="{% url 'carrito' %}" style="color:#d40000;font-weight:700;">🛒</a></li>
                 </ul>
+                {% else %}
+                <ul>
+                    <li><a href="{% url 'catalogoindex' %}">Catálogo</a></li>
+                    <li><a href="{% url 'login' %}">Iniciar sesión</a></li>
+                    <li><a href="{% url 'registro' %}">Crear cuenta</a></li>
+                    <li><a href="{% url 'carrito' %}" style="color:#d40000;font-weight:700;">🛒</a></li>
+                </ul>
+                {% endif %}
             </nav>
         </div>
     </div>
@@ -262,7 +271,7 @@
             <div></div>
             <h3>Tu carrito está vacío</h3>
             <p>Agrega productos desde el catálogo.</p>
-            <a href="{% url 'catalogo' %}">Ver catálogo →</a>
+            <a href="{% if usuario %}{% url 'catalogo' %}{% else %}{% url 'catalogoindex' %}{% endif %}">Ver catálogo →</a>
         </div>
         {% endif %}
 
@@ -277,14 +286,14 @@
                 <span>${{ total }}</span>
             </div>
             <div class="resumen-btns">
-                <a href="{% url 'perfil_incompleto' %}" class="btn-finalizar">
-                    Finalizar compra
-                </a>
-                <a href="{% url 'catalogo' %}" class="btn-seguir">
-                     Seguir comprando
+                <button type="submit" name="finalizar" value="1" class="btn-finalizar">
+                    Finalizar compra →
+                </button>
+                <a href="{% if usuario %}{% url 'catalogo' %}{% else %}{% url 'catalogoindex' %}{% endif %}" class="btn-seguir">
+                    Seguir comprando
                 </a>
                 <button type="submit" name="vaciar" value="1" class="btn-vaciar">
-                     Vaciar carrito
+                    Vaciar carrito
                 </button>
             </div>
         </div>
@@ -303,9 +312,9 @@
             </div>
         </a>
         <ul>
-            <li><a href="{% url 'usuario' %}">Inicio</a></li>
-            <li><a href="{% url 'catalogo' %}">Catálogo</a></li>
-            <li><a href="{% url 'contactousu' %}">Contacto</a></li>
+            <li><a href="{% url 'index' %}">Inicio</a></li>
+            <li><a href="{% if usuario %}{% url 'catalogo' %}{% else %}{% url 'catalogoindex' %}{% endif %}">Catálogo</a></li>
+            <li><a href="{% url 'contacto' %}">Contacto</a></li>
         </ul>
     </div>
 </footer>

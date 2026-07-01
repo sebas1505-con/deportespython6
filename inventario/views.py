@@ -586,8 +586,7 @@ def carrito(request):
             usuario_id = request.session.get('usuario_id')
             usuario_fin = Usuario.objects.filter(id=usuario_id).first() if usuario_id else None
             if not usuario_fin:
-                messages.error(request, 'Debes iniciar sesión para realizar una compra.')
-                return redirect('login')
+                return redirect('checkout_auth')
             if not _perfil_completo(usuario_fin):
                 messages.error(request,
                     'Debes completar tu perfil antes de comprar. '
@@ -649,6 +648,7 @@ def carrito(request):
     return render(request, 'productos/carrito.html', {
         'productos': carrito_enriquecido,
         'total': total,
+        'usuario': usuario_carrito,
         'perfil_incompleto': usuario_carrito and not perfil_ok,
     })
 
