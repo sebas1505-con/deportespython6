@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.core.mail import EmailMessage
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image, Table, TableStyle
 from .models import (Producto, TallaProducto, Venta, Movimiento, Reporte, DetalleVentaProductos, Pedido, Sugerencia, RespuestaSugerencia, ResenaVenta)
 from .forms import CompraForm, ReportesForm, MovimientoForm
@@ -746,6 +747,95 @@ def producto_talla_eliminar(request, talla_id):
 
 # ── Compra y factura ──────────────────────────────────────────────────────────
 
+def _enviar_correo_venta(venta, carrito, usuario):
+    try:
+        filas = ''
+        for item in carrito.values():
+            subtotal = item['precio'] * item['cantidad']
+            filas += f"""
+            <tr>
+              <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:14px;color:#111;">{item['nombre']}</td>
+              <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:14px;color:#555;">T{item['talla']}</td>
+              <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;text-align:center;font-size:14px;color:#555;">{item['cantidad']}</td>
+              <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;text-align:right;font-size:14px;font-weight:700;color:#d40000;">${subtotal:,.0f}</td>
+            </tr>"""
+
+        html_cliente = f"""
+        <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f2f3f5;padding:24px;">
+          <div style="background:#111;border-radius:12px 12px 0 0;padding:24px 28px;text-align:center;border-bottom:4px solid #d40000;">
+            <h1 style="color:#fff;font-size:22px;margin:0;">Deportes <span style="color:#d40000;">360</span></h1>
+          </div>
+          <div style="background:#fff;border-radius:0 0 12px 12px;padding:28px;">
+            <h2 style="color:#111;font-size:18px;margin:0 0 6px;">¡Pedido confirmado, {usuario.first_name}!</h2>
+            <p style="color:#555;font-size:14px;margin:0 0 20px;">Tu pedido <strong style="color:#d40000;">#{venta.id}</strong> ha sido recibido y está en proceso.</p>
+
+            <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+              <thead>
+                <tr style="background:#d40000;">
+                  <th style="padding:12px 16px;text-align:left;color:#fff;font-size:13px;border-radius:8px 0 0 0;">Producto</th>
+                  <th style="padding:12px 16px;text-align:center;color:#fff;font-size:13px;">Talla</th>
+                  <th style="padding:12px 16px;text-align:center;color:#fff;font-size:13px;">Cant.</th>
+                  <th style="padding:12px 16px;text-align:right;color:#fff;font-size:13px;border-radius:0 8px 0 0;">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>{filas}</tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="3" style="padding:14px 16px;font-size:15px;font-weight:700;color:#111;text-align:right;">Total</td>
+                  <td style="padding:14px 16px;font-size:18px;font-weight:800;color:#d40000;text-align:right;">${float(venta.totalVenta):,.0f}</td>
+                </tr>
+              </tfoot>
+            </table>
+
+            <div style="background:#f2f3f5;border-radius:10px;padding:16px 18px;margin-bottom:20px;">
+              <p style="font-size:12px;font-weight:700;color:#d40000;text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px;">Detalles de entrega</p>
+              <p style="font-size:13px;color:#555;margin:4px 0;">📍 <strong>Dirección:</strong> {venta.direccionEnvio}</p>
+              <p style="font-size:13px;color:#555;margin:4px 0;">📞 <strong>Teléfono:</strong> {venta.telefonoContacto}</p>
+              <p style="font-size:13px;color:#555;margin:4px 0;">🚚 <strong>Método de envío:</strong> {venta.metodoEnvio}</p>
+              <p style="font-size:13px;color:#555;margin:4px 0;">💳 <strong>Método de pago:</strong> {venta.metodo_de_pago}</p>
+            </div>
+
+            <p style="font-size:13px;color:#888;text-align:center;margin:0;">¿Tienes dudas? Escríbenos. Gracias por comprar en Deportes 360.</p>
+          </div>
+        </div>"""
+
+        correo = EmailMessage(
+            subject=f"✅ Pedido #{venta.id} confirmado — Deportes 360",
+            body=html_cliente,
+            from_email="Deportes 360 <juancuervo141414@gmail.com>",
+            to=[usuario.email],
+        )
+        correo.content_subtype = "html"
+        correo.send(fail_silently=False)
+
+        from usuarios.models import Usuario as Usr
+        admin_emails = list(Usr.objects.filter(rol='ADMIN').values_list('email', flat=True))
+        if admin_emails:
+            html_admin = f"""
+            <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:540px;margin:0 auto;background:#f2f3f5;padding:20px;">
+              <div style="background:#111;border-radius:10px 10px 0 0;padding:18px 22px;border-bottom:3px solid #d40000;">
+                <h2 style="color:#fff;margin:0;font-size:17px;">🛒 Nuevo pedido <span style="color:#d40000;">#{venta.id}</span></h2>
+              </div>
+              <div style="background:#fff;border-radius:0 0 10px 10px;padding:22px;">
+                <p style="font-size:14px;color:#555;margin:0 0 14px;"><strong>Cliente:</strong> {usuario.first_name} ({usuario.email})</p>
+                <p style="font-size:14px;color:#555;margin:0 0 4px;"><strong>Total:</strong> <span style="color:#d40000;font-weight:800;">${float(venta.totalVenta):,.0f}</span></p>
+                <p style="font-size:14px;color:#555;margin:0 0 4px;"><strong>Pago:</strong> {venta.metodo_de_pago}</p>
+                <p style="font-size:14px;color:#555;margin:0 0 4px;"><strong>Dirección:</strong> {venta.direccionEnvio}</p>
+                <p style="font-size:14px;color:#555;margin:0;"><strong>Productos:</strong> {venta.cantProducto} artículo(s)</p>
+              </div>
+            </div>"""
+            correo_admin = EmailMessage(
+                subject=f"🛒 Nuevo pedido #{venta.id} — ${float(venta.totalVenta):,.0f}",
+                body=html_admin,
+                from_email="Deportes 360 <juancuervo141414@gmail.com>",
+                to=admin_emails,
+            )
+            correo_admin.content_subtype = "html"
+            correo_admin.send(fail_silently=False)
+    except Exception as e:
+        print(f"Error enviando correo de venta: {e}")
+
+
 def formulario_compra(request):
     carrito = request.session.get('carrito', {})
     cantidad_total = sum(item['cantidad'] for item in carrito.values())
@@ -835,8 +925,9 @@ def formulario_compra(request):
                     talla_obj.stock -= item['cantidad']
                     talla_obj.save()
 
-                # Limpiar carrito
+                # Limpiar carrito y enviar correos
                 request.session['carrito'] = {}
+                _enviar_correo_venta(venta, carrito, usuario)
                 return redirect('factura', venta_id=venta.id)
 
     else:
@@ -906,6 +997,7 @@ def registrar_pse(request):
             )
 
         request.session["carrito"] = {}
+        _enviar_correo_venta(venta, carrito, usuario)
         return redirect("factura", venta_id=venta.id)
 
 

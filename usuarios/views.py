@@ -189,6 +189,66 @@ def registro_cliente(request):
         # Auto-login después del registro
         request.session['usuario_id'] = nuevo_usuario.id
         request.session['rol'] = 'CLIENTE'
+
+        # ── Correo de bienvenida al cliente ──────────────────────────────────
+        try:
+            html_bienvenida = f"""
+            <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:600px;margin:0 auto;background:#f2f3f5;padding:24px;">
+              <div style="background:#111;border-radius:12px 12px 0 0;padding:24px 28px;text-align:center;border-bottom:4px solid #d40000;">
+                <h1 style="color:#fff;font-size:22px;margin:0;">Deportes <span style="color:#d40000;">360</span></h1>
+              </div>
+              <div style="background:#fff;border-radius:0 0 12px 12px;padding:32px 28px;text-align:center;">
+                <div style="font-size:48px;margin-bottom:12px;">🎉</div>
+                <h2 style="color:#111;font-size:20px;margin:0 0 10px;">¡Bienvenido, {first_name}!</h2>
+                <p style="color:#555;font-size:14px;line-height:1.6;margin:0 0 24px;">
+                  Tu cuenta en Deportes 360 ha sido creada exitosamente.<br>
+                  Ya puedes explorar nuestro catálogo y realizar tus compras.
+                </p>
+                <div style="background:#f2f3f5;border-radius:10px;padding:16px 20px;text-align:left;margin-bottom:24px;">
+                  <p style="font-size:12px;font-weight:700;color:#d40000;text-transform:uppercase;letter-spacing:.5px;margin:0 0 10px;">Tus datos de acceso</p>
+                  <p style="font-size:13px;color:#555;margin:4px 0;">👤 <strong>Usuario:</strong> {username}</p>
+                  <p style="font-size:13px;color:#555;margin:4px 0;">📧 <strong>Correo:</strong> {email}</p>
+                </div>
+                <p style="font-size:13px;color:#888;margin:0;">Gracias por unirte a nuestra comunidad deportiva.</p>
+              </div>
+            </div>"""
+            from django.core.mail import EmailMessage as EM
+            correo = EM(
+                subject="¡Bienvenido a Deportes 360! 🎉",
+                body=html_bienvenida,
+                from_email="Deportes 360 <juancuervo141414@gmail.com>",
+                to=[email],
+            )
+            correo.content_subtype = "html"
+            correo.send(fail_silently=False)
+
+            # Notificar a admins
+            admin_emails = list(Usuario.objects.filter(rol='ADMIN').values_list('email', flat=True))
+            if admin_emails:
+                html_admin = f"""
+                <div style="font-family:'Segoe UI',Arial,sans-serif;max-width:520px;margin:0 auto;background:#f2f3f5;padding:20px;">
+                  <div style="background:#111;border-radius:10px 10px 0 0;padding:18px 22px;border-bottom:3px solid #d40000;">
+                    <h2 style="color:#fff;margin:0;font-size:16px;">👤 Nuevo cliente registrado</h2>
+                  </div>
+                  <div style="background:#fff;border-radius:0 0 10px 10px;padding:22px;">
+                    <p style="font-size:14px;color:#555;margin:0 0 6px;"><strong>Nombre:</strong> {first_name}</p>
+                    <p style="font-size:14px;color:#555;margin:0 0 6px;"><strong>Usuario:</strong> {username}</p>
+                    <p style="font-size:14px;color:#555;margin:0 0 6px;"><strong>Correo:</strong> {email}</p>
+                    <p style="font-size:14px;color:#555;margin:0 0 6px;"><strong>Teléfono:</strong> {telefono}</p>
+                    <p style="font-size:14px;color:#555;margin:0;"><strong>Documento:</strong> {tipo_documento} {cedula}</p>
+                  </div>
+                </div>"""
+                correo_admin = EM(
+                    subject=f"👤 Nuevo cliente: {first_name} ({username})",
+                    body=html_admin,
+                    from_email="Deportes 360 <juancuervo141414@gmail.com>",
+                    to=admin_emails,
+                )
+                correo_admin.content_subtype = "html"
+                correo_admin.send(fail_silently=False)
+        except Exception as e:
+            print(f"Error enviando correo de registro: {e}")
+
         next_url = request.POST.get('next', '').strip() or request.GET.get('next', '').strip()
         messages.success(request, f'✅ ¡Bienvenido, {first_name}! Tu cuenta ha sido creada.')
         if next_url and next_url.startswith('/'):
