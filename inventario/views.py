@@ -694,6 +694,15 @@ def producto_tallas_eliminar(request):
 
         for talla_id in talla_ids:
             talla = get_object_or_404(TallaProducto, id=talla_id)
+
+            if DetalleVentaProductos.objects.filter(producto=talla.producto).exists():
+                messages.error(
+                    request,
+                    f'No se puede eliminar la talla "{talla.talla}" de "{talla.producto.nombre}" '
+                    f'porque ese producto ya tiene ventas registradas de clientes.'
+                )
+                return redirect('productos')
+
             if talla.stock > 0:
                 Movimiento.objects.create(
                     producto        = talla.producto,
@@ -707,9 +716,17 @@ def producto_tallas_eliminar(request):
 
         messages.success(request, 'Tallas eliminadas correctamente.')
         return redirect('productos')
-    
+
 def producto_talla_eliminar(request, talla_id):
     talla = get_object_or_404(TallaProducto, id=talla_id)
+
+    if DetalleVentaProductos.objects.filter(producto=talla.producto).exists():
+        messages.error(
+            request,
+            f'No se puede eliminar la talla "{talla.talla}" de "{talla.producto.nombre}" '
+            f'porque ese producto ya tiene ventas registradas de clientes.'
+        )
+        return redirect('productos')
 
     if talla.stock > 0:
         Movimiento.objects.create(
