@@ -255,11 +255,15 @@ _TALLAS_STD_ADULTO = ['S', 'M', 'L', 'XL']
 _TALLAS_STD_NINO   = ['6', '8', '10', '12', '14', '16', '18']
 
 def productos(request):
-    prods = Producto.objects.prefetch_related('tallas').all()
+    from django.db.models import Count
+    prods = Producto.objects.prefetch_related('tallas').annotate(
+        num_ventas=Count('detalleventaproductos', distinct=True)
+    ).all()
     for p in prods:
         tallas_qs = list(p.tallas.all())
         por_nombre = {t.talla: t for t in tallas_qs}
         p.stock_total = sum(t.stock for t in tallas_qs)
+        p.tiene_ventas = p.num_ventas > 0
 
         def _row(nombre):
             t = por_nombre.get(nombre)

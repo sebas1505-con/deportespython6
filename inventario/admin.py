@@ -24,6 +24,30 @@ class ProductoAdmin(admin.ModelAdmin):
     list_filter = ('categoria', 'descontinuado')
     search_fields = ('nombre',)
 
+    def delete_model(self, request, obj):
+        if DetalleVentaProductos.objects.filter(producto=obj).exists():
+            self.message_user(
+                request,
+                f'No se puede eliminar "{obj.nombre}" porque está asociado a una o más ventas registradas.',
+                level='error',
+            )
+            return
+        super().delete_model(request, obj)
+
+    def delete_queryset(self, request, queryset):
+        con_ventas = [
+            p.nombre for p in queryset
+            if DetalleVentaProductos.objects.filter(producto=p).exists()
+        ]
+        if con_ventas:
+            self.message_user(
+                request,
+                f'No se pueden eliminar los siguientes productos porque tienen ventas: {", ".join(con_ventas)}.',
+                level='error',
+            )
+            return
+        super().delete_queryset(request, queryset)
+
 
 @admin.register(TallaProducto)
 class TallaProductoAdmin(admin.ModelAdmin):
