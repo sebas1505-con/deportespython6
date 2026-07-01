@@ -7,6 +7,42 @@ from .models import (
 )
 
 
+class DetalleVentaProductosInline(admin.TabularInline):
+    model = DetalleVentaProductos
+    extra = 0
+    readonly_fields = ('producto', 'talla', 'cantidad', 'precio_unitario', 'descuento', 'subtotal')
+    can_delete = False
+    verbose_name = 'Producto vendido'
+    verbose_name_plural = 'Productos vendidos'
+
+
+class EnvioInline(admin.StackedInline):
+    model = Envio
+    extra = 0
+    readonly_fields = ('repartidor', 'estado', 'fecha_envio', 'metodo_envio')
+    can_delete = False
+    verbose_name = 'Envío'
+    verbose_name_plural = 'Envío'
+
+
+class AsignacionInline(admin.TabularInline):
+    model = Asignacion
+    extra = 0
+    readonly_fields = ('repartidor', 'estado')
+    can_delete = False
+    verbose_name = 'Asignación de repartidor'
+    verbose_name_plural = 'Asignaciones de repartidor'
+
+
+class ResenaVentaInline(admin.StackedInline):
+    model = ResenaVenta
+    extra = 0
+    readonly_fields = ('estado_llegada', 'comentario', 'fecha')
+    can_delete = False
+    verbose_name = 'Reseña del cliente'
+    verbose_name_plural = 'Reseña del cliente'
+
+
 @admin.register(Venta)
 class VentaAdmin(admin.ModelAdmin):
     list_display = (
@@ -16,6 +52,23 @@ class VentaAdmin(admin.ModelAdmin):
     list_filter = ('estado', 'metodo_de_pago', 'metodoEnvio', 'fecha_venta')
     search_fields = ('cliente__usuario__username', 'cliente__usuario__email', 'id')
     ordering = ('-fecha_venta',)
+    readonly_fields = (
+        'cliente', 'fecha_venta', 'cantProducto', 'totalVenta',
+        'metodo_de_pago', 'metodoEnvio', 'direccionEnvio',
+        'telefonoContacto', 'observaciones',
+    )
+    fieldsets = (
+        ('Información del cliente', {
+            'fields': ('cliente', 'fecha_venta', 'estado'),
+        }),
+        ('Pago y envío', {
+            'fields': ('metodo_de_pago', 'metodoEnvio', 'direccionEnvio', 'telefonoContacto'),
+        }),
+        ('Resumen del pedido', {
+            'fields': ('cantProducto', 'totalVenta', 'observaciones'),
+        }),
+    )
+    inlines = [DetalleVentaProductosInline, EnvioInline, AsignacionInline, ResenaVentaInline]
 
 
 @admin.register(Producto)
