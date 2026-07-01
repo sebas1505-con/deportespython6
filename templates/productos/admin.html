@@ -395,7 +395,7 @@
         <form method="POST" action="{% url 'producto_nuevo' %}" enctype="multipart/form-data" class="formulario">
           {% csrf_token %}
           <div class="form-row">
-            <div class="campo"><label>Nombre del Producto</label><input type="text" name="nombre" class="campo-input" placeholder="Ej: Guayos Nike" required></div>
+            <div class="campo"><label>Nombre del Producto</label><input type="text" name="nombre" class="campo-input" placeholder="Ej: Camisa 360" required></div>
             <div class="campo"><label>Precio</label><input type="number" name="precio" class="campo-input" placeholder="Ej: 120000" min="1" step="1" required></div>
           </div>
           <div class="campo"><label>Descripción</label><textarea name="descripcion" class="campo-input" rows="3" placeholder="Descripción del producto..."></textarea></div>
