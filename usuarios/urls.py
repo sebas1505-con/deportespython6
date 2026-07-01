@@ -44,4 +44,6 @@ urlpatterns = [
     path('mensajes/repartidores/', views.mensajes_repartidores_lista, name='mensajes_repartidores_lista'),
     path('mensajes/repartidor/<int:repartidor_id>/', views.mensajes_con_repartidor, name='mensajes_con_repartidor'),
     path('mensajes/inbox/', views.mensajes_repartidor_inbox, name='mensajes_repartidor_inbox'),
+    path('ventas/detalle/<int:venta_id>/', views.venta_detalle_json, name='venta_detalle_json'),
+    path('ventas/estado/<int:venta_id>/', views.venta_cambiar_estado, name='venta_cambiar_estado'),
 ]

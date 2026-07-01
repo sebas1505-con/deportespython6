@@ -241,6 +241,9 @@
       <a class="nav-item" onclick="show('reportes', this)">
         <span class="material-symbols-outlined">bar_chart</span><span>Reportes</span>
       </a>
+      <a class="nav-item" onclick="show('ventas', this)">
+        <span class="material-symbols-outlined">receipt_long</span><span>Ventas</span>
+      </a>
       <a class="nav-item" onclick="show('sugerencias', this)">
         <span class="material-symbols-outlined">chat</span><span>Sugerencias</span>
       </a>
@@ -397,6 +400,14 @@
           <div class="form-row">
             <div class="campo"><label>Nombre del Producto</label><input type="text" name="nombre" class="campo-input" placeholder="Ej: Camisa 360" required></div>
             <div class="campo"><label>Precio</label><input type="number" name="precio" class="campo-input" placeholder="Ej: 120000" min="1" step="1" required></div>
+            <div class="campo"><label>Nombre del Producto</label><input type="text" name="nombre" class="campo-input" placeholder="Ej: Guayos Nike" required></div>
+            <div class="campo">
+              <label>Precio</label>
+              <input type="number" name="precio" id="inp-precio-nuevo" class="campo-input"
+                     placeholder="Ej: 120000" min="1000" max="9999999" step="1" required
+                     oninput="validarPrecioAdmin(this)">
+              <small id="precio-nuevo-err" style="display:none;color:#d40000;font-size:12px;margin-top:4px;"></small>
+            </div>
           </div>
           <div class="campo"><label>Descripción</label><textarea name="descripcion" class="campo-input" rows="3" placeholder="Descripción del producto..."></textarea></div>
           <div class="form-row">
@@ -1023,7 +1034,142 @@
     </div>
   </div>
 
+  <!-- ══ VENTAS ══ -->
+  <div class="section" id="sec-ventas">
+    <div class="card-section">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <h2 style="margin:0;">Ventas</h2>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="text" id="buscador-ventas" placeholder="Buscar cliente, producto, #ID…" oninput="filtrarVentas()"
+            style="padding:8px 14px;border:1px solid #ccc;border-radius:8px;font-size:13px;width:230px;outline:none;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <button class="mov-filtro mov-filtro--active" onclick="filtrarVentasEstado('todos',this)">Todos</button>
+            <button class="mov-filtro" onclick="filtrarVentasEstado('Pendiente',this)">Pendiente</button>
+            <button class="mov-filtro" onclick="filtrarVentasEstado('En proceso',this)">En proceso</button>
+            <button class="mov-filtro" onclick="filtrarVentasEstado('Enviado',this)">Enviado</button>
+            <button class="mov-filtro" onclick="filtrarVentasEstado('Entregado',this)">Entregado</button>
+            <button class="mov-filtro" onclick="filtrarVentasEstado('Cancelado',this)">Cancelado</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="lista-ventas-sec">
+        {% for v in ventas %}
+        <div class="mov-card venta venta-sec-card"
+             data-id="{{ v.id }}"
+             data-estado="{{ v.estado }}"
+             data-busq="venta #{{ v.id }} {{ v.cliente.usuario.first_name|lower }} {{ v.cliente.usuario.username|lower }} {{ v.metodo_de_pago|lower }} {% for d in v.detalleventaproductos_set.all %}{{ d.producto.nombre|lower }} {% endfor %}"
+             style="cursor:pointer;"
+             onclick="vdAbrir({{ v.id }})">
+          <div class="venta-head">
+            <div class="venta-head-left">
+              <div class="venta-id-row">
+                <span>💰</span>
+                <span>Venta&nbsp;#{{ v.id }}</span>
+                <span style="font-size:12px;color:#aaa;font-weight:400;">— {{ v.cliente.usuario.first_name|default:v.cliente.usuario.username }}</span>
+              </div>
+              <div class="venta-fecha-row">{{ v.fecha_venta|date:"d M Y · H:i" }}</div>
+            </div>
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div class="venta-estado-pill" data-estado="{{ v.estado }}" data-venta-id="{{ v.id }}">{{ v.estado }}</div>
+              <span style="font-size:12px;font-weight:700;color:#3b82f6;white-space:nowrap;">Ver detalle →</span>
+            </div>
+          </div>
+          <div class="venta-metrics">
+            <div class="venta-metric">
+              <span class="venta-metric-lbl">Total</span>
+              <span class="venta-metric-val total">${{ v.totalVenta|floatformat:0 }}</span>
+            </div>
+            <div class="venta-metric">
+              <span class="venta-metric-lbl">Artículos</span>
+              <span class="venta-metric-val">{{ v.cantProducto }}&nbsp;ud{{ v.cantProducto|pluralize }}</span>
+            </div>
+            <div class="venta-metric">
+              <span class="venta-metric-lbl">Pago</span>
+              <span class="venta-metric-val" style="font-size:13px;font-weight:700;">{{ v.metodo_de_pago }}</span>
+            </div>
+            <div class="venta-metric">
+              <span class="venta-metric-lbl">Envío</span>
+              <span class="venta-metric-val" style="font-size:13px;font-weight:700;">{{ v.metodoEnvio }}</span>
+            </div>
+          </div>
+          {% with detalles=v.detalleventaproductos_set.all %}{% if detalles %}
+          <div class="venta-prods">
+            {% for d in detalles %}
+            <div class="venta-prod-chip">
+              <span class="venta-prod-chip-nombre">{{ d.producto.nombre }}</span>
+              <span class="venta-prod-chip-talla">{{ d.talla }}</span>
+              <span class="venta-prod-chip-cant">×{{ d.cantidad }}</span>
+            </div>
+            {% endfor %}
+          </div>
+          {% endif %}{% endwith %}
+          <div class="venta-footer">
+            {% if v.direccionEnvio %}<span class="venta-footer-item">📍&nbsp;{{ v.direccionEnvio|truncatechars:50 }}</span>{% endif %}
+            {% if v.telefonoContacto %}<span class="venta-footer-item">📞&nbsp;{{ v.telefonoContacto }}</span>{% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div style="text-align:center;color:#aaa;padding:40px;font-style:italic;background:#fff;border-radius:14px;">
+          No hay ventas en el período seleccionado.
+        </div>
+        {% endfor %}
+      </div>
+      <p id="ventas-sin-resultados" style="display:none;text-align:center;color:#aaa;padding:20px;font-style:italic;">No se encontraron ventas.</p>
+    </div>
+  </div>
+
 </main>
+
+<!-- ══ DRAWER DETALLE VENTA ══ -->
+<style>
+.vd-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.5);z-index:2000;display:none;}
+.vd-overlay.open{display:block;}
+.vd-drawer{position:fixed;top:0;right:0;bottom:0;width:700px;max-width:100vw;background:#fff;
+  box-shadow:-6px 0 40px rgba(0,0,0,.2);z-index:2001;transform:translateX(100%);
+  transition:transform .3s cubic-bezier(.4,0,.2,1);overflow-y:auto;display:flex;flex-direction:column;}
+.vd-drawer.open{transform:translateX(0);}
+.vd-dheader{padding:20px 26px 18px;background:#0d1a26;color:#fff;display:flex;align-items:flex-start;
+  justify-content:space-between;position:sticky;top:0;z-index:10;}
+.vd-close{background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:0;line-height:1;opacity:.7;}
+.vd-close:hover{opacity:1;}
+.vd-dbody{padding:24px;flex:1;}
+.vd-sec{margin-bottom:22px;}
+.vd-sec-title{font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.7px;color:#aaa;
+  margin:0 0 12px;padding-bottom:6px;border-bottom:1.5px solid #f0f0f0;}
+.vd-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.vd-item-lbl{font-size:10px;color:#aaa;font-weight:700;text-transform:uppercase;letter-spacing:.4px;margin:0 0 3px;}
+.vd-item-val{font-size:14px;font-weight:600;color:#111;margin:0;}
+.vd-table{width:100%;border-collapse:collapse;font-size:13px;}
+.vd-table th{background:#f5f5f5;padding:9px 12px;text-align:left;font-size:10px;font-weight:800;
+  color:#666;text-transform:uppercase;letter-spacing:.4px;}
+.vd-table td{padding:11px 12px;border-bottom:1px solid #f5f5f5;vertical-align:middle;}
+.vd-table tbody tr:last-child td{border-bottom:none;}
+.vd-table tfoot td{background:#0d1a26;color:#fff;font-weight:700;padding:11px 12px;}
+.vd-sel{padding:8px 12px;border:1.5px solid #ddd;border-radius:8px;font-size:14px;min-width:160px;outline:none;}
+.vd-sel:focus{border-color:#0d1a26;}
+.vd-btn{background:#0d1a26;color:#fff;border:none;padding:9px 22px;border-radius:8px;font-weight:700;
+  font-size:14px;cursor:pointer;}
+.vd-btn:hover{background:#1a2a3e;}
+@media(max-width:720px){.vd-drawer{width:100%;}.vd-grid{grid-template-columns:1fr;}}
+</style>
+
+<div class="vd-overlay" id="vd-overlay" onclick="vdCerrar()"></div>
+<div class="vd-drawer" id="vd-drawer">
+  <div class="vd-dheader">
+    <div>
+      <div style="font-size:1.5rem;font-weight:800;letter-spacing:.5px;" id="vd-titulo">Venta #—</div>
+      <div style="opacity:.65;font-size:.85rem;margin-top:4px;" id="vd-fecha">—</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:14px;">
+      <span id="vd-estado-badge" style="padding:5px 16px;border-radius:20px;font-size:.85rem;font-weight:700;"></span>
+      <button class="vd-close" onclick="vdCerrar()" title="Cerrar">✕</button>
+    </div>
+  </div>
+  <div class="vd-dbody" id="vd-body">
+    <div style="text-align:center;padding:50px;color:#aaa;">Cargando detalle…</div>
+  </div>
+</div>
 
 <script>
 var _fpInicio, _fpFin;
@@ -1484,19 +1630,48 @@ function escapeHtml(str){ return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').
 
 
 document.querySelectorAll('input[type="number"]').forEach(function(input) {
-
     input.addEventListener('input', function () {
-
-        if (this.value < 0) {
-            this.value = 0;
-        }
-
-        // evitar decimales
+        if (this.value < 0) this.value = 0;
         this.value = this.value.replace('.', '');
-
     });
-
 });
+
+function validarPrecioAdmin(inp) {
+    var err = document.getElementById('precio-nuevo-err');
+    if (!err) return true;
+    var v = parseFloat(inp.value);
+    if (!inp.value || isNaN(v)) {
+        err.style.display = 'none'; return true;
+    }
+    if (v < 1000) {
+        err.textContent = 'El precio mínimo es $1.000. Ejemplo válido: 45000';
+        err.style.display = 'block';
+        inp.style.borderColor = '#d40000';
+        return false;
+    }
+    if (v > 9999999) {
+        err.textContent = 'El precio no puede superar $9.999.999. Verifica los dígitos.';
+        err.style.display = 'block';
+        inp.style.borderColor = '#d40000';
+        return false;
+    }
+    err.style.display = 'none';
+    inp.style.borderColor = '#16a34a';
+    return true;
+}
+
+/* Bloquear envío del formulario si el precio es inválido */
+(function(){
+    var form = document.querySelector('form[action*="producto-nuevo"]');
+    if (!form) return;
+    form.addEventListener('submit', function(e) {
+        var inp = document.getElementById('inp-precio-nuevo');
+        if (inp && !validarPrecioAdmin(inp)) {
+            e.preventDefault();
+            inp.focus();
+        }
+    });
+})();
 
 // ── Sidebar hamburger ──
 var _adminSidebar  = document.querySelector('.sidebar');
@@ -1687,6 +1862,197 @@ function msgActualizarLista() {
 msgActualizarLista();
 setInterval(msgActualizarLista, 8000);
 setInterval(function(){ if (_msgRepActivo) msgCargarMensajes(); }, 4000);
+
+/* ══ VENTAS — filtros de la sección ══ */
+var _ventaEstadoFiltro = 'todos';
+function filtrarVentasEstado(estado, el) {
+  _ventaEstadoFiltro = estado;
+  document.querySelectorAll('#sec-ventas .mov-filtro').forEach(function(b){ b.classList.remove('mov-filtro--active'); });
+  el.classList.add('mov-filtro--active');
+  filtrarVentas();
+}
+function filtrarVentas() {
+  var texto = document.getElementById('buscador-ventas').value.toLowerCase();
+  var cards  = document.querySelectorAll('#lista-ventas-sec .venta-sec-card');
+  var vis = 0;
+  cards.forEach(function(card) {
+    var okEstado = _ventaEstadoFiltro === 'todos' || card.getAttribute('data-estado') === _ventaEstadoFiltro;
+    var okTexto  = texto === '' || card.getAttribute('data-busq').includes(texto);
+    card.style.display = (okEstado && okTexto) ? '' : 'none';
+    if (okEstado && okTexto) vis++;
+  });
+  document.getElementById('ventas-sin-resultados').style.display = vis === 0 ? 'block' : 'none';
+}
+
+/* ══ DRAWER DETALLE VENTA ══ */
+function vdAbrir(ventaId) {
+  document.getElementById('vd-overlay').classList.add('open');
+  document.getElementById('vd-drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  document.getElementById('vd-titulo').textContent = 'Venta #' + ventaId;
+  document.getElementById('vd-fecha').textContent = '—';
+  document.getElementById('vd-estado-badge').textContent = '';
+  document.getElementById('vd-body').innerHTML = '<div style="text-align:center;padding:50px;color:#aaa;font-size:14px;">Cargando detalle…</div>';
+
+  fetch('/ventas/detalle/' + ventaId + '/')
+    .then(function(r){ return r.json(); })
+    .then(vdRenderizar)
+    .catch(function(){
+      document.getElementById('vd-body').innerHTML = '<p style="color:#d40000;padding:24px;font-weight:600;">Error al cargar el detalle.</p>';
+    });
+}
+
+function vdCerrar() {
+  document.getElementById('vd-overlay').classList.remove('open');
+  document.getElementById('vd-drawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.addEventListener('keydown', function(e){ if (e.key === 'Escape') vdCerrar(); });
+
+var VD_COLORES = {
+  'Pendiente':  '#f59e0b',
+  'En proceso': '#3b82f6',
+  'Enviado':    '#8b5cf6',
+  'Entregado':  '#16a34a',
+  'Cancelado':  '#d40000',
+  'En camino':  '#8b5cf6'
+};
+
+function vdRenderizar(d) {
+  if (!d.ok) return;
+
+  document.getElementById('vd-titulo').textContent = 'Venta #' + d.id;
+  document.getElementById('vd-fecha').textContent  = d.fecha;
+
+  var badge = document.getElementById('vd-estado-badge');
+  badge.textContent       = d.estado;
+  badge.style.background  = VD_COLORES[d.estado] || '#6b7280';
+  badge.style.color       = '#fff';
+
+  /* — Tabla de productos — */
+  var filaProds = d.detalles.map(function(det) {
+    var desc = parseFloat(det.descuento) > 0
+      ? '<span style="color:#d40000;font-size:12px;">−$' + parseFloat(det.descuento).toLocaleString('es-CO') + '</span>'
+      : '<span style="color:#ccc;">—</span>';
+    return '<tr>'
+      + '<td><div style="font-weight:700;color:#111;font-size:13px;">' + escapeHtml(det.producto) + '</div>'
+      + '<div style="font-size:11px;color:#aaa;">' + escapeHtml(det.categoria) + '</div></td>'
+      + '<td style="text-align:center;"><span style="background:#e8f0fe;color:#1a73e8;padding:2px 10px;border-radius:10px;font-weight:700;font-size:12px;">' + escapeHtml(det.talla) + '</span></td>'
+      + '<td style="text-align:center;font-weight:700;">' + det.cantidad + '</td>'
+      + '<td style="text-align:right;">$' + parseFloat(det.precio_unitario).toLocaleString('es-CO') + '</td>'
+      + '<td style="text-align:right;">' + desc + '</td>'
+      + '<td style="text-align:right;font-weight:800;color:#111;">$' + parseFloat(det.subtotal).toLocaleString('es-CO') + '</td>'
+      + '</tr>';
+  }).join('');
+
+  /* — Envío — */
+  var envioHTML = '';
+  if (d.envio) {
+    var ec = d.envio.estado === 'Entregado' ? '#16a34a' : d.envio.estado === 'Pendiente' ? '#f59e0b' : '#3b82f6';
+    envioHTML = '<div class="vd-sec"><p class="vd-sec-title">Repartidor / Envío</p>'
+      + '<div class="vd-grid">'
+      + '<div><p class="vd-item-lbl">Repartidor</p><p class="vd-item-val">' + escapeHtml(d.envio.repartidor) + '</p></div>'
+      + '<div><p class="vd-item-lbl">Vehículo</p><p class="vd-item-val">' + escapeHtml(d.envio.vehiculo) + (d.envio.placa ? ' · ' + d.envio.placa : '') + '</p></div>'
+      + '<div><p class="vd-item-lbl">Fecha envío</p><p class="vd-item-val">' + d.envio.fecha_envio + '</p></div>'
+      + '<div><p class="vd-item-lbl">Estado</p><p class="vd-item-val"><span style="background:' + ec + ';color:#fff;padding:2px 12px;border-radius:10px;font-size:12px;font-weight:700;">' + escapeHtml(d.envio.estado) + '</span></p></div>'
+      + '</div></div>';
+  }
+
+  /* — Reseña — */
+  var resenaHTML = '';
+  if (d.resena) {
+    var rc = d.resena.estado_llegada.toLowerCase().includes('bien') ? '#16a34a'
+           : d.resena.estado_llegada.toLowerCase().includes('mal')  ? '#e67e22' : '#d40000';
+    resenaHTML = '<div class="vd-sec"><p class="vd-sec-title">Reseña del cliente</p>'
+      + '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">'
+      + '<span style="background:' + rc + ';color:#fff;padding:3px 14px;border-radius:12px;font-size:12px;font-weight:700;">' + escapeHtml(d.resena.estado_llegada) + '</span>'
+      + '<span style="color:#aaa;font-size:12px;">' + d.resena.fecha + '</span></div>'
+      + (d.resena.comentario
+          ? '<div style="background:#f9f9f9;border-left:4px solid #3b82f6;padding:10px 16px;border-radius:0 6px 6px 0;font-style:italic;color:#333;">"' + escapeHtml(d.resena.comentario) + '"</div>'
+          : '<span style="color:#aaa;font-size:13px;">Sin comentario.</span>')
+      + '</div>';
+  }
+
+  /* — Opciones de estado — */
+  var optsEstado = ['Pendiente','En proceso','Enviado','Entregado','Cancelado'].map(function(e) {
+    return '<option value="' + e + '"' + (e === d.estado ? ' selected' : '') + '>' + e + '</option>';
+  }).join('');
+
+  document.getElementById('vd-body').innerHTML =
+    /* Cliente */
+    '<div class="vd-sec"><p class="vd-sec-title">Datos del cliente</p><div class="vd-grid">'
+    + '<div><p class="vd-item-lbl">Nombre</p><p class="vd-item-val">' + escapeHtml(d.cliente.nombre) + ' <span style="color:#aaa;font-weight:400;font-size:12px;">@' + escapeHtml(d.cliente.username) + '</span></p></div>'
+    + '<div><p class="vd-item-lbl">Email</p><p class="vd-item-val">' + escapeHtml(d.cliente.email) + '</p></div>'
+    + '<div><p class="vd-item-lbl">Tel. usuario</p><p class="vd-item-val">' + escapeHtml(d.cliente.telefono) + '</p></div>'
+    + '<div><p class="vd-item-lbl">Tel. contacto</p><p class="vd-item-val">' + escapeHtml(d.telefonoContacto) + '</p></div>'
+    + '<div><p class="vd-item-lbl">Cédula</p><p class="vd-item-val">' + escapeHtml(d.cliente.cedula) + '</p></div>'
+    + '<div><p class="vd-item-lbl">Dirección cliente</p><p class="vd-item-val">' + escapeHtml(d.cliente.direccion) + '</p></div>'
+    + '</div></div>'
+
+    /* Envío y pago */
+    + '<div class="vd-sec"><p class="vd-sec-title">Envío y Pago</p><div class="vd-grid">'
+    + '<div><p class="vd-item-lbl">Método de envío</p><p class="vd-item-val">' + escapeHtml(d.metodoEnvio) + '</p></div>'
+    + '<div><p class="vd-item-lbl">Dirección de envío</p><p class="vd-item-val">' + escapeHtml(d.direccionEnvio) + '</p></div>'
+    + '<div><p class="vd-item-lbl">Método de pago</p><p class="vd-item-val">' + escapeHtml(d.metodo_de_pago) + '</p></div>'
+    + '<div><p class="vd-item-lbl">Observaciones</p><p class="vd-item-val">' + (d.observaciones ? escapeHtml(d.observaciones) : '<span style="color:#ccc;">Ninguna</span>') + '</p></div>'
+    + '</div></div>'
+
+    /* Productos */
+    + '<div class="vd-sec"><p class="vd-sec-title">Productos (' + d.detalles.length + ')</p>'
+    + '<div style="overflow-x:auto;border-radius:8px;border:1px solid #f0f0f0;">'
+    + '<table class="vd-table"><thead><tr>'
+    + '<th>Producto</th><th style="text-align:center;">Talla</th><th style="text-align:center;">Cant.</th>'
+    + '<th style="text-align:right;">Precio unit.</th><th style="text-align:right;">Descuento</th><th style="text-align:right;">Subtotal</th>'
+    + '</tr></thead><tbody>' + filaProds + '</tbody>'
+    + '<tfoot><tr><td colspan="5" style="text-align:right;font-size:12px;letter-spacing:.5px;">TOTAL VENTA</td>'
+    + '<td style="text-align:right;font-size:16px;">$' + parseFloat(d.totalVenta).toLocaleString('es-CO') + '</td></tr></tfoot>'
+    + '</table></div></div>'
+
+    /* Repartidor / envío */
+    + envioHTML
+
+    /* Reseña */
+    + resenaHTML
+
+    /* Cambiar estado */
+    + '<div class="vd-sec"><p class="vd-sec-title">Cambiar estado de la venta</p>'
+    + '<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
+    + '<select class="vd-sel" id="vd-estado-sel">' + optsEstado + '</select>'
+    + '<button class="vd-btn" onclick="vdGuardarEstado(' + d.id + ')">Guardar</button>'
+    + '<span id="vd-estado-ok" style="display:none;font-size:13px;font-weight:700;color:#16a34a;">✓ Estado actualizado</span>'
+    + '</div></div>';
+}
+
+function vdGuardarEstado(ventaId) {
+  var sel = document.getElementById('vd-estado-sel');
+  if (!sel) return;
+  var nuevo = sel.value;
+  fetch('/ventas/estado/' + ventaId + '/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCsrfToken() },
+    body: JSON.stringify({ estado: nuevo })
+  })
+  .then(function(r){ return r.json(); })
+  .then(function(data) {
+    if (!data.ok) return;
+    /* Feedback visual */
+    var ok = document.getElementById('vd-estado-ok');
+    if (ok) { ok.style.display = 'inline'; setTimeout(function(){ ok.style.display = 'none'; }, 2500); }
+    /* Actualizar badge en el drawer */
+    var badge = document.getElementById('vd-estado-badge');
+    if (badge) { badge.textContent = nuevo; badge.style.background = VD_COLORES[nuevo] || '#6b7280'; }
+    /* Actualizar pill en la card de la lista */
+    document.querySelectorAll('.venta-estado-pill[data-venta-id="' + ventaId + '"]').forEach(function(el) {
+      el.textContent = nuevo;
+      el.setAttribute('data-estado', nuevo);
+    });
+    document.querySelectorAll('.venta-sec-card[data-id="' + ventaId + '"]').forEach(function(el) {
+      el.setAttribute('data-estado', nuevo);
+    });
+  })
+  .catch(function(){ alert('Error al actualizar el estado.'); });
+}
 </script>
 </body>
 </html>

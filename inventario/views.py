@@ -255,11 +255,15 @@ _TALLAS_STD_ADULTO = ['S', 'M', 'L', 'XL']
 _TALLAS_STD_NINO   = ['6', '8', '10', '12', '14', '16', '18']
 
 def productos(request):
-    prods = Producto.objects.prefetch_related('tallas').all()
+    from django.db.models import Count
+    prods = Producto.objects.prefetch_related('tallas').annotate(
+        num_ventas=Count('detalleventaproductos', distinct=True)
+    ).all()
     for p in prods:
         tallas_qs = list(p.tallas.all())
         por_nombre = {t.talla: t for t in tallas_qs}
         p.stock_total = sum(t.stock for t in tallas_qs)
+        p.tiene_ventas = p.num_ventas > 0
 
         def _row(nombre):
             t = por_nombre.get(nombre)
@@ -296,6 +300,20 @@ def producto_nuevo(request):
         categoria   = request.POST.get('categoria', '')
         imagen      = request.FILES.get('imagen')
 
+        try:
+            precio_num = float(precio)
+        except (TypeError, ValueError):
+            messages.error(request, 'El precio debe ser un número válido.')
+            return redirect('panel_admin')
+
+        if precio_num < 1000:
+            messages.error(request, 'El precio mínimo es $1.000. Ingresa un precio válido.')
+            return redirect('panel_admin')
+
+        if precio_num > 9_999_999:
+            messages.error(request, 'El precio no puede superar $9.999.999. Verifica el valor ingresado.')
+            return redirect('panel_admin')
+
         producto = Producto.objects.create(
             nombre=nombre, precio=precio,
             descripcion=descripcion, categoria=categoria,
@@ -322,8 +340,23 @@ def producto_nuevo(request):
 def producto_editar(request, id):
     producto = get_object_or_404(Producto, id=id)
     if request.method == "POST":
+        precio_raw = request.POST.get("precio")
+        try:
+            precio_num = float(precio_raw)
+        except (TypeError, ValueError):
+            messages.error(request, 'El precio debe ser un número válido.')
+            return render(request, 'productos/producto_editar.html', {'producto': producto})
+
+        if precio_num < 1000:
+            messages.error(request, 'El precio mínimo es $1.000. Ingresa un precio válido.')
+            return render(request, 'productos/producto_editar.html', {'producto': producto})
+
+        if precio_num > 9_999_999:
+            messages.error(request, 'El precio no puede superar $9.999.999. Verifica el valor ingresado.')
+            return render(request, 'productos/producto_editar.html', {'producto': producto})
+
         producto.nombre      = request.POST.get("nombre")
-        producto.precio      = request.POST.get("precio")
+        producto.precio      = precio_num
         producto.descripcion = request.POST.get("descripcion")
         producto.categoria   = request.POST.get("categoria")
         if request.FILES.get("imagen"):
@@ -366,6 +399,13 @@ def inventario(request):
 
 def producto_eliminar(request, id):
     producto = get_object_or_404(Producto, id=id)
+
+    if DetalleVentaProductos.objects.filter(producto=producto).exists():
+        messages.error(
+            request,
+            f'No se puede eliminar "{producto.nombre}" porque está asociado a una o más ventas registradas.'
+        )
+        return redirect('productos')
 
     for talla in producto.tallas.all():
         if talla.stock > 0:
@@ -654,6 +694,15 @@ def producto_tallas_eliminar(request):
 
         for talla_id in talla_ids:
             talla = get_object_or_404(TallaProducto, id=talla_id)
+
+            if DetalleVentaProductos.objects.filter(producto=talla.producto).exists():
+                messages.error(
+                    request,
+                    f'No se puede eliminar la talla "{talla.talla}" de "{talla.producto.nombre}" '
+                    f'porque ese producto ya tiene ventas registradas de clientes.'
+                )
+                return redirect('productos')
+
             if talla.stock > 0:
                 Movimiento.objects.create(
                     producto        = talla.producto,
@@ -667,9 +716,17 @@ def producto_tallas_eliminar(request):
 
         messages.success(request, 'Tallas eliminadas correctamente.')
         return redirect('productos')
-    
+
 def producto_talla_eliminar(request, talla_id):
     talla = get_object_or_404(TallaProducto, id=talla_id)
+
+    if DetalleVentaProductos.objects.filter(producto=talla.producto).exists():
+        messages.error(
+            request,
+            f'No se puede eliminar la talla "{talla.talla}" de "{talla.producto.nombre}" '
+            f'porque ese producto ya tiene ventas registradas de clientes.'
+        )
+        return redirect('productos')
 
     if talla.stock > 0:
         Movimiento.objects.create(

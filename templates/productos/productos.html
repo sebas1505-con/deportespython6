@@ -172,13 +172,21 @@
     <button class="filter-btn" onclick="setFiltro('descontinuado',this)">Descontinuados</button>
     <button class="filter-btn" onclick="setFiltro('sin-stock',this)">Sin stock</button>
 </div>
+<div class="search-bar" style="margin-top:8px;">
+    <span style="font-size:13px;font-weight:700;color:#555;">Género:</span>
+    <button class="filter-btn active" id="gen-todos"   onclick="setGenero('todos',this)">Todos</button>
+    <button class="filter-btn"        id="gen-hombre"  onclick="setGenero('hombre',this)">Hombre</button>
+    <button class="filter-btn"        id="gen-mujer"   onclick="setGenero('mujer',this)">Mujer</button>
+    <button class="filter-btn"        id="gen-mixto"   onclick="setGenero('mixto',this)">Mixto</button>
+</div>
 
 <div class="prod-grid" id="prod-grid">
 {% for producto in productos %}
 <div class="prod-card {% if producto.descontinuado %}descontinuado{% endif %}"
      data-nombre="{{ producto.nombre|lower }}"
      data-estado="{% if producto.descontinuado %}descontinuado{% else %}activo{% endif %}"
-     data-stock="{{ producto.stock_total|default:0 }}">
+     data-stock="{{ producto.stock_total|default:0 }}"
+     data-categoria="{{ producto.categoria|lower }}">
 
     <div class="prod-img-wrap">
         {% if producto.imagen %}
@@ -233,7 +241,7 @@
                     {% if t.existe %}
                     <span class="talla-cant">{{ t.stock }} uds</span>
                     <button class="btn-del-talla"
-                        onclick="abrirModalUnaTalla('{{ producto.nombre|escapejs }}','{{ t.nombre }}','{{ t.stock }}','{{ t.id }}')"
+                        onclick="abrirModalUnaTalla('{{ producto.nombre|escapejs }}','{{ t.nombre }}','{{ t.stock }}','{{ t.id }}',{% if producto.tiene_ventas %}true{% else %}false{% endif %})"
                         title="Eliminar talla {{ t.nombre }}">🗑</button>
                     {% else %}
                     <span class="talla-cant" style="font-size:9px;">sin registrar</span>
@@ -251,7 +259,7 @@
                     {% if t.existe %}
                     <span class="talla-cant">{{ t.stock }} uds</span>
                     <button class="btn-del-talla"
-                        onclick="abrirModalUnaTalla('{{ producto.nombre|escapejs }}','{{ t.nombre }}','{{ t.stock }}','{{ t.id }}')"
+                        onclick="abrirModalUnaTalla('{{ producto.nombre|escapejs }}','{{ t.nombre }}','{{ t.stock }}','{{ t.id }}',{% if producto.tiene_ventas %}true{% else %}false{% endif %})"
                         title="Eliminar talla {{ t.nombre }}">🗑</button>
                     {% else %}
                     <span class="talla-cant" style="font-size:9px;">sin registrar</span>
@@ -342,14 +350,14 @@
 <!-- Modal eliminar una sola talla -->
 <div class="modal-overlay" id="modal-una-talla-overlay">
     <div class="modal-box">
-        <div class="modal-icon">🗑️</div>
+        <div class="modal-icon" id="mut-icono">🗑️</div>
         <h3 id="mut-titulo">Eliminar talla</h3>
-        <div id="mut-alerta" style="background:#fff1f2;border:1px solid #fca5a5;border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:13px;color:#be123c;font-weight:600;"></div>
+        <div id="mut-alerta" style="border-radius:8px;padding:10px 14px;margin-bottom:20px;font-size:13px;font-weight:600;display:none;"></div>
         <div class="modal-btns">
             <button class="modal-cancel" onclick="cerrarModalUnaTalla()">Cancelar</button>
             <form id="mut-form" method="POST" style="display:inline;">
                 {% csrf_token %}
-                <button type="submit" class="modal-confirm" style="background:#be123c;">Sí, eliminar talla</button>
+                <button type="submit" id="mut-btn-confirmar" class="modal-confirm" style="background:#be123c;">Sí, eliminar talla</button>
             </form>
         </div>
     </div>
@@ -384,10 +392,38 @@ function cerrarModal() { document.getElementById('modal-overlay').classList.remo
 document.getElementById('modal-overlay').addEventListener('click', function(e){ if(e.target===this) cerrarModal(); });
 
 /* ── Modal una talla ── */
-function abrirModalUnaTalla(nombre, talla, stock, tallaId) {
-    document.getElementById('mut-titulo').textContent  = 'Eliminar Talla ' + talla + ' — ' + nombre;
-    document.getElementById('mut-alerta').textContent  = '⚠️ Se perderán ' + stock + ' unidades de la talla ' + talla + '. Esta acción no se puede deshacer.';
-    document.getElementById('mut-form').action         = '/producto-talla-eliminar/' + tallaId + '/';
+function abrirModalUnaTalla(nombre, talla, stock, tallaId, tieneVentas) {
+    var alerta = document.getElementById('mut-alerta');
+    var btnConfirmar = document.getElementById('mut-btn-confirmar');
+    var icono = document.getElementById('mut-icono');
+
+    document.getElementById('mut-titulo').textContent = 'Eliminar Talla ' + talla + ' — ' + nombre;
+    document.getElementById('mut-form').action        = '/producto-talla-eliminar/' + tallaId + '/';
+
+    if (tieneVentas) {
+        icono.textContent = '🚫';
+        alerta.style.display = 'block';
+        alerta.style.background = '#fff1f2';
+        alerta.style.border = '1px solid #fca5a5';
+        alerta.style.color = '#be123c';
+        alerta.innerHTML = '🚫 <strong>No se puede eliminar esta talla.</strong><br>'
+            + 'El producto <strong>' + nombre + '</strong> ya tiene ventas registradas de clientes. '
+            + 'No está permitido eliminar tallas de productos vendidos.';
+        btnConfirmar.disabled = true;
+        btnConfirmar.style.opacity = '0.4';
+        btnConfirmar.style.cursor = 'not-allowed';
+    } else {
+        icono.textContent = '🗑️';
+        alerta.style.display = 'block';
+        alerta.style.background = '#fff1f2';
+        alerta.style.border = '1px solid #fca5a5';
+        alerta.style.color = '#be123c';
+        alerta.textContent = '⚠️ Se perderán ' + stock + ' unidades de la talla ' + talla + '. Esta acción no se puede deshacer.';
+        btnConfirmar.disabled = false;
+        btnConfirmar.style.opacity = '';
+        btnConfirmar.style.cursor = '';
+    }
+
     document.getElementById('modal-una-talla-overlay').classList.add('open');
 }
 function cerrarModalUnaTalla() { document.getElementById('modal-una-talla-overlay').classList.remove('open'); }
@@ -478,21 +514,29 @@ function mostrarToast(msg, tipo) {
 
 /* ── Filtros ── */
 var filtroActual = 'todos';
+var generoActual = 'todos';
+
 function setFiltro(f, el) {
     filtroActual = f;
-    document.querySelectorAll('.filter-btn').forEach(function(b){ b.classList.remove('active'); });
+    document.querySelectorAll('.filter-btn:not([id^="gen-"])').forEach(function(b){ b.classList.remove('active'); });
+    el.classList.add('active'); filtrar();
+}
+function setGenero(g, el) {
+    generoActual = g;
+    document.querySelectorAll('.filter-btn[id^="gen-"]').forEach(function(b){ b.classList.remove('active'); });
     el.classList.add('active'); filtrar();
 }
 function filtrar() {
     var texto = document.getElementById('buscador').value.toLowerCase();
     document.querySelectorAll('#prod-grid .prod-card').forEach(function(card){
-        var ok = (card.getAttribute('data-nombre')||'').includes(texto) && (
-            filtroActual === 'todos'
+        var okEstado = filtroActual === 'todos'
             || (filtroActual === 'activo'        && card.getAttribute('data-estado') === 'activo')
             || (filtroActual === 'descontinuado' && card.getAttribute('data-estado') === 'descontinuado')
-            || (filtroActual === 'sin-stock'     && parseInt(card.getAttribute('data-stock')||0) === 0)
-        );
-        card.style.display = ok ? '' : 'none';
+            || (filtroActual === 'sin-stock'     && parseInt(card.getAttribute('data-stock')||0) === 0);
+        var okGenero = generoActual === 'todos'
+            || card.getAttribute('data-categoria') === generoActual;
+        var okTexto  = (card.getAttribute('data-nombre')||'').includes(texto);
+        card.style.display = (okEstado && okGenero && okTexto) ? '' : 'none';
     });
 }
 </script>

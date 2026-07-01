@@ -13,6 +13,13 @@
 
     <h2>Editar Producto</h2>
 
+    {% if messages %}{% for message in messages %}
+    <p style="background:{% if 'error' in message.tags %}#fee2e2{% else %}#dcfce7{% endif %};
+              color:{% if 'error' in message.tags %}#b91c1c{% else %}#15803d{% endif %};
+              padding:10px 14px;border-radius:8px;font-size:13px;font-weight:600;margin-bottom:14px;">
+      {{ message }}</p>
+    {% endfor %}{% endif %}
+
     <form method="POST" enctype="multipart/form-data">
         {% csrf_token %}
 
@@ -20,11 +27,11 @@
         <input type="text" name="nombre" value="{{ producto.nombre }}" required>
 
         <label>Precio</label>
-        <input type="number" name="precio" value="{{ producto.precio|floatformat:0 }}"
-               min="1" max="9999999" step="1" required
-               oninput="if(this.value.length>7) this.value=this.value.slice(0,7);"
+        <input type="number" name="precio" id="inp-precio-edit" value="{{ producto.precio|floatformat:0 }}"
+               min="1000" max="9999999" step="1" required
+               oninput="validarPrecioEdit(this)"
                style="width:100%;">
-        <small id="precio-err" style="color:#d40000;display:none;font-size:12px;">El precio no puede superar $9.999.999</small>
+        <small id="precio-err" style="color:#d40000;display:none;font-size:12px;margin-top:4px;"></small>
 
         <label>Descripción</label>
         <textarea name="descripcion">{{ producto.descripcion }}</textarea>
@@ -45,27 +52,26 @@
         <label>Cambiar imagen (opcional)</label>
         <input type="file" name="imagen" accept="image/*">
 
-        <button type="submit" onclick="return validarPrecio()">Actualizar Producto</button>
+        <button type="submit" onclick="return validarPrecioEdit(document.getElementById('inp-precio-edit'))">Actualizar Producto</button>
         <a href="{% url 'productos' %}" style="display:block;text-align:center;margin-top:10px;color:#666;font-size:14px;">← Volver</a>
     </form>
 
 </div>
 
 <script>
-function validarPrecio(){
-  var input = document.querySelector('[name="precio"]');
-  var err   = document.getElementById('precio-err');
-  var val   = parseInt(input.value, 10);
-  if(isNaN(val) || val < 1){
-    err.textContent = 'El precio debe ser mayor a $0.';
-    err.style.display = 'block'; input.focus(); return false;
-  }
-  if(val > 9999999){
-    err.textContent = 'El precio no puede superar $9.999.999';
-    err.style.display = 'block'; input.focus(); return false;
-  }
-  err.style.display = 'none';
-  return true;
+function validarPrecioEdit(inp) {
+    var err = document.getElementById('precio-err');
+    var v   = parseFloat(inp.value);
+    if (!inp.value || isNaN(v)) { err.style.display = 'none'; return true; }
+    if (v < 1000) {
+        err.textContent = 'El precio mínimo es $1.000. Ejemplo válido: 45000';
+        err.style.display = 'block'; inp.style.borderColor = '#d40000'; inp.focus(); return false;
+    }
+    if (v > 9999999) {
+        err.textContent = 'El precio no puede superar $9.999.999. Verifica los dígitos.';
+        err.style.display = 'block'; inp.style.borderColor = '#d40000'; inp.focus(); return false;
+    }
+    err.style.display = 'none'; inp.style.borderColor = '#16a34a'; return true;
 }
 </script>
 </body>
